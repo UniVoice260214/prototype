@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+*.tsbuildinfo
+
+# env (secrets)
+.env
+.env.local
+.env.*.local
+
+# dev tools (PC-specific portable binaries: Redis Windows port, Azurite emulator data)
+.tools/
+
+# logs
+*.log
+npm-debug.log*
+
+# coverage
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
