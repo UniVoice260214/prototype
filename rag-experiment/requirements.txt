@@ -1,0 +1,7 @@
+sentence-transformers>=3.0
+torch>=2.2
+faiss-cpu>=1.8
+pdfplumber>=0.11
+openai>=1.66
+python-dotenv>=1.0
+numpy>=1.26

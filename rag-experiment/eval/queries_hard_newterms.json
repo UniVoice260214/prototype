@@ -1,0 +1,373 @@
+[
+  {
+    "query": "경사하강법이랑 확률적 경사하강법은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_sgd",
+      "concept_ch11_s1"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_gradient_descent",
+      "glossary_minibatch",
+      "glossary_momentum"
+    ]
+  },
+  {
+    "query": "미니배치랑 에폭은 어떻게 달라?",
+    "answer_chunk_ids": [
+      "glossary_minibatch",
+      "glossary_epoch"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_batch_size",
+      "glossary_sgd"
+    ]
+  },
+  {
+    "query": "모멘텀은 경사하강법에서 무슨 역할이야?",
+    "answer_chunk_ids": [
+      "glossary_momentum",
+      "concept_ch11_s3"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_learning_rate",
+      "glossary_sgd"
+    ]
+  },
+  {
+    "query": "배치 크기를 크게 하면 어떻게 돼?",
+    "answer_chunk_ids": [
+      "glossary_batch_size"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_minibatch",
+      "glossary_learning_rate"
+    ]
+  },
+  {
+    "query": "랜덤 포레스트랑 부스팅은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_random_forest",
+      "glossary_boosting",
+      "concept_ch9_s2"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_decision_tree",
+      "glossary_ensemble"
+    ]
+  },
+  {
+    "query": "결정 트리는 어떻게 예측을 해?",
+    "answer_chunk_ids": [
+      "glossary_decision_tree"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_random_forest",
+      "glossary_boosting"
+    ]
+  },
+  {
+    "query": "앙상블이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_ensemble",
+      "concept_ch9_s2"
+    ],
+    "query_type": "definition",
+    "_distractors": [
+      "glossary_random_forest",
+      "glossary_boosting"
+    ]
+  },
+  {
+    "query": "KNN이랑 k-평균은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_knn",
+      "glossary_kmeans",
+      "concept_ch9_s3"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_svm",
+      "glossary_unsupervised_learning"
+    ]
+  },
+  {
+    "query": "서포트 벡터 머신은 어떻게 분류해?",
+    "answer_chunk_ids": [
+      "glossary_svm",
+      "concept_ch9_s3"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_knn",
+      "glossary_logistic_regression"
+    ]
+  },
+  {
+    "query": "선형 회귀랑 로지스틱 회귀는 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_linear_regression",
+      "glossary_logistic_regression",
+      "concept_ch9_s1"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_loss_function"
+    ]
+  },
+  {
+    "query": "나이브 베이즈는 왜 나이브라고 불러?",
+    "answer_chunk_ids": [
+      "glossary_naive_bayes"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_logistic_regression"
+    ]
+  },
+  {
+    "query": "주성분 분석은 뭘 하는 거야?",
+    "answer_chunk_ids": [
+      "glossary_pca",
+      "concept_ch9_s4"
+    ],
+    "query_type": "definition",
+    "_distractors": [
+      "glossary_kmeans",
+      "glossary_embedding"
+    ]
+  },
+  {
+    "query": "정확도만 보면 안 되는 이유가 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_accuracy",
+      "concept_ch10_s1"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_precision_recall",
+      "glossary_f1_score"
+    ]
+  },
+  {
+    "query": "정밀도랑 재현율은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_precision_recall",
+      "concept_ch10_s1"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_accuracy",
+      "glossary_f1_score",
+      "glossary_confusion_matrix"
+    ]
+  },
+  {
+    "query": "F1 점수는 왜 쓰는 거야?",
+    "answer_chunk_ids": [
+      "glossary_f1_score",
+      "concept_ch10_s2"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_precision_recall",
+      "glossary_accuracy"
+    ]
+  },
+  {
+    "query": "혼동 행렬이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_confusion_matrix",
+      "concept_ch10_s2"
+    ],
+    "query_type": "definition",
+    "_distractors": [
+      "glossary_accuracy",
+      "glossary_precision_recall"
+    ]
+  },
+  {
+    "query": "교차 검증은 왜 하는 거야?",
+    "answer_chunk_ids": [
+      "glossary_cross_validation",
+      "concept_ch10_s3"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_overfitting",
+      "glossary_hyperparameter"
+    ]
+  },
+  {
+    "query": "렐루랑 시그모이드는 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_relu",
+      "glossary_sigmoid",
+      "concept_ch5_s2"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_softmax",
+      "glossary_activation_function"
+    ]
+  },
+  {
+    "query": "소프트맥스는 언제 써?",
+    "answer_chunk_ids": [
+      "glossary_softmax"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_sigmoid",
+      "glossary_activation_function"
+    ]
+  },
+  {
+    "query": "배치 정규화랑 규제는 같은 거야?",
+    "answer_chunk_ids": [
+      "glossary_batch_norm",
+      "glossary_regularization",
+      "concept_ch4_s3"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_dropout"
+    ]
+  },
+  {
+    "query": "잔차 연결은 왜 필요해?",
+    "answer_chunk_ids": [
+      "glossary_residual_connection"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_vanishing_gradient",
+      "glossary_batch_norm"
+    ]
+  },
+  {
+    "query": "완전 연결 층이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_fully_connected"
+    ],
+    "query_type": "definition",
+    "_distractors": [
+      "glossary_cnn",
+      "glossary_perceptron"
+    ]
+  },
+  {
+    "query": "너비 우선 탐색이랑 깊이 우선 탐색은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_bfs",
+      "glossary_dfs",
+      "concept_ch12_s1"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_uniform_cost_search",
+      "glossary_search"
+    ]
+  },
+  {
+    "query": "A*랑 그리디 탐색은 어떻게 달라?",
+    "answer_chunk_ids": [
+      "glossary_a_star",
+      "glossary_greedy_search",
+      "concept_ch12_s3"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_heuristic",
+      "glossary_uniform_cost_search"
+    ]
+  },
+  {
+    "query": "휴리스틱은 탐색에서 무슨 역할이야?",
+    "answer_chunk_ids": [
+      "glossary_heuristic",
+      "concept_ch12_s3"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_a_star",
+      "glossary_greedy_search"
+    ]
+  },
+  {
+    "query": "미니맥스는 게임에서 어떻게 동작해?",
+    "answer_chunk_ids": [
+      "glossary_minimax",
+      "concept_ch12_s4"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_alpha_beta"
+    ]
+  },
+  {
+    "query": "알파-베타 가지치기는 왜 쓰는 거야?",
+    "answer_chunk_ids": [
+      "glossary_alpha_beta",
+      "concept_ch12_s4"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_minimax"
+    ]
+  },
+  {
+    "query": "워드투벡이랑 요즘 임베딩은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_word2vec",
+      "concept_ch13_s1"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_embedding",
+      "glossary_transformer"
+    ]
+  },
+  {
+    "query": "위치 인코딩은 트랜스포머에서 왜 필요해?",
+    "answer_chunk_ids": [
+      "glossary_positional_encoding",
+      "concept_ch13_s2"
+    ],
+    "query_type": "principle",
+    "_distractors": [
+      "glossary_transformer",
+      "glossary_self_attention"
+    ]
+  },
+  {
+    "query": "셀프 어텐션이랑 크로스 어텐션은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_cross_attention",
+      "glossary_self_attention",
+      "concept_ch13_s3"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_attention",
+      "glossary_encoder_decoder"
+    ]
+  },
+  {
+    "query": "빔 서치는 그리디 생성이랑 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_beam_search",
+      "concept_ch13_s4"
+    ],
+    "query_type": "comparison",
+    "_distractors": [
+      "glossary_greedy_search",
+      "glossary_llm"
+    ]
+  }
+]
