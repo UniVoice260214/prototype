@@ -28,6 +28,13 @@ UniVoice 시스템의 NestJS Control Plane.
 
 정의 위치: `src/common/redis-keys.ts`, `src/modules/events/events.types.ts`
 
+## AI 워커 (실시간 번역 파이프라인) — `ai-worker/`
+
+위 인터페이스를 소비하는 Python AI 워커가 [ai-worker/](ai-worker/README.md)에 있다.
+`sessions.started` 구독 → glossary 주입 → LiveKit Room 입장 → **STT → 문장분리 → (RAG) → 번역 → TTS → locale별 track publish + 자막 DataChannel** 전 구간을 담당한다.
+**RAG만 교체 가능한 인터페이스(`RagClient`, 기본 NoOp)로 비워 두었고 나머지는 조립하면 동작**한다. RAG 구현·주입 방법은 해당 README의 "RAG 붙이기" 절 참조.
+새로 필요한 키: `AZURE_SPEECH_*`(STT+TTS), `OPENAI_API_KEY`(번역). LiveKit·Redis는 Core API와 공유.
+
 ## 요구사항
 - Node.js 20+
 - PostgreSQL 13+
