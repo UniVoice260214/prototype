@@ -1,8 +1,9 @@
-"""원본 자료 4개 → data/chunks/chunks.jsonl 청킹.
+"""원본 자료 → data/chunks/chunks.jsonl 청킹.
 
 자료별 규칙:
 - I2A_*.pdf (강의 슬라이드): 같은 제목의 연속 슬라이드 병합, 50자 미만 제외
 - 인공지능_개념_지식자료.pdf (문서형): 소제목 단위, 500토큰 초과 시만 overlap 분할
+- 인공지능_입문_교재.pdf (교재형): '제N장'+'N.M 절' 단위 청킹, 요약/핵심용어 별도 chunk
 - ai_glossary*.json: 용어당 1 chunk, 필드명 포함 텍스트로 변환
 
 실행: python src/ingest.py
@@ -193,6 +194,144 @@ def ingest_concept_pdf(
     return chunks
 
 
+# ── (2b) 교재형 PDF (인공지능_입문_교재.pdf) ──────────────────────────
+
+TB_CHAPTER_RE = re.compile(r"^제(\d+)장$")
+TB_PART_RE = re.compile(r"^제\d+부\s")
+TB_SECTION_RE = re.compile(r"^(\d+)\.(\d+)\s+(\S.*)$")
+TB_FOOTER_RE = re.compile(r"^인공지능 입문\s*\d+$")
+TB_SUMMARY_HEADER = "이 장의 요약"
+TB_TERMS_HEADER = "핵심 용어"
+
+
+def ingest_textbook_pdf(
+    path: Path, *, doc_type: str = "textbook", id_prefix: str = "tb"
+) -> list[Chunk]:
+    """'제N장' + 'N.M 절' 구조의 교재를 절 단위로 청킹.
+
+    장별로 개요(intro)/절/'이 장의 요약'/'핵심 용어'를 각각 chunk로 만들고,
+    500토큰 초과 시에만 overlap 분할한다. 표지·목차·부(部) 표지는 제외.
+    """
+    with pdfplumber.open(path) as pdf:
+        lines: list[str] = []
+        for page in pdf.pages:
+            text = page.extract_text() or ""
+            for raw in text.splitlines():
+                ln = raw.strip()
+                if ln and not TB_FOOTER_RE.match(ln):
+                    lines.append(ln)
+
+    # 첫 '제N장' 이전(표지/목차)은 버림
+    start = next((i for i, ln in enumerate(lines) if TB_CHAPTER_RE.match(ln)), None)
+    if start is None:
+        return []
+    lines = lines[start:]
+
+    # 장 단위 상태기계: intro → (절 본문)* → 요약 → 핵심 용어
+    chapters: list[dict[str, Any]] = []
+    current: dict[str, Any] | None = None
+    block = "intro"
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        ch_match = TB_CHAPTER_RE.match(line)
+        if ch_match and i + 1 < len(lines):
+            current = {
+                "no": int(ch_match.group(1)),
+                "title": lines[i + 1],
+                "intro": [],
+                "sections": [],  # [sec_no, sec_title, body_lines]
+                "summary": [],
+                "terms": [],
+            }
+            chapters.append(current)
+            block = "intro"
+            i += 2
+            continue
+        if current is None or TB_PART_RE.match(line):
+            i += 1  # 부(部) 표지 라인 스킵
+            continue
+        sec_match = TB_SECTION_RE.match(line)
+        if sec_match and int(sec_match.group(1)) == current["no"]:
+            current["sections"].append(
+                [int(sec_match.group(2)), sec_match.group(3), []]
+            )
+            block = "section"
+        elif line == TB_SUMMARY_HEADER:
+            block = "summary"
+        elif line == TB_TERMS_HEADER:
+            block = "terms"
+        elif block == "summary":
+            current["summary"].append(line)
+        elif block == "terms":
+            current["terms"].append(line)
+        elif block == "section" and current["sections"]:
+            current["sections"][-1][2].append(line)
+        else:
+            current["intro"].append(line)
+        i += 1
+
+    # 장별 chunk 생성
+    chunks: list[Chunk] = []
+    for ch in chapters:
+        ch_no: int = ch["no"]
+        base = f"{id_prefix}_ch{ch_no:02d}"
+        header = f"[제{ch_no}장 {ch['title']}]"
+        meta_base = {"chapter": f"제{ch_no}장 {ch['title']}"}
+
+        if ch["intro"]:
+            chunks.append(
+                Chunk(
+                    chunk_id=f"{base}_intro",
+                    source=path.name,
+                    doc_type=doc_type,
+                    text=f"{header} 개요\n" + " ".join(ch["intro"]),
+                    metadata={**meta_base, "section_title": "개요"},
+                )
+            )
+        for sec_no, sec_title, body_lines in ch["sections"]:
+            full_text = f"{header} {sec_title}\n" + " ".join(body_lines)
+            for part_no, part_text in enumerate(
+                _split_with_overlap(full_text, MAX_SECTION_TOKENS, OVERLAP_TOKENS)
+            ):
+                suffix = f"_{part_no + 1}" if part_no > 0 else ""
+                chunks.append(
+                    Chunk(
+                        chunk_id=f"{base}_s{sec_no}{suffix}",
+                        source=path.name,
+                        doc_type=doc_type,
+                        text=part_text,
+                        metadata={**meta_base, "section_title": sec_title},
+                    )
+                )
+        if ch["summary"]:
+            chunks.append(
+                Chunk(
+                    chunk_id=f"{base}_summary",
+                    source=path.name,
+                    doc_type=doc_type,
+                    text=f"{header} 이 장의 요약\n" + "\n".join(ch["summary"]),
+                    metadata={**meta_base, "section_title": TB_SUMMARY_HEADER},
+                )
+            )
+        if ch["terms"]:
+            full_text = f"{header} 핵심 용어\n" + " ".join(ch["terms"])
+            for part_no, part_text in enumerate(
+                _split_with_overlap(full_text, MAX_SECTION_TOKENS, OVERLAP_TOKENS)
+            ):
+                suffix = f"_{part_no + 1}" if part_no > 0 else ""
+                chunks.append(
+                    Chunk(
+                        chunk_id=f"{base}_terms{suffix}",
+                        source=path.name,
+                        doc_type=doc_type,
+                        text=part_text,
+                        metadata={**meta_base, "section_title": TB_TERMS_HEADER},
+                    )
+                )
+    return chunks
+
+
 # ── (4) 방해물 코퍼스 (data/raw_distractor/*.pdf) ─────────────────────
 
 
@@ -315,6 +454,9 @@ def main() -> None:
     concept_path = DATA_RAW_DIR / "인공지능_개념_지식자료.pdf"
     if concept_path.exists():
         all_chunks.extend(ingest_concept_pdf(concept_path))
+    textbook_path = DATA_RAW_DIR / "인공지능_입문_교재.pdf"
+    if textbook_path.exists():
+        all_chunks.extend(ingest_textbook_pdf(textbook_path))
     glossary_paths = sorted(DATA_RAW_DIR.glob("ai_glossary*.json"))
     if glossary_paths:
         all_chunks.extend(ingest_glossary(glossary_paths[0]))

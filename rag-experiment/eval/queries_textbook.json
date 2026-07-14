@@ -1,0 +1,122 @@
+[
+  {
+    "query": "PEAS가 뭐야?",
+    "answer_chunk_ids": ["tb_ch02_s3", "glossary_task_environment"],
+    "query_type": "definition"
+  },
+  {
+    "query": "차원의 저주가 뭐야?",
+    "answer_chunk_ids": ["tb_ch08_s4"],
+    "query_type": "definition"
+  },
+  {
+    "query": "ROC 곡선과 AUC가 뭐야?",
+    "answer_chunk_ids": ["tb_ch09_s4"],
+    "query_type": "definition"
+  },
+  {
+    "query": "데이터 누수(data leakage)가 뭐야?",
+    "answer_chunk_ids": ["tb_ch09_s6"],
+    "query_type": "definition"
+  },
+  {
+    "query": "군집 수를 정하는 엘보우 방법이 뭐야?",
+    "answer_chunk_ids": ["tb_ch08_s2"],
+    "query_type": "definition"
+  },
+  {
+    "query": "HNSW가 뭐야?",
+    "answer_chunk_ids": ["tb_ch15_s5"],
+    "query_type": "definition"
+  },
+  {
+    "query": "LLM의 스케일링 법칙(scaling law)이 뭐야?",
+    "answer_chunk_ids": ["tb_ch14_s7"],
+    "query_type": "definition"
+  },
+  {
+    "query": "온톨로지가 뭐야?",
+    "answer_chunk_ids": ["tb_ch04_s5"],
+    "query_type": "definition"
+  },
+  {
+    "query": "L1 정규화와 L2 정규화는 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch06_s6", "glossary_regularization"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "LSTM과 GRU의 게이트 구조는 어떻게 달라?",
+    "answer_chunk_ids": ["tb_ch13_s3"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "명제 논리와 술어 논리의 차이가 뭐야?",
+    "answer_chunk_ids": ["tb_ch04_s2", "tb_ch04_s3"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "밀집 검색과 희소 검색은 뭐가 다르고, 하이브리드 검색은 뭐야?",
+    "answer_chunk_ids": ["tb_ch16_s4"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "회귀 평가 지표에서 MAE랑 RMSE는 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch09_s5"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "규칙 기반 시스템에서 전방향 추론과 후방향 추론의 차이는?",
+    "answer_chunk_ids": ["tb_ch04_s4"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "계층적 군집은 K-평균과 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch08_s3"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "편향이 큰 모델과 분산이 큰 모델은 어떻게 달라?",
+    "answer_chunk_ids": ["tb_ch09_s1"],
+    "query_type": "comparison"
+  },
+  {
+    "query": "K-평균 알고리즘은 어떤 과정을 반복해서 군집을 나눠?",
+    "answer_chunk_ids": ["tb_ch08_s1", "glossary_kmeans", "concept_ch9_s4"],
+    "query_type": "principle"
+  },
+  {
+    "query": "스케일드 닷프로덕트 어텐션은 어떻게 계산돼?",
+    "answer_chunk_ids": ["tb_ch14_s2"],
+    "query_type": "principle"
+  },
+  {
+    "query": "RAG 파이프라인은 어떤 단계로 동작해?",
+    "answer_chunk_ids": ["tb_ch16_s2", "glossary_rag", "concept_ch8_s4"],
+    "query_type": "principle"
+  },
+  {
+    "query": "A* 탐색에서 휴리스틱의 허용성이 왜 중요해?",
+    "answer_chunk_ids": ["tb_ch03_s4"],
+    "query_type": "principle"
+  },
+  {
+    "query": "전이학습은 어떤 원리로 동작해?",
+    "answer_chunk_ids": ["tb_ch12_s5"],
+    "query_type": "principle"
+  },
+  {
+    "query": "학습률 스케줄링은 왜 필요해?",
+    "answer_chunk_ids": ["tb_ch11_s4", "concept_ch3_s4", "glossary_learning_rate"],
+    "query_type": "principle"
+  },
+  {
+    "query": "문서 청킹 전략에는 어떤 방식들이 있어?",
+    "answer_chunk_ids": ["tb_ch16_s3", "tb_ch15_s6"],
+    "query_type": "principle"
+  },
+  {
+    "query": "데이터 증강은 어떻게 과적합을 줄여?",
+    "answer_chunk_ids": ["tb_ch11_s5", "concept_ch4_s4"],
+    "query_type": "principle"
+  }
+]

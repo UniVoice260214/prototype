@@ -1,0 +1,381 @@
+[
+  {
+    "query": "드롭아웃이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_dropout",
+      "concept_ch4_s4"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "환각(할루시네이션)이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_hallucination",
+      "concept_ch8_s3"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "하이퍼파라미터가 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_hyperparameter"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "임베딩이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_embedding",
+      "concept_ch7_s1"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "벡터 데이터베이스가 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_vector_database"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "셀프 어텐션이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_self_attention"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "인컨텍스트 학습이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_in_context_learning"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "손실 함수가 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_loss_function"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "합리적 에이전트가 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_rational_agent",
+      "lec02_p07_07"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "전이 모형이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_transition_model"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "상태공간이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_state_space"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "빅 오 표기법이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_complexity"
+    ],
+    "query_type": "definition"
+  },
+  {
+    "query": "지도학습과 강화학습의 차이는?",
+    "answer_chunk_ids": [
+      "concept_ch2_s1",
+      "concept_ch2_s4",
+      "glossary_reinforcement_learning"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "미세 조정과 RAG는 언제 각각 써?",
+    "answer_chunk_ids": [
+      "concept_ch8_s5",
+      "concept_ch8_s2"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "인공지능, 머신러닝, 딥러닝은 어떤 관계야?",
+    "answer_chunk_ids": [
+      "concept_ch1_s1",
+      "concept_ch1_s4",
+      "glossary_ai"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "분류와 군집화는 뭐가 달라?",
+    "answer_chunk_ids": [
+      "concept_ch2_s3"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "과적합과 과소적합은 어떻게 구분해?",
+    "answer_chunk_ids": [
+      "concept_ch4_s1",
+      "glossary_overfitting",
+      "glossary_underfitting"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "역전파와 경사하강법의 역할은 어떻게 달라?",
+    "answer_chunk_ids": [
+      "concept_ch3_s5",
+      "glossary_backpropagation"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "정규화(Regularization)와 Normalization은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "concept_ch4_s3",
+      "glossary_regularization"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "RNN과 트랜스포머는 뭐가 달라?",
+    "answer_chunk_ids": [
+      "concept_ch7_s2",
+      "concept_ch7_s4",
+      "glossary_transformer"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "단순 반사 에이전트와 모형 기반 에이전트는 뭐가 달라?",
+    "answer_chunk_ids": [
+      "glossary_simple_reflex_agent",
+      "glossary_model_based_agent"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "목표 기반 에이전트와 효용 기반 에이전트의 차이는?",
+    "answer_chunk_ids": [
+      "glossary_goal_based_agent",
+      "glossary_utility_based_agent"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "에이전트 함수와 에이전트 프로그램은 어떻게 달라?",
+    "answer_chunk_ids": [
+      "glossary_agent_function",
+      "glossary_agent_program"
+    ],
+    "query_type": "comparison"
+  },
+  {
+    "query": "학습률이 너무 크면 어떻게 돼?",
+    "answer_chunk_ids": [
+      "concept_ch3_s4",
+      "glossary_learning_rate"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "역전파는 어떻게 동작해?",
+    "answer_chunk_ids": [
+      "glossary_backpropagation",
+      "concept_ch5_s3",
+      "concept_ch3_s5"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "경사하강법은 어떤 원리로 동작해?",
+    "answer_chunk_ids": [
+      "concept_ch3_s3",
+      "glossary_gradient_descent",
+      "tb_ch06_s3"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "어텐션은 어떤 문제를 어떻게 해결해?",
+    "answer_chunk_ids": [
+      "concept_ch7_s3",
+      "glossary_attention"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "CNN에서 합성곱과 풀링은 각각 무슨 역할이야?",
+    "answer_chunk_ids": [
+      "concept_ch6_s2",
+      "glossary_convolution",
+      "glossary_pooling",
+      "tb_ch12_s3"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "RAG는 어떻게 환각을 줄여?",
+    "answer_chunk_ids": [
+      "concept_ch8_s4",
+      "glossary_rag",
+      "tb_ch16_s1"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "기울기 소실은 왜 발생해?",
+    "answer_chunk_ids": [
+      "glossary_vanishing_gradient",
+      "concept_ch5_s3"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "활성화 함수는 왜 필요해?",
+    "answer_chunk_ids": [
+      "concept_ch5_s2",
+      "glossary_activation_function"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "퍼셉트론은 어떻게 출력을 계산해?",
+    "answer_chunk_ids": [
+      "glossary_perceptron",
+      "concept_ch5_s1"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "사전 학습은 왜 하는 거야?",
+    "answer_chunk_ids": [
+      "glossary_pretraining",
+      "concept_ch8_s2"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "탐색은 상태공간에서 어떻게 이루어져?",
+    "answer_chunk_ids": [
+      "glossary_search",
+      "glossary_state_space",
+      "lec03_p10_10"
+    ],
+    "query_type": "principle"
+  },
+  {
+    "query": "합리적 에이전트의 정의는?",
+    "answer_chunk_ids": [
+      "lec02_p07_07",
+      "lec02_p08_08"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "탐색 문제의 4가지 구성요소는?",
+    "answer_chunk_ids": [
+      "lec03_p10_10"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "에이전트의 4가지 유형은?",
+    "answer_chunk_ids": [
+      "lec02_p18_18"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "과제 환경의 속성에는 어떤 것들이 있어?",
+    "answer_chunk_ids": [
+      "lec02_p12_15"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "학습하는 에이전트는 어떤 구성요소로 이루어져 있어?",
+    "answer_chunk_ids": [
+      "lec02_p24_24",
+      "lec02_p23_23"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "8-퍼즐 문제는 탐색 문제로 어떻게 정의돼?",
+    "answer_chunk_ids": [
+      "lec03_p13_14"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "탐색 알고리즘의 성능은 무엇으로 측정해?",
+    "answer_chunk_ids": [
+      "lec03_p18_18",
+      "lec03_p19_19"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "PEAS가 뭐야?",
+    "answer_chunk_ids": [
+      "lec02_p10_11"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "지각열이 무슨 뜻이야?",
+    "answer_chunk_ids": [
+      "lec02_p03_06",
+      "glossary_percept_sequence"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "진공청소기 문제의 상태는 몇 가지야?",
+    "answer_chunk_ids": [
+      "lec03_p12_12"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "에이전트는 아키텍처와 프로그램으로 어떻게 나뉘어?",
+    "answer_chunk_ids": [
+      "lec02_p17_17",
+      "glossary_agent_program"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "성과 측도는 어떻게 설계하는 게 좋아?",
+    "answer_chunk_ids": [
+      "lec02_p07_07",
+      "glossary_performance_measure"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "원자적 표현, 분해된 표현, 구조적 표현은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "lec02_p25_25",
+      "glossary_representation"
+    ],
+    "query_type": "lecture"
+  },
+  {
+    "query": "상태 공간 표현에 그래프와 트리를 왜 써?",
+    "answer_chunk_ids": [
+      "lec03_p17_17",
+      "glossary_graph_tree"
+    ],
+    "query_type": "lecture"
+  }
+]

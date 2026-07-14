@@ -1,0 +1,231 @@
+[
+  {
+    "query": "모델이 연습문제는 다 맞히는데 새로운 문제만 나오면 틀리는 건 무슨 현상이야?",
+    "answer_chunk_ids": [
+      "glossary_overfitting",
+      "concept_ch4_s1",
+      "tb_ch09_s2"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "손실이 줄어드는 방향으로 값을 조금씩 바꿔가며 최적값을 찾는 방법이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_gradient_descent",
+      "concept_ch3_s3",
+      "tb_ch06_s3"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "층이 깊어질수록 앞쪽 층이 거의 학습되지 않는 문제는 왜 생겨?",
+    "answer_chunk_ids": [
+      "glossary_vanishing_gradient",
+      "concept_ch5_s3",
+      "tb_ch11_s1"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "학습할 때 뉴런 일부를 무작위로 꺼버리는 기법이 뭐지?",
+    "answer_chunk_ids": [
+      "glossary_dropout",
+      "concept_ch4_s4"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "모델이 그럴듯하지만 사실이 아닌 내용을 지어내는 문제를 뭐라고 해?",
+    "answer_chunk_ids": [
+      "glossary_hallucination",
+      "concept_ch8_s3"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "문장을 처리할 때 앞의 어떤 단어를 참고해야 할지 가중치를 주는 방식은?",
+    "answer_chunk_ids": [
+      "glossary_attention",
+      "concept_ch7_s3",
+      "tb_ch13_s5",
+      "tb_ch14_s1"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "정답지를 주고 가르치는 방식과 상벌로 가르치는 방식은 뭐가 달라?",
+    "answer_chunk_ids": [
+      "concept_ch2_s1",
+      "concept_ch2_s4",
+      "glossary_reinforcement_learning",
+      "concept_ch2_s5",
+      "tb_ch05_s2"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "외부 문서를 찾아와서 그걸 근거로 답을 만들게 하는 방법이 뭐야?",
+    "answer_chunk_ids": [
+      "glossary_rag",
+      "concept_ch8_s4",
+      "tb_ch16_intro",
+      "tb_ch16_terms"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "센서로 주변을 인식하고 스스로 다음 행동을 결정하는 프로그램을 수업에서 뭐라고 했지?",
+    "answer_chunk_ids": [
+      "lec02_p03_06",
+      "tb_ch02_s1",
+      "tb_ch02_terms"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "보폭이 너무 넓으면 최저점을 지나쳐버리는데, 이때 뭘 조절해야 해?",
+    "answer_chunk_ids": [
+      "concept_ch3_s4",
+      "glossary_learning_rate"
+    ],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "어 그러니까 피이에이에스인가 그 네 가지가 뭐였죠",
+    "answer_chunk_ids": [
+      "lec02_p10_11",
+      "glossary_task_environment",
+      "tb_ch02_s3"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "자 탐색 문제 정의할 때 뭐뭐 필요하다 그랬죠 네 가지",
+    "answer_chunk_ids": [
+      "lec03_p10_10",
+      "glossary_search_problem",
+      "tb_ch03_s1"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "에이전트 유형 네 가지 어 단순 반사 그다음에 뭐였지",
+    "answer_chunk_ids": [
+      "lec02_p18_18"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "학습률 너무 크면 어떻게 된다 그랬어요 발산 뭐 그런 거",
+    "answer_chunk_ids": [
+      "concept_ch3_s4",
+      "glossary_learning_rate"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "컨벌루션하고 풀링 각각 뭐 하는 거였죠",
+    "answer_chunk_ids": [
+      "concept_ch6_s2",
+      "glossary_convolution",
+      "glossary_pooling",
+      "tb_ch12_s3"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "어 드랍아웃이 뭐라 그랬지 오버피팅 막는 거 맞나",
+    "answer_chunk_ids": [
+      "glossary_dropout",
+      "concept_ch4_s4"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "자 그 미세조정이랑 라그 언제 뭐 쓰라 그랬죠",
+    "answer_chunk_ids": [
+      "concept_ch8_s5",
+      "concept_ch8_s2"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "트랜스포머가 알엔엔보다 뭐가 좋다 그랬더라",
+    "answer_chunk_ids": [
+      "concept_ch7_s4",
+      "concept_ch7_s2",
+      "glossary_transformer",
+      "tb_ch14_intro"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "합리적 에이전트 그 옳은 일 한다는 게 무슨 뜻이라 했죠",
+    "answer_chunk_ids": [
+      "lec02_p07_07",
+      "lec02_p08_08",
+      "glossary_rational_agent",
+      "tb_ch02_s2"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "백프로파게이션 그거 어떻게 돌아가는 거예요",
+    "answer_chunk_ids": [
+      "glossary_backpropagation",
+      "concept_ch5_s3",
+      "concept_ch3_s5"
+    ],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "출석 체크 할게요 이름 부르면 대답해 주세요",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "다음 주 과제 제출 기한이 언제까지죠?",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "오늘 날씨가 진짜 좋네요 다들 점심 드셨어요?",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "중간고사 시험 범위가 어디까지인가요?",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "어 마이크 소리 뒤에까지 잘 들리나요?",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "수강 정정 기간이 이번 주 금요일까지예요",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "조별 발표 순서를 정해야 하는데 1조부터 할까요?",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "강의실이 다음 주부터 302호로 바뀝니다",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "어제 축구 경기 보신 분 있어요? 진짜 아쉬웠죠",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  },
+  {
+    "query": "교재는 학교 앞 서점에서 구매하실 수 있어요",
+    "answer_chunk_ids": [],
+    "query_type": "negative"
+  }
+]

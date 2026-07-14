@@ -23,8 +23,8 @@ from embed import load_chunks
 from evaluate import RECALL_KS, evaluate_model, load_queries, metrics_of
 
 INDEX_QUERY_TYPES: dict[str, list[str]] = {
-    "major_ai": ["definition", "comparison", "principle"],
-    "lecture_kim_i2a": ["lecture"],
+    "major_ai": ["definition", "comparison", "principle", "paraphrase", "stt_noise"],
+    "lecture_kim_i2a": ["lecture", "paraphrase", "stt_noise"],
 }
 
 

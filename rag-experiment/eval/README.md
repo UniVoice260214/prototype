@@ -6,6 +6,10 @@
 |------|------|
 | `queries_positive.json` | 확정 positive 질의 48개 (definition 12 / comparison 11 / principle 11 / lecture 14) |
 | `queries_hard.json` | 하드 세트 30개 (paraphrase 10 / stt_noise 10 / negative 10) — negative는 `answer_chunk_ids: []` (RAG OFF 케이스) |
+| `queries_textbook.json` | 교재(`인공지능_입문_교재.pdf`) 기반 질의 24개 (definition 8 / comparison 8 / principle 8) — 정답은 `tb_*` chunk 중심, glossary/concept에 동등한 답이 있으면 함께 라벨 |
+| `queries_positive_v2.json` / `queries_hard_v2.json` | 교재 편입 후 미라벨 정답 보정판 (v1은 교재 전 결과 비교용 보존) — 근거: `_miss_analysis*.txt`, 결과: `results_*_v2.md` |
+| `queries_textbook_hard.json` | 교재 질의 24개의 하드 변형 48개 (paraphrase 24 / stt_noise 24, 정답 라벨은 원본과 동일) — 결과: `results_textbook_hard.md` |
+| `router_test_sentences.json` | RAG Router용 발화형(교수 평서문) 테스트 문장 31개 (positive 18 / negative 12 / 경계 either 1) — 결과: `results_router.md`, 실행: `python src/evaluate_router.py` |
 | `queries_draft.json` | 초기 초안 (queries_positive.json으로 대체됨, 참고용) |
 | `results.md` / `results_hard.md` | evaluate.py 실행 결과 |
 

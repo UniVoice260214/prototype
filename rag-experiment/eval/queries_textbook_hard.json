@@ -1,0 +1,242 @@
+[
+  {
+    "query": "에이전트 설계할 때 성능 척도, 환경, 센서 이런 네 가지로 과제를 정리하는 틀이 뭐였지?",
+    "answer_chunk_ids": ["tb_ch02_s3", "glossary_task_environment"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "어 그 피이에이에스라고 했나 에이전트 문제 정리하는 틀 그거 뭐였죠",
+    "answer_chunk_ids": ["tb_ch02_s3", "glossary_task_environment"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "특징 개수가 많아질수록 필요한 데이터가 기하급수적으로 늘어서 학습이 어려워지는 현상을 뭐라고 해?",
+    "answer_chunk_ids": ["tb_ch08_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "어 차원의 저주라 그랬나 그게 무슨 뜻이라고 했죠",
+    "answer_chunk_ids": ["tb_ch08_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "분류 임계값을 바꿔가면서 참양성률하고 거짓양성률로 그린 곡선하고 그 아래 면적은 뭘 말해?",
+    "answer_chunk_ids": ["tb_ch09_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "알오씨 커브랑 에이유씨 그거 뭐였죠",
+    "answer_chunk_ids": ["tb_ch09_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "테스트에서만 알 수 있어야 하는 정보가 학습 과정에 몰래 섞여 들어가서 성능이 부풀려지는 문제가 뭐야?",
+    "answer_chunk_ids": ["tb_ch09_s6"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "데이터 리키지인가 리케이지인가 그게 무슨 문제라고 했어요",
+    "answer_chunk_ids": ["tb_ch09_s6"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "군집 개수를 늘려가며 그래프를 그려서 꺾이는 지점으로 개수를 정하는 방법이 뭐지?",
+    "answer_chunk_ids": ["tb_ch08_s2"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "어 그 엘보 방법인가 팔꿈치 뭐시기 그걸로 뭘 정한다고 했죠",
+    "answer_chunk_ids": ["tb_ch08_s2"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "벡터 검색 빠르게 하려고 여러 층짜리 그래프를 만들어서 위에서부터 좁혀 내려가는 색인 방식이 뭐야?",
+    "answer_chunk_ids": ["tb_ch15_s5"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "에이치엔에스더블유 그게 뭐 하는 거라고 했죠",
+    "answer_chunk_ids": ["tb_ch15_s5"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "모델 크기랑 데이터랑 계산량을 늘리면 성능이 예측 가능하게 좋아진다는 그 법칙 뭐였지?",
+    "answer_chunk_ids": ["tb_ch14_s7"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "스케일링 로 인가 그 법칙 다시 설명해주세요",
+    "answer_chunk_ids": ["tb_ch14_s7"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "개념들 사이의 관계를 체계적으로 정리해서 지식을 조직화하는 걸 뭐라고 부르지?",
+    "answer_chunk_ids": ["tb_ch04_s5"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "온톨로지라 그랬나 온토로지인가 그게 뭐예요",
+    "answer_chunk_ids": ["tb_ch04_s5"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "가중치를 아예 0으로 만들어버리는 규제하고 골고루 작게 만드는 규제는 각각 뭐야?",
+    "answer_chunk_ids": ["tb_ch06_s6", "glossary_regularization"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "엘원 엘투 정규화 차이가 뭐라고 했죠",
+    "answer_chunk_ids": ["tb_ch06_s6", "glossary_regularization"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "게이트 세 개짜리 순환 신경망하고 두 개로 줄인 버전은 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch13_s3"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "엘에스티엠하고 지알유 차이 뭐였죠",
+    "answer_chunk_ids": ["tb_ch13_s3"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "문장 전체를 참 거짓으로만 보는 논리하고 변수랑 한정사까지 쓰는 논리는 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch04_s2", "tb_ch04_s3"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "어 명제논리 술어논리 그 둘이 뭐가 다르다 했죠",
+    "answer_chunk_ids": ["tb_ch04_s2", "tb_ch04_s3"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "임베딩 벡터로 찾는 검색하고 키워드 일치로 찾는 검색은 뭐가 다르고 둘을 섞으면 뭐라고 해?",
+    "answer_chunk_ids": ["tb_ch16_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "덴스 검색 스파스 검색 그리고 하이브리드 그거 차이 설명 좀 해주세요",
+    "answer_chunk_ids": ["tb_ch16_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "회귀 평가할 때 오차 절댓값을 평균 내는 지표하고 제곱해서 루트 씌우는 지표는 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch09_s5"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "엠에이이랑 알엠에스이 차이가 뭐라 했죠",
+    "answer_chunk_ids": ["tb_ch09_s5"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "사실에서 출발해서 결론으로 가는 추론하고 목표에서 거꾸로 조건을 확인해가는 추론은 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch04_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "포워드 체이닝 백워드 체이닝인가 그 추론 방향 두 개 뭐였죠",
+    "answer_chunk_ids": ["tb_ch04_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "군집 개수를 미리 안 정하고 덴드로그램으로 묶어가는 방식은 개수를 정해놓고 하는 방식과 뭐가 달라?",
+    "answer_chunk_ids": ["tb_ch08_s3"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "하이어라키컬 클러스터링하고 케이민즈 뭐가 다르다 했죠",
+    "answer_chunk_ids": ["tb_ch08_s3"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "모델이 너무 단순해서 못 맞히는 경우랑 너무 복잡해서 데이터가 바뀔 때마다 출렁이는 경우는 어떻게 달라?",
+    "answer_chunk_ids": ["tb_ch09_s1"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "바이어스 배리언스 그 트레이드오프 얘기 다시 해주세요",
+    "answer_chunk_ids": ["tb_ch09_s1"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "중심점을 찍고 가까운 데로 배정하고 다시 평균 내는 걸 반복하는 군집 알고리즘 과정을 설명해줘",
+    "answer_chunk_ids": ["tb_ch08_s1", "glossary_kmeans", "concept_ch9_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "케이민즈 그거 어떤 순서로 돌아간다 했죠",
+    "answer_chunk_ids": ["tb_ch08_s1", "glossary_kmeans", "concept_ch9_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "쿼리랑 키를 내적하고 차원 수의 제곱근으로 나눠서 소프트맥스 하는 그 계산은 뭘 구하는 거야?",
+    "answer_chunk_ids": ["tb_ch14_s2"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "스케일드 닷 프로덕트 어텐션인가 그거 어떻게 계산한다고 했죠",
+    "answer_chunk_ids": ["tb_ch14_s2"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "질문이 들어오면 관련 문서를 찾아서 프롬프트에 붙여 답을 만들게 하는 시스템은 단계가 어떻게 돼?",
+    "answer_chunk_ids": ["tb_ch16_s2", "glossary_rag", "concept_ch8_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "알에이지인가 라그인가 그 파이프라인 단계 뭐였죠",
+    "answer_chunk_ids": ["tb_ch16_s2", "glossary_rag", "concept_ch8_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "목표까지 남은 비용을 절대 과대평가하지 않는 추정 함수가 왜 필요하다고 했지?",
+    "answer_chunk_ids": ["tb_ch03_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "에이스타에서 어드미서블한 휴리스틱인가 그 조건 왜 중요하다 했죠",
+    "answer_chunk_ids": ["tb_ch03_s4"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "큰 데이터로 미리 학습해둔 모델을 가져와서 내 문제에 맞게 조금만 다시 학습시키는 건 어떻게 되는 거야?",
+    "answer_chunk_ids": ["tb_ch12_s5"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "트랜스퍼 러닝 그거 원리가 뭐라 했죠",
+    "answer_chunk_ids": ["tb_ch12_s5"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "학습이 진행될수록 파라미터 갱신 보폭을 점점 줄여가는 건 왜 하는 거야?",
+    "answer_chunk_ids": ["tb_ch11_s4", "concept_ch3_s4", "glossary_learning_rate"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "러닝레이트 스케줄링인가 그거 왜 쓴다고 했죠",
+    "answer_chunk_ids": ["tb_ch11_s4", "concept_ch3_s4", "glossary_learning_rate"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "긴 문서를 검색용으로 자를 때 어떤 식으로 자르는 방법들이 있어?",
+    "answer_chunk_ids": ["tb_ch16_s3", "tb_ch15_s6"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "청킹인가 챙킹인가 문서 자르는 전략 뭐뭐 있다 했죠",
+    "answer_chunk_ids": ["tb_ch16_s3", "tb_ch15_s6"],
+    "query_type": "stt_noise"
+  },
+  {
+    "query": "이미지를 뒤집거나 돌려서 학습 데이터를 부풀리는 게 왜 과적합에 도움이 돼?",
+    "answer_chunk_ids": ["tb_ch11_s5", "concept_ch4_s4"],
+    "query_type": "paraphrase"
+  },
+  {
+    "query": "데이터 어그멘테이션 그게 왜 효과 있다고 했죠",
+    "answer_chunk_ids": ["tb_ch11_s5", "concept_ch4_s4"],
+    "query_type": "stt_noise"
+  }
+]

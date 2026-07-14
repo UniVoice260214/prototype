@@ -47,7 +47,7 @@ MODELS: dict[str, ModelSpec] = {
 
 # 분리 인덱스: doc_type 부분집합 → indexes/{index_name}/{model}/
 INDEX_SUBSETS: dict[str, list[str]] = {
-    "major_ai": ["glossary", "concept_doc"],  # 전공 RAG: 용어사전 + 개념문서
+    "major_ai": ["glossary", "concept_doc", "textbook"],  # 전공 RAG: 용어사전 + 개념문서 + 입문교재
     "lecture_kim_i2a": ["lecture_slide"],     # 강의 RAG: 김교수 I2A 슬라이드
 }
 
