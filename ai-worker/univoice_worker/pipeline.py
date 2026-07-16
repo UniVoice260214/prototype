@@ -1,27 +1,33 @@
-"""파이프라인 오케스트레이션 — 아키텍처 가이드의 실시간 처리 루프.
+"""Translation pipeline orchestration."""
 
-  STT final ─▶ Segmenter ─▶ (RAG Trigger) ─▶ OpenAI 번역 ─▶ ┬▶ Azure TTS ─▶ locale track publish
-                                                            └▶ 자막 DataChannel broadcast
-
-각 단계는 별도 모듈이며 이 클래스가 조립만 한다. RAG 는 RagClient 인터페이스로만
-의존하므로, NoOpRagClient(기본) → 실제 구현으로 바꿔 끼우면 끝.
-"""
+from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import time
-from typing import Awaitable, Callable
+from typing import Any, Awaitable, Callable
 
-from .audio_publisher import LocaleAudioPublisher
+from .dedupe import DedupeStore
+from .models import AudioStatus, SpeechSegment, SttFinalResult, TtsJob
 from .rag import RagClient
-from .segmenter import Segmenter
-from .translator import Translator
-from .tts import TtsSynthesizer
+from .segmenter import SegmentDraft, Segmenter
+from .tts_queue import LocaleTtsQueue
 
 logger = logging.getLogger(__name__)
 
-# on_subtitle(locale, text, source_ko, is_final) -> Awaitable
-SubtitleSink = Callable[[str, str, str, bool], Awaitable[None]]
+SubtitleSink = Callable[[str, str, SpeechSegment, bool], Awaitable[None]]
+AudioStatusSink = Callable[[AudioStatus], Awaitable[None]]
+SegmentSink = Callable[[SpeechSegment], Awaitable[None]]
+QueueItem = SpeechSegment | None
+
+
+async def _noop_segment_sink(segment: SpeechSegment) -> None:
+    return None
+
+
+async def _noop_audio_status(status: AudioStatus) -> None:
+    return None
 
 
 class TranslationPipeline:
@@ -31,10 +37,20 @@ class TranslationPipeline:
         target_locales: list[str],
         segmenter: Segmenter,
         rag: RagClient,
-        translator: Translator,
-        tts: TtsSynthesizer,
-        publisher: LocaleAudioPublisher,
+        translator: Any,
+        tts: Any,
+        publisher: Any,
         on_subtitle: SubtitleSink,
+        on_segment: SegmentSink | None = None,
+        *,
+        on_audio_status: AudioStatusSink | None = None,
+        tts_queue: LocaleTtsQueue | None = None,
+        dedupe_store: DedupeStore | None = None,
+        queue_max_size: int = 100,
+        tts_queue_max_size: int = 100,
+        enqueue_timeout_ms: int = 250,
+        idle_check_interval_ms: int = 100,
+        close_publisher_on_stop: bool = True,
     ) -> None:
         self._session_id = session_id
         self._locales = target_locales
@@ -44,43 +60,247 @@ class TranslationPipeline:
         self._tts = tts
         self._publisher = publisher
         self._on_subtitle = on_subtitle
-        self._loop = asyncio.get_event_loop()
+        self._on_segment = on_segment or _noop_segment_sink
+        self._on_audio_status = on_audio_status or _noop_audio_status
+        self._tts_queue = tts_queue or LocaleTtsQueue(
+            locales=target_locales,
+            tts=tts,
+            publisher=publisher,
+            on_audio_status=self._on_audio_status,
+            dedupe_store=dedupe_store,
+            queue_max_size=tts_queue_max_size,
+        )
+        self._close_publisher_on_stop = close_publisher_on_stop
+        self._queue: asyncio.Queue[QueueItem] = asyncio.Queue(maxsize=max(1, queue_max_size))
+        self._enqueue_timeout = max(0.001, enqueue_timeout_ms / 1000)
+        self._idle_check_interval = max(0.01, idle_check_interval_ms / 1000)
+        self._enqueue_lock = asyncio.Lock()
+        self._lifecycle_lock = asyncio.Lock()
+        self._consumer_task: asyncio.Task[None] | None = None
+        self._idle_task: asyncio.Task[None] | None = None
+        self._stopping = False
+        self._stopped = False
+        self._next_sequence = 1
+
+    async def start(self) -> None:
+        async with self._lifecycle_lock:
+            if self._consumer_task is not None and not self._consumer_task.done():
+                return
+            self._stopping = False
+            self._stopped = False
+            await self._tts_queue.start()
+            self._consumer_task = asyncio.create_task(
+                self._consumer_loop(), name=f"segment-consumer-{self._session_id}"
+            )
+            self._idle_task = asyncio.create_task(
+                self._idle_flush_loop(), name=f"segment-idle-flush-{self._session_id}"
+            )
+
+    async def enqueue_stt_final(self, final_result: SttFinalResult | str) -> None:
+        """Add an STT final to the segmenter and enqueue emitted segments in source order."""
+        await self.start()
+        if self._stopping:
+            logger.warning("[%s] dropping STT final after pipeline stop started", self._session_id)
+            return
+        async with self._enqueue_lock:
+            for draft in self._segmenter.push(final_result):
+                await self._enqueue_draft(draft, allow_drop=True)
 
     async def handle_final(self, ko_text: str) -> None:
-        """STT final 콜백에서 호출. 완성 문장마다 번역 파이프라인을 태운다."""
-        for sentence in self._segmenter.push(ko_text):
-            try:
-                await self._process_sentence(sentence)
-            except Exception:  # noqa: BLE001 — 한 문장 실패가 세션을 죽이지 않도록
-                logger.exception("[%s] 문장 처리 실패: %s", self._session_id, sentence)
+        """Backward-compatible alias for older callers."""
+        await self.enqueue_stt_final(ko_text)
 
-    async def _process_sentence(self, sentence: str) -> None:
-        # 1) RAG Trigger 판단 + 문맥 검색 (NoOp 이면 항상 None)
-        hits = self._translator.detect_glossary_hits(sentence)
-        context = await self._rag.retrieve(sentence, hits)
+    async def flush_and_stop(self) -> None:
+        """Flush segmenter, segment queue, TTS queues, and publisher. Safe to call repeatedly."""
+        async with self._lifecycle_lock:
+            if self._stopped:
+                return
+            await self._tts_queue.start()
+            if self._consumer_task is None or self._consumer_task.done():
+                self._consumer_task = asyncio.create_task(
+                    self._consumer_loop(), name=f"segment-consumer-{self._session_id}"
+                )
+            self._stopping = True
+            if self._idle_task is not None:
+                self._idle_task.cancel()
+                try:
+                    await self._idle_task
+                except asyncio.CancelledError:
+                    pass
 
-        # 2) 다국어 동시 번역
-        translations = await self._translator.translate(sentence, context)
+            async with self._enqueue_lock:
+                for draft in self._segmenter.flush():
+                    await self._enqueue_draft(draft, allow_drop=False)
 
-        # 3) locale 별 자막 + 음성 동시 처리
-        await asyncio.gather(
-            *(self._emit_locale(loc, translations.get(loc, ""), sentence) for loc in self._locales)
-        )
-
-    async def _emit_locale(self, locale: str, text: str, source_ko: str) -> None:
-        if not text:
-            return
-        # 자막 먼저 (음성보다 빨리 도달)
-        await self._on_subtitle(locale, text, source_ko, True)
-        # TTS 는 블로킹 → executor 에서 합성 후 track 으로 push
-        pcm = await self._loop.run_in_executor(None, self._tts.synthesize, locale, text)
-        if pcm:
-            await self._publisher.push_pcm(locale, pcm)
+            await self._queue.join()
+            await self._queue.put(None)
+            if self._consumer_task is not None:
+                await self._consumer_task
+            await self._tts_queue.flush_and_stop()
+            await self._close_publisher()
+            self._stopped = True
 
     async def flush(self) -> None:
-        """세션 종료 시 버퍼에 남은 문장 처리."""
-        for sentence in self._segmenter.flush():
+        """Backward-compatible alias for older callers."""
+        await self.flush_and_stop()
+
+    async def _idle_flush_loop(self) -> None:
+        try:
+            while not self._stopping:
+                await asyncio.sleep(self._idle_check_interval)
+                async with self._enqueue_lock:
+                    for draft in self._segmenter.pop_idle():
+                        await self._enqueue_draft(draft, allow_drop=True)
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            logger.exception("[%s] segment idle flush loop failed", self._session_id)
+
+    async def _enqueue_draft(self, draft: SegmentDraft, *, allow_drop: bool) -> bool:
+        segment = self._build_segment(draft)
+        try:
+            if allow_drop:
+                await asyncio.wait_for(self._queue.put(segment), timeout=self._enqueue_timeout)
+            else:
+                await self._queue.put(segment)
+        except TimeoutError:
+            logger.error(
+                "[%s] segment queue full for %.3fs; dropping segment %s by backpressure policy",
+                self._session_id,
+                self._enqueue_timeout,
+                segment.segment_id,
+            )
+            return False
+        self._next_sequence += 1
+        return True
+
+    def _build_segment(self, draft: SegmentDraft) -> SpeechSegment:
+        sequence = self._next_sequence
+        return SpeechSegment(
+            session_id=self._session_id,
+            segment_id=f"{self._session_id}-seg-{sequence:06d}",
+            sequence=sequence,
+            text=draft.text,
+            stt_confidence=draft.stt_confidence,
+            started_at=draft.started_at,
+            ended_at=draft.ended_at,
+        )
+
+    async def _consumer_loop(self) -> None:
+        while True:
+            item = await self._queue.get()
             try:
-                await self._process_sentence(sentence)
+                if item is None:
+                    return
+                await self._handle_segment(item)
             except Exception:  # noqa: BLE001
-                logger.exception("[%s] flush 처리 실패: %s", self._session_id, sentence)
+                logger.exception("[%s] segment processing failed", self._session_id)
+            finally:
+                self._queue.task_done()
+
+    async def _handle_segment(self, segment: SpeechSegment) -> None:
+        try:
+            await self._on_segment(segment)
+        except Exception:  # noqa: BLE001
+            logger.exception("[%s] stt.final segment publish failed: %s", self._session_id, segment.segment_id)
+
+        await self._process_segment(segment)
+
+    async def _process_segment(self, segment: SpeechSegment) -> None:
+        hits = self._translator.detect_glossary_hits(segment.text)
+        context = await self._rag.retrieve(segment.text, hits)
+        translations = await self._translator.translate(segment.text, context)
+        translations = translations or {}
+        await asyncio.gather(
+            *(
+                self._safe_emit_locale(loc, translations.get(loc), segment, missing=loc not in translations)
+                for loc in self._locales
+            )
+        )
+
+    async def _safe_emit_locale(
+        self,
+        locale: str,
+        text: str | None,
+        segment: SpeechSegment,
+        *,
+        missing: bool,
+    ) -> None:
+        try:
+            await self._emit_locale(locale, text, segment, missing=missing)
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "[%s] locale processing failed (%s, %s)",
+                self._session_id,
+                segment.segment_id,
+                locale,
+            )
+            await self._emit_audio_failed(segment, locale, "LOCALE_DELIVERY_FAILED")
+
+    async def _emit_locale(
+        self,
+        locale: str,
+        text: str | None,
+        segment: SpeechSegment,
+        *,
+        missing: bool,
+    ) -> None:
+        if missing:
+            await self._emit_audio_failed(segment, locale, "TRANSLATION_MISSING")
+            return
+        if text is None or not text.strip():
+            await self._emit_audio_failed(segment, locale, "TRANSLATION_EMPTY")
+            return
+
+        try:
+            await self._on_subtitle(locale, text, segment, True)
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "[%s] caption publish failed before TTS enqueue (%s, %s)",
+                self._session_id,
+                segment.segment_id,
+                locale,
+            )
+
+        await self._tts_queue.enqueue(
+            TtsJob(
+                session_id=segment.session_id,
+                segment_id=segment.segment_id,
+                sequence=segment.sequence,
+                locale=locale,
+                text=text,
+            )
+        )
+
+    async def _emit_audio_failed(self, segment: SpeechSegment, locale: str, error_code: str) -> None:
+        status = AudioStatus(
+            type="audio.failed",
+            session_id=segment.session_id,
+            segment_id=segment.segment_id,
+            sequence=segment.sequence,
+            locale=locale,
+            duration_ms=None,
+            error_code=error_code,
+            timestamp=time.time(),
+        )
+        try:
+            result = self._on_audio_status(status)
+            if inspect.isawaitable(result):
+                await result
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "[%s] audio status publish failed (%s, %s)",
+                self._session_id,
+                segment.segment_id,
+                locale,
+            )
+
+    async def _close_publisher(self) -> None:
+        if not self._close_publisher_on_stop:
+            return
+        close = getattr(self._publisher, "aclose", None)
+        if close is None:
+            return
+        result = close()
+        if inspect.isawaitable(result):
+            await result

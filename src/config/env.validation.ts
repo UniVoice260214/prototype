@@ -66,6 +66,14 @@ export class EnvVars {
   @IsOptional()
   RAG_INDEX_QUEUE: string = 'rag:index:queue';
 
+  @IsInt()
+  @IsOptional()
+  WORKER_STOP_TIMEOUT_SEC: number = 8;
+
+  @IsInt()
+  @IsOptional()
+  WORKER_STOP_POLL_INTERVAL_MS: number = 200;
+
   /**
    * ⚠️ 개발 전용 인증 우회 스위치. 문자열 'true'일 때만 활성화.
    * 활성화 시 JwtAuthGuard/RolesGuard를 건너뛰고 합성 admin 사용자를 주입한다.

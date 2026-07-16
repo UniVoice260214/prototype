@@ -22,6 +22,19 @@ export interface SessionsEndedEvent {
   sessionId: string;
 }
 
+/**
+ * Worker lifecycle is observed through RedisKeys.workerStatus(sessionId), not
+ * additional Pub/Sub events. Keeping sessions.started/sessions.ended as the
+ * only session control events makes worker restarts recoverable via Redis SCAN.
+ */
+export type WorkerStatus = 'starting' | 'ready' | 'stopping' | 'stopped' | 'failed';
+
+export interface WorkerStatusPayload {
+  status: WorkerStatus;
+  ts: number;
+  error?: string;
+}
+
 export interface MaterialsIndexingRequestedEvent {
   materialId: string;
   blobUrl: string;

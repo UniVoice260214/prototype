@@ -8,8 +8,10 @@
 export const RedisKeys = {
   /** 세션 설정 스냅샷 (JSON): sessionId, courseId, roomName, locales, startedAt */
   sessionConfig: (sessionId: string) => `session:${sessionId}:config`,
-  /** 세션 상태 문자열: 'active' | 'ended' */
+  /** 세션 상태 문자열: 'active' | 'ending' | 'ended' (ending은 Redis 전용 진행 상태) */
   sessionStatus: (sessionId: string) => `session:${sessionId}:status`,
+  /** Python AI Worker 상태 JSON: { status, ts, error? } */
+  workerStatus: (sessionId: string) => `session:${sessionId}:worker:status`,
   /** 과목 glossary prewarm (JSON 배열) — 세션 시작 시 적재 */
   glossaryByCourse: (courseId: string) => `glossary:${courseId}`,
 } as const;

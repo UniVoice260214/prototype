@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,6 +17,7 @@ import { LiveKitService } from '../../infra/livekit/livekit.service';
 import { AuthService } from '../auth/auth.service';
 import { Course } from '../course/entities/course.entity';
 import { EventsService } from '../events/events.service';
+import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
 import { Session } from './entities/session.entity';
 import {
@@ -26,6 +28,8 @@ import {
 
 @Injectable()
 export class SessionService {
+  private readonly logger = new Logger(SessionService.name);
+
   constructor(
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
     @InjectRepository(Course) private readonly courses: Repository<Course>,
@@ -106,17 +110,47 @@ export class SessionService {
     const session = await this.findOne(sessionId);
     if (session.status === 'ended') return session;
 
+    await this.redis.set(
+      RedisKeys.sessionStatus(session.id),
+      'ending',
+      'EX',
+      SESSION_CONFIG_TTL_SEC,
+    );
+
+    try {
+      await this.events.publishSessionEnded({ sessionId: session.id });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to publish sessions.ended for ${session.id}: ${this.errorMessage(err)}`,
+      );
+    }
+
+    await this.waitForWorkerStopped(session.id);
+
+    try {
+      await this.liveKit.deleteRoom(session.liveKitRoomName);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to delete LiveKit room ${session.liveKitRoomName}: ${this.errorMessage(err)}`,
+      );
+    }
+
     session.status = 'ended';
     session.endedAt = new Date();
-    await this.sessions.save(session);
-
-    await this.liveKit.deleteRoom(session.liveKitRoomName);
-    await this.events.publishSessionEnded({ sessionId: session.id });
+    try {
+      await this.sessions.save(session);
+    } catch (err) {
+      this.logger.error(
+        `Failed to persist ended session ${session.id}: ${this.errorMessage(err)}`,
+      );
+      throw err;
+    }
 
     // Redis 키 즉시 정리 (TTL 안전망과 별개로).
     await this.redis.del(
       RedisKeys.sessionConfig(session.id),
       RedisKeys.sessionStatus(session.id),
+      RedisKeys.workerStatus(session.id),
     );
 
     return session;
@@ -219,5 +253,71 @@ export class SessionService {
       SESSION_CONFIG_TTL_SEC,
     );
     await pipe.exec();
+  }
+
+  private async waitForWorkerStopped(sessionId: string): Promise<void> {
+    const timeoutMs =
+      this.config.get<number>('WORKER_STOP_TIMEOUT_SEC') ??
+      Number(this.config.get<string>('WORKER_STOP_TIMEOUT_SEC') ?? 8);
+    const pollIntervalMs =
+      this.config.get<number>('WORKER_STOP_POLL_INTERVAL_MS') ??
+      Number(this.config.get<string>('WORKER_STOP_POLL_INTERVAL_MS') ?? 200);
+    const deadline = Date.now() + Math.max(0, timeoutMs) * 1000;
+    const interval = Math.max(50, pollIntervalMs);
+
+    while (Date.now() <= deadline) {
+      const status = await this.readWorkerStatus(sessionId);
+      if (status?.status === 'stopped') return;
+      if (status?.status === 'failed') {
+        this.logger.warn(
+          `Worker for session ${sessionId} failed during shutdown: ${status.error ?? 'unknown error'}`,
+        );
+        return;
+      }
+      await this.sleep(interval);
+    }
+    this.logger.warn(
+      `Timed out waiting for worker ${sessionId} to stop after ${timeoutMs}s`,
+    );
+  }
+
+  private async readWorkerStatus(
+    sessionId: string,
+  ): Promise<WorkerStatusPayload | null> {
+    let raw: string | null;
+    try {
+      raw = await this.redis.get(RedisKeys.workerStatus(sessionId));
+    } catch (err) {
+      this.logger.warn(
+        `Failed to read worker status for ${sessionId}: ${this.errorMessage(err)}`,
+      );
+      return null;
+    }
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as WorkerStatusPayload;
+      if (
+        parsed &&
+        ['starting', 'ready', 'stopping', 'stopped', 'failed'].includes(
+          parsed.status,
+        )
+      ) {
+        return parsed;
+      }
+    } catch {
+      if (['starting', 'ready', 'stopping', 'stopped', 'failed'].includes(raw)) {
+        return { status: raw as WorkerStatusPayload['status'], ts: Date.now() / 1000 };
+      }
+    }
+    this.logger.warn(`Ignoring malformed worker status for ${sessionId}: ${raw}`);
+    return null;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private errorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
   }
 }
