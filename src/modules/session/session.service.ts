@@ -13,6 +13,8 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { RedisKeys, SESSION_CONFIG_TTL_SEC } from '../../common/redis-keys';
+import { CourseAccessService } from '../../common/access/course-access.service';
+import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { LiveKitService } from '../../infra/livekit/livekit.service';
 import { AuthService } from '../auth/auth.service';
 import { Course } from '../course/entities/course.entity';
@@ -33,12 +35,14 @@ export class SessionService {
   constructor(
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
     @InjectRepository(Course) private readonly courses: Repository<Course>,
-    @InjectRepository(Glossary) private readonly glossaries: Repository<Glossary>,
+    @InjectRepository(Glossary)
+    private readonly glossaries: Repository<Glossary>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly liveKit: LiveKitService,
     private readonly events: EventsService,
     private readonly auth: AuthService,
     private readonly config: ConfigService,
+    private readonly courseAccess: CourseAccessService,
   ) {}
 
   /**
@@ -51,9 +55,12 @@ export class SessionService {
    */
   async start(
     dto: StartSessionDto,
+    user: AuthUser,
   ): Promise<{ session: Session; liveKit: LiveKitTokenResponseDto }> {
-    const course = await this.courses.findOne({ where: { id: dto.courseId } });
-    if (!course) throw new NotFoundException(`Course ${dto.courseId} not found`);
+    const course = await this.courseAccess.findCourseForUser(
+      dto.courseId,
+      user,
+    );
 
     const roomName = `session-${uuid()}`;
     const session = await this.sessions.save(
@@ -100,14 +107,17 @@ export class SessionService {
       await this.sessions.delete(session.id).catch(() => undefined);
       await this.liveKit.deleteRoom(roomName).catch(() => undefined);
       await this.redis
-        .del(RedisKeys.sessionConfig(session.id), RedisKeys.sessionStatus(session.id))
+        .del(
+          RedisKeys.sessionConfig(session.id),
+          RedisKeys.sessionStatus(session.id),
+        )
         .catch(() => undefined);
       throw err;
     }
   }
 
-  async end(sessionId: string): Promise<Session> {
-    const session = await this.findOne(sessionId);
+  async end(sessionId: string, user: AuthUser): Promise<Session> {
+    const session = await this.courseAccess.findSessionForUser(sessionId, user);
     if (session.status === 'ended') return session;
 
     await this.redis.set(
@@ -256,13 +266,11 @@ export class SessionService {
   }
 
   private async waitForWorkerStopped(sessionId: string): Promise<void> {
-    const timeoutMs =
-      this.config.get<number>('WORKER_STOP_TIMEOUT_SEC') ??
-      Number(this.config.get<string>('WORKER_STOP_TIMEOUT_SEC') ?? 8);
+    const timeoutSec = this.config.get<number>('WORKER_STOP_TIMEOUT_SEC', 8);
     const pollIntervalMs =
       this.config.get<number>('WORKER_STOP_POLL_INTERVAL_MS') ??
       Number(this.config.get<string>('WORKER_STOP_POLL_INTERVAL_MS') ?? 200);
-    const deadline = Date.now() + Math.max(0, timeoutMs) * 1000;
+    const deadline = Date.now() + Math.max(0, timeoutSec) * 1000;
     const interval = Math.max(50, pollIntervalMs);
 
     while (Date.now() <= deadline) {
@@ -277,7 +285,7 @@ export class SessionService {
       await this.sleep(interval);
     }
     this.logger.warn(
-      `Timed out waiting for worker ${sessionId} to stop after ${timeoutMs}s`,
+      `Timed out waiting for worker ${sessionId} to stop after ${timeoutSec}s`,
     );
   }
 
@@ -305,11 +313,18 @@ export class SessionService {
         return parsed;
       }
     } catch {
-      if (['starting', 'ready', 'stopping', 'stopped', 'failed'].includes(raw)) {
-        return { status: raw as WorkerStatusPayload['status'], ts: Date.now() / 1000 };
+      if (
+        ['starting', 'ready', 'stopping', 'stopped', 'failed'].includes(raw)
+      ) {
+        return {
+          status: raw as WorkerStatusPayload['status'],
+          ts: Date.now() / 1000,
+        };
       }
     }
-    this.logger.warn(`Ignoring malformed worker status for ${sessionId}: ${raw}`);
+    this.logger.warn(
+      `Ignoring malformed worker status for ${sessionId}: ${raw}`,
+    );
     return null;
   }
 

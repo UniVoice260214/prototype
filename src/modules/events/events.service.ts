@@ -36,7 +36,7 @@ export class EventsService {
   private async publish<T>(channel: EventChannel, payload: T): Promise<void> {
     const message = JSON.stringify(payload);
     const subscribers = await this.redis.publish(channel, message);
-    this.logger.log(
+    this.logger.debug(
       `[${channel}] published to ${subscribers} subscriber(s): ${message}`,
     );
   }

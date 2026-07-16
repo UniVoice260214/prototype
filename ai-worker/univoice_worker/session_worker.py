@@ -65,7 +65,7 @@ class SessionWorker:
         self._target_locales = target_locales
         self._glossary = glossary
         self._rag = rag or NoOpRagClient()
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_running_loop()
         self._room = room if room is not None else self._create_room()
         self._status_store = status_store or NoOpWorkerStatusStore()
         self._stt_factory = stt_factory

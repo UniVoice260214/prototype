@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course } from '../course/entities/course.entity';
 import { Glossary } from '../glossary/entities/glossary.entity';
 import { AuthModule } from '../auth/auth.module';
+import { CourseAccessModule } from '../../common/access/course-access.module';
 import { Session } from './entities/session.entity';
 import { SessionController } from './session.controller';
 import { SessionService } from './session.service';
@@ -11,6 +12,7 @@ import { SessionService } from './session.service';
   imports: [
     TypeOrmModule.forFeature([Session, Course, Glossary]),
     AuthModule,
+    CourseAccessModule,
   ],
   controllers: [SessionController],
   providers: [SessionService],

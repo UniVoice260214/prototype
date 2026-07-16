@@ -22,6 +22,10 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import {
+  AuthUser,
+  CurrentUser,
+} from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { MaterialService } from './material.service';
 import { UploadMaterialDto } from './dto/material.dto';
@@ -62,6 +66,7 @@ export class MaterialController {
   upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadMaterialDto,
+    @CurrentUser() user: AuthUser,
   ) {
     if (!file) throw new BadRequestException('file is required');
     if (!ALLOWED_MIME.includes(file.mimetype)) {
@@ -69,13 +74,21 @@ export class MaterialController {
         `Unsupported mimetype: ${file.mimetype}. Allowed: ${ALLOWED_MIME.join(', ')}`,
       );
     }
-    return this.service.upload(file, dto);
+    return this.service.upload(file, dto, user);
   }
 
   @Get()
   @ApiOperation({ summary: '강의자료 목록 조회 (과목·세션으로 필터링 가능)' })
-  @ApiQuery({ name: 'courseId', required: false, description: '과목 UUID 필터' })
-  @ApiQuery({ name: 'sessionId', required: false, description: '세션 UUID 필터' })
+  @ApiQuery({
+    name: 'courseId',
+    required: false,
+    description: '과목 UUID 필터',
+  })
+  @ApiQuery({
+    name: 'sessionId',
+    required: false,
+    description: '세션 UUID 필터',
+  })
   findAll(
     @Query('courseId') courseId?: string,
     @Query('sessionId') sessionId?: string,
@@ -85,7 +98,11 @@ export class MaterialController {
 
   @Get(':materialId')
   @ApiOperation({ summary: '강의자료 1건 조회 (blobUrl·indexingStatus 포함)' })
-  @ApiParam({ name: 'materialId', description: '강의자료(Material) UUID', format: 'uuid' })
+  @ApiParam({
+    name: 'materialId',
+    description: '강의자료(Material) UUID',
+    format: 'uuid',
+  })
   findOne(@Param('materialId', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
@@ -94,8 +111,15 @@ export class MaterialController {
   @HttpCode(204)
   @Delete(':materialId')
   @ApiOperation({ summary: '강의자료 삭제 (DB 레코드 + Blob 원본 함께 정리)' })
-  @ApiParam({ name: 'materialId', description: '강의자료(Material) UUID', format: 'uuid' })
-  remove(@Param('materialId', ParseUUIDPipe) id: string) {
-    return this.service.remove(id);
+  @ApiParam({
+    name: 'materialId',
+    description: '강의자료(Material) UUID',
+    format: 'uuid',
+  })
+  remove(
+    @Param('materialId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.remove(id, user);
   }
 }

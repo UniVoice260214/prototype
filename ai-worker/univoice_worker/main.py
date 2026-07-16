@@ -64,7 +64,9 @@ def validate_started_payload(payload: Any, config: WorkerConfig) -> dict[str, An
         return None
     unknown = [locale for locale in locales if locale not in config.voice_map]
     if unknown:
-        logger.warning("[%s] 알 수 없는 locale: %s", session_id, unknown)
+        logger.warning("[%s] unsupported locales skipped: %s", session_id, unknown)
+    locales = [locale for locale in locales if locale in config.voice_map]
+    if not locales:
         return None
     return {
         "sessionId": session_id,
@@ -167,17 +169,24 @@ class WorkerRegistry:
         entry = self._workers.get(validated["sessionId"])
         if entry is None:
             return
-        worker, _task = entry
+        worker, task = entry
         await worker.stop()
+        await asyncio.gather(task, return_exceptions=True)
+        current = self._workers.get(validated["sessionId"])
+        if current is not None and current[1] is task:
+            self._workers.pop(validated["sessionId"], None)
 
     async def stop_all(self) -> None:
         entries = list(self._workers.values())
         for worker, _task in entries:
             await worker.stop()
         await asyncio.gather(*(task for _worker, task in entries), return_exceptions=True)
+        self._workers.clear()
 
-def _on_worker_done(self, session_id: str, task: asyncio.Task[None]) -> None:
-        self._workers.pop(session_id, None)
+    def _on_worker_done(self, session_id: str, task: asyncio.Task[None]) -> None:
+        current = self._workers.get(session_id)
+        if current is not None and current[1] is task:
+            self._workers.pop(session_id, None)
         if task.cancelled():
             return
         exc = task.exception()

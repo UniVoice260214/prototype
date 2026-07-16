@@ -31,6 +31,7 @@ def config() -> WorkerConfig:
 class FakeRedis:
     def __init__(self, values: dict[str, str]) -> None:
         self.values = values
+        self.sets: list[tuple[str, str, int | None]] = []
 
     async def scan_iter(self, *, match: str, count: int):
         assert match == worker_main.SESSION_STATUS_PATTERN
@@ -41,6 +42,10 @@ class FakeRedis:
 
     async def get(self, key: str) -> str | None:
         return self.values.get(key)
+
+    async def set(self, key: str, value: str, *, ex: int | None = None) -> None:
+        self.values[key] = value
+        self.sets.append((key, value, ex))
 
 
 @pytest.mark.asyncio
@@ -112,6 +117,119 @@ async def test_registry_does_not_start_duplicate_running_session(monkeypatch: py
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
+
+
+@pytest.mark.asyncio
+async def test_registry_removes_crashed_worker_and_marks_failed(monkeypatch: pytest.MonkeyPatch) -> None:
+    class CrashingSessionWorker:
+        def __init__(self, *, session_id: str, **_kwargs: object) -> None:
+            self.session_id = session_id
+
+        async def run(self) -> None:
+            raise RuntimeError("boom")
+
+        async def stop(self) -> None:
+            return None
+
+    async def fake_load_glossary(*_args: object) -> list:
+        return []
+
+    monkeypatch.setattr(worker_main, "SessionWorker", CrashingSessionWorker)
+    monkeypatch.setattr(worker_main, "load_glossary", fake_load_glossary)
+
+    redis = FakeRedis({})
+    registry = worker_main.WorkerRegistry(redis, config())
+
+    await registry.start_session(
+        {
+            "sessionId": "crashes",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["vi-VN"],
+        }
+    )
+
+    for _ in range(10):
+        if not registry._workers and redis.sets:
+            break
+        await asyncio.sleep(0)
+
+    assert registry._workers == {}
+    status_key, status_json, ttl = redis.sets[-1]
+    assert status_key == "session:crashes:worker:status"
+    assert ttl == config().worker_status_ttl_sec
+    status = json.loads(status_json)
+    assert status["status"] == "failed"
+    assert status["error"] == "boom"
+
+
+@pytest.mark.asyncio
+async def test_registry_end_session_waits_for_task_and_removes_worker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stopped = asyncio.Event()
+    created: list[object] = []
+
+    class StoppableSessionWorker:
+        def __init__(self, *, session_id: str, **_kwargs: object) -> None:
+            self.session_id = session_id
+            created.append(self)
+
+        async def run(self) -> None:
+            await stopped.wait()
+
+        async def stop(self) -> None:
+            stopped.set()
+
+    async def fake_load_glossary(*_args: object) -> list:
+        return []
+
+    monkeypatch.setattr(worker_main, "SessionWorker", StoppableSessionWorker)
+    monkeypatch.setattr(worker_main, "load_glossary", fake_load_glossary)
+
+    registry = worker_main.WorkerRegistry(FakeRedis({}), config())
+    await registry.start_session(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["vi-VN"],
+        }
+    )
+
+    await registry.end_session({"sessionId": "session-123"})
+
+    assert len(created) == 1
+    assert registry._workers == {}
+
+
+def test_validate_started_payload_skips_unsupported_locales() -> None:
+    event = worker_main.validate_started_payload(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["zh-CN", "th-TH"],
+        },
+        config(),
+    )
+
+    assert event is not None
+    assert event["targetLocales"] == ["zh-CN"]
+
+
+def test_validate_started_payload_rejects_when_all_locales_are_unsupported() -> None:
+    event = worker_main.validate_started_payload(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["th-TH"],
+        },
+        config(),
+    )
+
+    assert event is None
 
 
 @pytest.mark.asyncio

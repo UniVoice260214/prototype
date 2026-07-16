@@ -5,6 +5,13 @@ jest.mock('bcrypt', () => ({
 
 import { SessionService } from './session.service';
 import { RedisKeys } from '../../common/redis-keys';
+import { AuthUser } from '../../common/decorators/current-user.decorator';
+
+const ADMIN_USER: AuthUser = {
+  sub: 'admin-1',
+  role: 'admin',
+  type: 'user',
+};
 
 function makeSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -76,6 +83,13 @@ function makeService(options: {
       return undefined;
     }),
   };
+  const courseAccess = {
+    findCourseForUser: jest.fn(async () => ({
+      id: 'course-1',
+      professorId: 'professor-1',
+    })),
+    findSessionForUser: jest.fn(async () => session),
+  };
 
   const service = new SessionService(
     sessions as any,
@@ -86,9 +100,20 @@ function makeService(options: {
     events as any,
     {} as any,
     config as any,
+    courseAccess as any,
   );
 
-  return { service, session, sessions, redis, liveKit, events, config, order };
+  return {
+    service,
+    session,
+    sessions,
+    redis,
+    liveKit,
+    events,
+    config,
+    courseAccess,
+    order,
+  };
 }
 
 describe('SessionService.end', () => {
@@ -97,7 +122,7 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(order.indexOf('events.ended')).toBeLessThan(
       order.indexOf('livekit.deleteRoom'),
@@ -110,7 +135,7 @@ describe('SessionService.end', () => {
       timeoutSec: 8,
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(redis.get).toHaveBeenCalledTimes(1);
     expect(liveKit.deleteRoom).toHaveBeenCalledWith('room-1');
@@ -122,7 +147,7 @@ describe('SessionService.end', () => {
       timeoutSec: 0,
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(liveKit.deleteRoom).toHaveBeenCalledWith('room-1');
     expect(sessions.save).toHaveBeenCalledWith(
@@ -136,7 +161,7 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(redis.set).toHaveBeenCalledWith(
       RedisKeys.sessionStatus('session-123'),
@@ -154,7 +179,7 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(session.status).toBe('ended');
     expect(session.endedAt).toBeInstanceOf(Date);
@@ -166,7 +191,7 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(order).toEqual([
       'redis.set:ending',
@@ -182,7 +207,7 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(redis.del).toHaveBeenCalledWith(
       RedisKeys.sessionConfig('session-123'),
@@ -198,8 +223,8 @@ describe('SessionService.end', () => {
       workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
     });
 
-    await service.end('session-123');
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
+    await service.end('session-123', ADMIN_USER);
 
     expect(events.publishSessionEnded).toHaveBeenCalledTimes(1);
     expect(liveKit.deleteRoom).toHaveBeenCalledTimes(1);
@@ -211,7 +236,7 @@ describe('SessionService.end', () => {
       deleteRoomError: new Error('already gone'),
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
     expect(sessions.save).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'ended' }),
@@ -225,9 +250,11 @@ describe('SessionService.end', () => {
       timeoutSec: 0,
     });
 
-    await service.end('session-123');
+    await service.end('session-123', ADMIN_USER);
 
-    expect(redis.get).toHaveBeenCalledWith(RedisKeys.workerStatus('session-123'));
+    expect(redis.get).toHaveBeenCalledWith(
+      RedisKeys.workerStatus('session-123'),
+    );
     expect(liveKit.deleteRoom).toHaveBeenCalledWith('room-1');
     expect(sessions.save).toHaveBeenCalled();
   });

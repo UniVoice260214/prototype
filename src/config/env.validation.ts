@@ -49,6 +49,10 @@ export class EnvVars {
   @IsOptional()
   LIVEKIT_API_SECRET?: string;
 
+  @IsInt()
+  @IsOptional()
+  LIVEKIT_TOKEN_TTL_SEC: number = 4 * 60 * 60;
+
   @IsString()
   @IsOptional()
   AZURE_BLOB_CONNECTION_STRING?: string;
@@ -94,9 +98,18 @@ export function validateEnv(config: Record<string, unknown>): EnvVars {
   if (errors.length > 0) {
     throw new Error(
       `Invalid environment variables:\n${errors
-        .map((e) => `  - ${e.property}: ${Object.values(e.constraints ?? {}).join(', ')}`)
+        .map(
+          (e) =>
+            `  - ${e.property}: ${Object.values(e.constraints ?? {}).join(', ')}`,
+        )
         .join('\n')}`,
     );
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    validated.AUTH_DISABLED === 'true'
+  ) {
+    throw new Error('AUTH_DISABLED=true is not allowed in production');
   }
   return validated;
 }

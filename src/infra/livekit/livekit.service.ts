@@ -30,11 +30,16 @@ export class LiveKitService {
   private readonly apiKey: string;
   private readonly apiSecret: string;
   private readonly configured: boolean;
+  private readonly defaultTokenTtlSec: number;
 
   constructor(config: ConfigService) {
     const url = config.get<string>('LIVEKIT_URL');
     this.apiKey = config.get<string>('LIVEKIT_API_KEY') ?? '';
     this.apiSecret = config.get<string>('LIVEKIT_API_SECRET') ?? '';
+    this.defaultTokenTtlSec = Math.max(
+      60,
+      config.get<number>('LIVEKIT_TOKEN_TTL_SEC', 4 * 60 * 60),
+    );
 
     if (!url || !this.apiKey || !this.apiSecret) {
       this.logger.warn(
@@ -48,7 +53,11 @@ export class LiveKitService {
     const httpUrl = url
       .replace(/^wss:\/\//, 'https://')
       .replace(/^ws:\/\//, 'http://');
-    this.roomService = new RoomServiceClient(httpUrl, this.apiKey, this.apiSecret);
+    this.roomService = new RoomServiceClient(
+      httpUrl,
+      this.apiKey,
+      this.apiSecret,
+    );
     this.configured = true;
   }
 
@@ -80,7 +89,7 @@ export class LiveKitService {
       identity: opts.identity,
       name: opts.name,
       metadata: opts.metadata ? JSON.stringify(opts.metadata) : undefined,
-      ttl: opts.ttl ?? 3600,
+      ttl: opts.ttl ?? this.defaultTokenTtlSec,
     });
     at.addGrant({
       room: opts.roomName,

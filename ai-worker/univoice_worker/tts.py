@@ -156,7 +156,7 @@ class TtsSynthesizer:
                         asyncio.to_thread(self.synthesize, locale, text),
                         timeout=self._timeout_sec,
                     )
-                except TimeoutError as exc:
+                except asyncio.TimeoutError as exc:
                     failure = TtsException(
                         "TTS_TIMEOUT",
                         f"TTS synthesis exceeded {self._timeout_sec:.3f}s",
@@ -198,7 +198,7 @@ class TtsSynthesizer:
         )
 
     def _classify_exception(self, exc: BaseException) -> TtsException:
-        if isinstance(exc, TimeoutError):
+        if isinstance(exc, asyncio.TimeoutError):
             return TtsException("TTS_TIMEOUT", str(exc) or "TTS timed out", retryable=True, original=exc)
         error_code, retryable = self._classify_failure(type(exc).__name__, str(exc))
         return TtsException(error_code, str(exc) or type(exc).__name__, retryable=retryable, original=exc)

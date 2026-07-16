@@ -1,5 +1,14 @@
 import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  AuthUser,
+  CurrentUser,
+} from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { QrService } from './qr.service';
 
@@ -11,11 +20,18 @@ export class QrController {
 
   @Roles('admin', 'professor')
   @Get(':sessionId')
-  @ApiParam({ name: 'sessionId', description: '세션(Session) UUID', format: 'uuid' })
+  @ApiParam({
+    name: 'sessionId',
+    description: '세션(Session) UUID',
+    format: 'uuid',
+  })
   @ApiOperation({
     summary: '세션 입장용 QR 생성 (JoinToken 임베드 PNG data URL 반환)',
   })
-  generate(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
-    return this.service.generateForSession(sessionId);
+  generate(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.generateForSession(sessionId, user);
   }
 }

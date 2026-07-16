@@ -15,7 +15,10 @@ export class CourseService {
   }
 
   findAll(opts: { departmentId?: string; professorId?: string }) {
-    return this.repo.find({ where: opts });
+    const where = Object.fromEntries(
+      Object.entries(opts).filter(([, value]) => value !== undefined),
+    );
+    return this.repo.find({ where });
   }
 
   async findOne(id: string) {

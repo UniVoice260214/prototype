@@ -2,10 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
+import { SUPPORTED_TARGET_LOCALES } from '../../../common/supported-locales';
 
 export class StartSessionDto {
   @ApiProperty({ format: 'uuid' })
@@ -19,6 +21,7 @@ export class StartSessionDto {
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })
+  @IsIn(SUPPORTED_TARGET_LOCALES, { each: true })
   targetLocales: string[];
 }
 
@@ -33,6 +36,7 @@ export class IssueStudentTokenDto {
 
   @ApiProperty({ example: 'vi-VN' })
   @IsString()
+  @IsIn(SUPPORTED_TARGET_LOCALES)
   locale: string;
 }
 

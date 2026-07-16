@@ -163,7 +163,7 @@ class TranslationPipeline:
                 await asyncio.wait_for(self._queue.put(segment), timeout=self._enqueue_timeout)
             else:
                 await self._queue.put(segment)
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.error(
                 "[%s] segment queue full for %.3fs; dropping segment %s by backpressure policy",
                 self._session_id,
