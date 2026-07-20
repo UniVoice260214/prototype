@@ -11,13 +11,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import type Redis from 'ioredis';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { RedisKeys, SESSION_CONFIG_TTL_SEC } from '../../common/redis-keys';
 import { CourseAccessService } from '../../common/access/course-access.service';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { LiveKitService } from '../../infra/livekit/livekit.service';
+import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { AuthService } from '../auth/auth.service';
-import { Course } from '../course/entities/course.entity';
 import { EventsService } from '../events/events.service';
 import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
@@ -34,7 +33,6 @@ export class SessionService {
 
   constructor(
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
-    @InjectRepository(Course) private readonly courses: Repository<Course>,
     @InjectRepository(Glossary)
     private readonly glossaries: Repository<Glossary>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
@@ -45,14 +43,6 @@ export class SessionService {
     private readonly courseAccess: CourseAccessService,
   ) {}
 
-  /**
-   * 세션 시작 워크플로 (CLAUDE.md 참조):
-   *   1. Session 레코드 생성
-   *   2. LiveKit Room 생성
-   *   3. Redis prewarm (session:{id}:config, glossary:{courseId})
-   *   4. sessions.started 이벤트 publish
-   *   5. 교수용 LiveKit token 반환
-   */
   async start(
     dto: StartSessionDto,
     user: AuthUser,
@@ -73,7 +63,6 @@ export class SessionService {
       }),
     );
 
-    // 한 단계라도 실패하면 고아 Session/Room/Redis를 정리하고 재던진다 (보상 트랜잭션).
     try {
       await this.liveKit.createRoom(roomName);
       await this.prewarmRedis(session);
@@ -156,7 +145,6 @@ export class SessionService {
       throw err;
     }
 
-    // Redis 키 즉시 정리 (TTL 안전망과 별개로).
     await this.redis.del(
       RedisKeys.sessionConfig(session.id),
       RedisKeys.sessionStatus(session.id),
@@ -171,7 +159,7 @@ export class SessionService {
     dto: IssueStudentTokenDto,
     authStudentId: string | null,
   ): Promise<LiveKitTokenResponseDto> {
-    const session = await this.findOne(sessionId);
+    const session = await this.findOneById(sessionId);
     if (session.status !== 'active') {
       throw new BadRequestException('Session is not active');
     }
@@ -181,7 +169,6 @@ export class SessionService {
       );
     }
 
-    // Identity 결정: Student JWT가 있으면 그 id, 없으면 JoinToken 검증
     let identitySub: string;
     if (authStudentId) {
       identitySub = authStudentId;
@@ -216,14 +203,18 @@ export class SessionService {
     };
   }
 
-  findAll(courseId?: string) {
-    return this.sessions.find({ where: courseId ? { courseId } : {} });
+  findAll(courseId: string | undefined, user: AuthUser): Promise<Session[]> {
+    return this.courseAccess.findSessionsForUser({ courseId }, user);
   }
 
-  async findOne(id: string): Promise<Session> {
-    const s = await this.sessions.findOne({ where: { id } });
-    if (!s) throw new NotFoundException(`Session ${id} not found`);
-    return s;
+  findOne(id: string, user: AuthUser): Promise<Session> {
+    return this.courseAccess.findSessionForUser(id, user);
+  }
+
+  private async findOneById(id: string): Promise<Session> {
+    const session = await this.sessions.findOne({ where: { id } });
+    if (!session) throw new NotFoundException(`Session ${id} not found`);
+    return session;
   }
 
   private async prewarmRedis(session: Session): Promise<void> {

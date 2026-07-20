@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { AppRole, ROLES_KEY } from '../decorators/roles.decorator';
 import { AuthUser } from '../decorators/current-user.decorator';
+import { AppRole, ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -17,7 +17,6 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // 개발 전용: 인증 비활성화 시 역할 검사도 건너뜀
     if (this.config.get<string>('AUTH_DISABLED') === 'true') return true;
 
     const required = this.reflector.getAllAndOverride<AppRole[] | undefined>(
@@ -26,7 +25,8 @@ export class RolesGuard implements CanActivate {
     );
     if (!required || required.length === 0) return true;
 
-    const user = context.switchToHttp().getRequest().user as AuthUser | undefined;
+    const user = context.switchToHttp().getRequest()
+      .user as AuthUser | undefined;
     if (!user?.role) throw new ForbiddenException('Role not present in token');
 
     if (!required.includes(user.role)) {

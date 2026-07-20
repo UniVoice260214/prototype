@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type Redis from 'ioredis';
 import { Repository } from 'typeorm';
@@ -32,14 +32,12 @@ export class GlossaryService {
     return saved;
   }
 
-  findAll(courseId?: string): Promise<Glossary[]> {
-    return this.repo.find({ where: courseId ? { courseId } : {} });
+  findAll(filters: { courseId?: string }, user: AuthUser): Promise<Glossary[]> {
+    return this.courseAccess.findGlossariesForUser(filters, user);
   }
 
-  async findOne(id: string): Promise<Glossary> {
-    const g = await this.repo.findOne({ where: { id } });
-    if (!g) throw new NotFoundException(`Glossary ${id} not found`);
-    return g;
+  findOne(id: string, user: AuthUser): Promise<Glossary> {
+    return this.courseAccess.findGlossaryForUser(id, user);
   }
 
   async update(
@@ -47,30 +45,25 @@ export class GlossaryService {
     dto: UpdateGlossaryDto,
     user: AuthUser,
   ): Promise<Glossary> {
-    const g = await this.findOne(id);
-    await this.courseAccess.findCourseForUser(g.courseId, user);
-    Object.assign(g, {
-      term: dto.term ?? g.term,
-      pronunciation: dto.pronunciation ?? g.pronunciation,
-      definition: dto.definition ?? g.definition,
-      translations: dto.translations ?? g.translations,
+    const glossary = await this.findOne(id, user);
+    Object.assign(glossary, {
+      term: dto.term ?? glossary.term,
+      pronunciation: dto.pronunciation ?? glossary.pronunciation,
+      definition: dto.definition ?? glossary.definition,
+      translations: dto.translations ?? glossary.translations,
     });
-    const saved = await this.repo.save(g);
-    await this.invalidateCache(g.courseId);
+    const saved = await this.repo.save(glossary);
+    await this.invalidateCache(glossary.courseId);
     return saved;
   }
 
   async remove(id: string, user: AuthUser): Promise<void> {
-    const g = await this.findOne(id);
-    await this.courseAccess.findCourseForUser(g.courseId, user);
+    const glossary = await this.findOne(id, user);
     await this.repo.delete(id);
-    await this.invalidateCache(g.courseId);
+    await this.invalidateCache(glossary.courseId);
   }
 
-  /**
-   * 진행 중 세션이 있더라도 다음 세션 시작 시 prewarm 재실행되므로
-   * 보수적으로 cache 키만 삭제. (활성 세션은 변경분이 즉시 반영되지 않을 수 있음 — 문서화 사항.)
-   */
+  // Active sessions keep their current preload until the next refresh cycle.
   private async invalidateCache(courseId: string): Promise<void> {
     await this.redis.del(RedisKeys.glossaryByCourse(courseId));
   }

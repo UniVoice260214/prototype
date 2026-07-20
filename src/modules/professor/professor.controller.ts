@@ -33,30 +33,44 @@ export class ProfessorController {
   @Roles('admin')
   @Post()
   @ApiOperation({
-    summary: '교수 프로필 생성 (role=professor 인 User와 1:1 연결, 학과 소속)',
+    summary: 'Create a professor profile linked to a professor user',
   })
   create(@Body() dto: CreateProfessorDto) {
     return this.service.create(dto);
   }
 
+  @Roles('admin', 'professor')
   @Get()
-  @ApiOperation({ summary: '교수 목록 조회 (departmentId로 필터링 가능)' })
-  @ApiQuery({ name: 'departmentId', required: false, description: '학과 UUID 필터' })
+  @ApiOperation({ summary: 'List professor profiles' })
+  @ApiQuery({
+    name: 'departmentId',
+    required: false,
+    description: 'Optional department UUID filter',
+  })
   findAll(@Query('departmentId') departmentId?: string) {
     return this.service.findAll(departmentId);
   }
 
+  @Roles('admin', 'professor')
   @Get(':professorId')
-  @ApiOperation({ summary: '교수 1건 조회 (연결된 User 정보 포함)' })
-  @ApiParam({ name: 'professorId', description: '교수(Professor) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Get a single professor profile' })
+  @ApiParam({
+    name: 'professorId',
+    description: 'Professor UUID',
+    format: 'uuid',
+  })
   findOne(@Param('professorId', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
   @Roles('admin')
   @Patch(':professorId')
-  @ApiOperation({ summary: '교수 정보 수정 (학과 변경 등)' })
-  @ApiParam({ name: 'professorId', description: '교수(Professor) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Update a professor profile' })
+  @ApiParam({
+    name: 'professorId',
+    description: 'Professor UUID',
+    format: 'uuid',
+  })
   update(
     @Param('professorId', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProfessorDto,
@@ -67,8 +81,12 @@ export class ProfessorController {
   @Roles('admin')
   @HttpCode(204)
   @Delete(':professorId')
-  @ApiOperation({ summary: '교수 프로필 삭제 (User는 유지됨)' })
-  @ApiParam({ name: 'professorId', description: '교수(Professor) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Delete a professor profile' })
+  @ApiParam({
+    name: 'professorId',
+    description: 'Professor UUID',
+    format: 'uuid',
+  })
   remove(@Param('professorId', ParseUUIDPipe) id: string) {
     return this.service.remove(id);
   }

@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class CreateCourseDto {
-  @ApiProperty({ example: '인공지능 입문' })
+  @ApiProperty({ example: 'Introduction to AI' })
   @IsString()
   @MaxLength(200)
   name: string;

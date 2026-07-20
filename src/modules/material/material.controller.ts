@@ -35,7 +35,7 @@ const ALLOWED_MIME = [
   'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 ];
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_BYTES = 50 * 1024 * 1024;
 
 @ApiBearerAuth()
 @ApiTags('materials')
@@ -45,9 +45,7 @@ export class MaterialController {
 
   @Roles('admin', 'professor')
   @Post('upload')
-  @ApiOperation({
-    summary: 'PDF/PPT 강의자료 업로드 (Blob 저장 + 인덱싱 이벤트 발행)',
-  })
+  @ApiOperation({ summary: 'Upload lecture materials for indexing' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -77,43 +75,49 @@ export class MaterialController {
     return this.service.upload(file, dto, user);
   }
 
+  @Roles('admin', 'professor')
   @Get()
-  @ApiOperation({ summary: '강의자료 목록 조회 (과목·세션으로 필터링 가능)' })
+  @ApiOperation({ summary: 'List materials visible to the current user' })
   @ApiQuery({
     name: 'courseId',
     required: false,
-    description: '과목 UUID 필터',
+    description: 'Optional course UUID filter',
   })
   @ApiQuery({
     name: 'sessionId',
     required: false,
-    description: '세션 UUID 필터',
+    description: 'Optional session UUID filter',
   })
   findAll(
-    @Query('courseId') courseId?: string,
-    @Query('sessionId') sessionId?: string,
+    @Query('courseId') courseId: string | undefined,
+    @Query('sessionId') sessionId: string | undefined,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.service.findAll({ courseId, sessionId });
+    return this.service.findAll({ courseId, sessionId }, user);
   }
 
+  @Roles('admin', 'professor')
   @Get(':materialId')
-  @ApiOperation({ summary: '강의자료 1건 조회 (blobUrl·indexingStatus 포함)' })
+  @ApiOperation({ summary: 'Get a material visible to the current user' })
   @ApiParam({
     name: 'materialId',
-    description: '강의자료(Material) UUID',
+    description: 'Material UUID',
     format: 'uuid',
   })
-  findOne(@Param('materialId', ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  findOne(
+    @Param('materialId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findOne(id, user);
   }
 
   @Roles('admin', 'professor')
   @HttpCode(204)
   @Delete(':materialId')
-  @ApiOperation({ summary: '강의자료 삭제 (DB 레코드 + Blob 원본 함께 정리)' })
+  @ApiOperation({ summary: 'Delete a material and its blob' })
   @ApiParam({
     name: 'materialId',
-    description: '강의자료(Material) UUID',
+    description: 'Material UUID',
     format: 'uuid',
   })
   remove(

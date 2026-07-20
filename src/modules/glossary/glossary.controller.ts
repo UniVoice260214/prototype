@@ -33,43 +33,47 @@ export class GlossaryController {
 
   @Roles('admin', 'professor')
   @Post()
-  @ApiOperation({
-    summary: '용어 등록 (다국어 번역·발음 포함, Redis 캐시 무효화)',
-  })
+  @ApiOperation({ summary: 'Create a glossary term' })
   create(@Body() dto: CreateGlossaryDto, @CurrentUser() user: AuthUser) {
     return this.service.create(dto, user);
   }
 
+  @Roles('admin', 'professor')
   @Get()
-  @ApiOperation({ summary: '용어 목록 조회 (courseId로 필터링 가능)' })
+  @ApiOperation({ summary: 'List glossary terms visible to the current user' })
   @ApiQuery({
     name: 'courseId',
     required: false,
-    description: '과목 UUID 필터',
+    description: 'Optional course UUID filter',
   })
-  findAll(@Query('courseId') courseId?: string) {
-    return this.service.findAll(courseId);
+  findAll(
+    @Query('courseId') courseId: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findAll({ courseId }, user);
   }
 
+  @Roles('admin', 'professor')
   @Get(':glossaryId')
-  @ApiOperation({ summary: '용어 1건 조회' })
+  @ApiOperation({ summary: 'Get a glossary term visible to the current user' })
   @ApiParam({
     name: 'glossaryId',
-    description: '용어(Glossary) UUID',
+    description: 'Glossary UUID',
     format: 'uuid',
   })
-  findOne(@Param('glossaryId', ParseUUIDPipe) id: string) {
-    return this.service.findOne(id);
+  findOne(
+    @Param('glossaryId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findOne(id, user);
   }
 
   @Roles('admin', 'professor')
   @Patch(':glossaryId')
-  @ApiOperation({
-    summary: '용어 정보 수정 (번역·발음·정의, Redis 캐시 무효화)',
-  })
+  @ApiOperation({ summary: 'Update a glossary term' })
   @ApiParam({
     name: 'glossaryId',
-    description: '용어(Glossary) UUID',
+    description: 'Glossary UUID',
     format: 'uuid',
   })
   update(
@@ -83,10 +87,10 @@ export class GlossaryController {
   @Roles('admin', 'professor')
   @HttpCode(204)
   @Delete(':glossaryId')
-  @ApiOperation({ summary: '용어 삭제 (Redis 캐시 무효화)' })
+  @ApiOperation({ summary: 'Delete a glossary term' })
   @ApiParam({
     name: 'glossaryId',
-    description: '용어(Glossary) UUID',
+    description: 'Glossary UUID',
     format: 'uuid',
   })
   remove(

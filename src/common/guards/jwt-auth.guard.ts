@@ -8,12 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AuthUser } from '../decorators/current-user.decorator';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**
- * 개발용 인증 우회 시 주입되는 합성 사용자.
- * role=admin 이므로 RolesGuard와 무관하게 모든 엔드포인트 접근 가능.
+ * Synthetic user injected only when AUTH_DISABLED=true for local development.
  */
 const DEV_USER: AuthUser = {
   sub: 'dev-admin',
@@ -34,11 +33,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    // 개발 전용: AUTH_DISABLED=true 면 인증을 건너뛰고 합성 admin 주입
     if (this.config.get<string>('AUTH_DISABLED') === 'true') {
       if (!this.warned) {
         this.logger.warn(
-          '⚠️  AUTH_DISABLED=true — 인증이 비활성화되어 있습니다. (개발 전용)',
+          'AUTH_DISABLED=true: authentication is bypassed for development.',
         );
         this.warned = true;
       }

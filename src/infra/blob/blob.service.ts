@@ -4,11 +4,8 @@ import {
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 import { ConfigService } from '@nestjs/config';
-import {
-  BlobServiceClient,
-  ContainerClient,
-} from '@azure/storage-blob';
 import { v4 as uuid } from 'uuid';
 
 export interface UploadResult {
@@ -32,7 +29,7 @@ export class BlobService implements OnModuleInit {
 
     if (!conn || conn.length === 0) {
       this.logger.warn(
-        'AZURE_BLOB_CONNECTION_STRING is empty — Blob uploads will fail until configured.',
+        'AZURE_BLOB_CONNECTION_STRING is empty; blob uploads will fail until configured.',
       );
       return;
     }
@@ -44,14 +41,14 @@ export class BlobService implements OnModuleInit {
       this.logger.log(`Blob container ready: ${containerName}`);
     } catch (err) {
       this.logger.warn(
-        `Blob init failed — uploads will be rejected at runtime: ${(err as Error).message}`,
+        `Blob init failed; uploads will be rejected at runtime: ${(err as Error).message}`,
       );
       this.container = null;
     }
   }
 
   /**
-   * 업로드. blobName이 없으면 자동 생성.
+   * Uploads a file and auto-generates a blob name when needed.
    */
   async upload(
     file: { buffer: Buffer; originalname: string; mimetype: string },
@@ -85,17 +82,17 @@ export class BlobService implements OnModuleInit {
   }
 
   /**
-   * blobUrl(전체 URL)로부터 blobName을 역산해 삭제.
-   * URL 경로는 `/{container}/{blobName}` 형태이므로 컨테이너 segment를 제거한다.
-   * (자료 삭제 시 Blob 원본까지 정리 — best-effort)
+   * Derives the blob name from a full blob URL and deletes it.
    */
   async deleteByUrl(blobUrl: string): Promise<void> {
-    if (!this.container) return; // 미설정이면 조용히 skip
+    if (!this.container) return;
     let blobName: string;
     try {
-      const path = decodeURIComponent(new URL(blobUrl).pathname); // /container/materials/uuid.ext
+      const path = decodeURIComponent(new URL(blobUrl).pathname);
       const prefix = `/${this.container.containerName}/`;
-      blobName = path.startsWith(prefix) ? path.slice(prefix.length) : path.replace(/^\//, '');
+      blobName = path.startsWith(prefix)
+        ? path.slice(prefix.length)
+        : path.replace(/^\//, '');
     } catch {
       this.logger.warn(`deleteByUrl: cannot parse blobUrl ${blobUrl}`);
       return;

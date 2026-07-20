@@ -6,9 +6,9 @@ import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { AuthService } from '../auth/auth.service';
 
 export interface QrPayload {
-  /** Data URL (image/png base64) */
+  /** PNG data URL */
   qrImage: string;
-  /** 클라이언트에서 직접 사용할 수 있도록 함께 반환 */
+  /** Returned separately so clients can open the join link directly. */
   joinUrl: string;
   joinToken: string;
   sessionId: string;

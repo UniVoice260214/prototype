@@ -11,7 +11,7 @@ export class CreateUserDto {
   @MinLength(8)
   password: string;
 
-  @ApiProperty({ example: '관리자' })
+  @ApiProperty({ example: 'Admin User' })
   @IsString()
   @MaxLength(100)
   name: string;

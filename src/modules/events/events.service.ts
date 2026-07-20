@@ -10,8 +10,7 @@ import {
 } from './events.types';
 
 /**
- * 모든 외부 시스템 이벤트(Pub/Sub) 발행의 단일 진입점.
- * NestJS → Python 워커 / RAG 워커로 전달되는 메시지는 반드시 이 서비스를 통해 publish.
+ * Single entry point for outbound Redis Pub/Sub events.
  */
 @Injectable()
 export class EventsService {

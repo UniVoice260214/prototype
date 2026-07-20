@@ -16,7 +16,7 @@ export class StartSessionDto {
 
   @ApiProperty({
     example: ['zh-CN', 'vi-VN', 'mn-MN'],
-    description: '이 세션에서 번역해 송출할 언어 locale 목록',
+    description: 'List of locales to translate and publish for this session',
   })
   @IsArray()
   @ArrayMinSize(1)
@@ -28,7 +28,7 @@ export class StartSessionDto {
 export class IssueStudentTokenDto {
   @ApiPropertyOptional({
     description:
-      'QR 입장 시 발급받은 JoinToken. Student JWT로 인증되면 생략 가능.',
+      'Join token issued from the QR flow. Optional when a Student JWT is used.',
   })
   @IsOptional()
   @IsString()

@@ -1,9 +1,9 @@
 /**
- * 첫 admin 사용자 생성용 시드 스크립트.
+ * Seed script for creating the first admin user.
  *
  *   npm run seed
  *
- * 안전성: 이미 admin 이메일이 존재하면 덮어쓰지 않고 종료한다.
+ * If the admin email already exists, the script exits without overwriting it.
  */
 import 'reflect-metadata';
 import * as bcrypt from 'bcrypt';
@@ -22,7 +22,7 @@ async function main() {
 
   const existing = await repo.findOne({ where: { email: SEED_ADMIN.email } });
   if (existing) {
-    console.log(`✅ Admin already exists: ${existing.email} (id=${existing.id})`);
+    console.log(`Admin already exists: ${existing.email} (id=${existing.id})`);
     await dataSource.destroy();
     return;
   }
@@ -36,11 +36,11 @@ async function main() {
       role: 'admin',
     }),
   );
-  console.log('✅ Seeded admin user:');
+  console.log('Seeded admin user:');
   console.log(`   id:       ${user.id}`);
   console.log(`   email:    ${user.email}`);
   console.log(`   password: ${SEED_ADMIN.password}`);
-  console.log('\nLogin via:  POST /auth/login  { email, password }');
+  console.log('\nLogin via: POST /auth/login { email, password }');
   await dataSource.destroy();
 }
 

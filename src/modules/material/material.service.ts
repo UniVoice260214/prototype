@@ -3,7 +3,6 @@ import {
   Inject,
   Injectable,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -80,8 +79,7 @@ export class MaterialService {
       throw err;
     }
 
-    // RAG 인덱싱 트리거 — 2단계 전달 (best-of: 세희 pub/sub + 서영 durable queue)
-    //  (1) 내구성 큐(Redis List)에 적재 → RAG 워커가 꺼져 있어도 유실 없음 (서영 설계)
+    // Deliver the indexing job through both a durable queue and a live event.
     const job = {
       materialId: material.id,
       courseId: material.courseId,
@@ -90,7 +88,6 @@ export class MaterialService {
       week: material.week ?? undefined,
     };
     await this.redis.lpush(this.ragQueue, JSON.stringify(job));
-    //  (2) 라이브 알림 이벤트도 publish (세희 설계) → 워커가 떠 있으면 즉시 반응
     try {
       await this.events.publishMaterialIndexingRequested(job);
     } catch (err) {
@@ -103,23 +100,19 @@ export class MaterialService {
     return material;
   }
 
-  findAll(opts: { courseId?: string; sessionId?: string }) {
-    const where = Object.fromEntries(
-      Object.entries(opts).filter(([, value]) => value !== undefined),
-    );
-    return this.repo.find({ where });
+  findAll(
+    opts: { courseId?: string; sessionId?: string },
+    user: AuthUser,
+  ): Promise<Material[]> {
+    return this.courseAccess.findMaterialsForUser(opts, user);
   }
 
-  async findOne(id: string) {
-    const m = await this.repo.findOne({ where: { id } });
-    if (!m) throw new NotFoundException(`Material ${id} not found`);
-    return m;
+  findOne(id: string, user: AuthUser): Promise<Material> {
+    return this.courseAccess.findMaterialForUser(id, user);
   }
 
   async remove(id: string, user: AuthUser) {
-    const material = await this.findOne(id);
-    await this.courseAccess.findCourseForUser(material.courseId, user);
-    // Blob 원본 정리 (best-effort — 실패해도 DB 레코드는 삭제 진행)
+    const material = await this.findOne(id, user);
     await this.deleteBlobBestEffort(material.blobUrl, `material ${id} delete`);
     await this.repo.delete(id);
   }
