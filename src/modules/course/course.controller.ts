@@ -52,9 +52,9 @@ export class CourseController {
     description: 'Optional professor UUID filter',
   })
   findAll(
+    @CurrentUser() user: AuthUser,
     @Query('departmentId') departmentId?: string,
     @Query('professorId') professorId?: string,
-    @CurrentUser() user: AuthUser,
   ) {
     return this.service.findAll({ departmentId, professorId }, user);
   }

@@ -93,7 +93,6 @@ function makeService(options: {
 
   const service = new SessionService(
     sessions as any,
-    { findOne: jest.fn() } as any,
     { find: jest.fn() } as any,
     redis as any,
     liveKit as any,
