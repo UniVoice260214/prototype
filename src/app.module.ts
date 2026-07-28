@@ -22,6 +22,7 @@ import { SchoolModule } from './modules/school/school.module';
 import { SessionModule } from './modules/session/session.module';
 import { StudentModule } from './modules/student/student.module';
 import { UserModule } from './modules/user/user.module';
+import { WebModule } from './modules/web/web.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { UserModule } from './modules/user/user.module';
     MaterialModule,
     GlossaryModule,
     QrModule,
+    WebModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

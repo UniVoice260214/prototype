@@ -51,6 +51,14 @@ export class SessionService {
       dto.courseId,
       user,
     );
+    const activeSession = await this.sessions.findOne({
+      where: { courseId: dto.courseId, status: 'active' },
+    });
+    if (activeSession) {
+      throw new BadRequestException(
+        `Course already has an active session: ${activeSession.id}`,
+      );
+    }
 
     const roomName = `session-${uuid()}`;
     const session = await this.sessions.save(
@@ -209,6 +217,20 @@ export class SessionService {
 
   findOne(id: string, user: AuthUser): Promise<Session> {
     return this.courseAccess.findSessionForUser(id, user);
+  }
+
+  async getStatus(
+    id: string,
+    user: AuthUser,
+  ): Promise<{
+    session: Session;
+    worker: WorkerStatusPayload | null;
+  }> {
+    const session = await this.courseAccess.findSessionForUser(id, user);
+    return {
+      session,
+      worker: await this.readWorkerStatus(id),
+    };
   }
 
   private async findOneById(id: string): Promise<Session> {

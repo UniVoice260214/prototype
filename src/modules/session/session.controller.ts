@@ -88,6 +88,21 @@ export class SessionController {
   }
 
   @Roles('admin', 'professor')
+  @Get(':sessionId/status')
+  @ApiOperation({ summary: 'Get session and AI worker status' })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Session UUID',
+    format: 'uuid',
+  })
+  status(
+    @Param('sessionId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.getStatus(id, user);
+  }
+
+  @Roles('admin', 'professor')
   @Get(':sessionId')
   @ApiOperation({ summary: 'Get a session visible to the current user' })
   @ApiParam({
