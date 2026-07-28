@@ -9,6 +9,7 @@
     { code: "en-US", name: "영어", native: "English", flag: "En" },
     { code: "ja-JP", name: "일본어", native: "日本語", flag: "日" },
   ];
+  const ACTIVE_SESSION_KEY = "univoice.activeSession";
 
   const state = {
     mode: "professor",
@@ -18,7 +19,11 @@
     joinUrl: "",
     elapsedTimer: null,
     statusTimer: null,
+    connectionStatusTimer: null,
     selectedStudentLocale: "vi-VN",
+    activeSessions: [],
+    micPausedByUser: false,
+    endingSession: false,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -37,7 +42,9 @@
       } catch {
         detail = { message: response.statusText };
       }
-      throw new Error(Array.isArray(detail.message) ? detail.message.join(", ") : detail.message || "요청에 실패했습니다.");
+      const error = new Error(Array.isArray(detail.message) ? detail.message.join(", ") : detail.message || "요청에 실패했습니다.");
+      error.status = response.status;
+      throw error;
     }
     if (response.status === 204) return null;
     return response.json();
@@ -105,6 +112,141 @@
       : '<option value="">등록된 과목이 없습니다</option>';
     $("professor-login").classList.add("hidden");
     $("professor-setup").classList.remove("hidden");
+    return courses;
+  }
+
+  function readSavedSession() {
+    try {
+      const value = JSON.parse(sessionStorage.getItem(ACTIVE_SESSION_KEY) || "null");
+      return value?.sessionId && value?.courseId ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveActiveSession(session) {
+    sessionStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify({
+      sessionId: session.id,
+      courseId: session.courseId,
+      courseName: session.courseName,
+    }));
+  }
+
+  function clearSavedSession() {
+    sessionStorage.removeItem(ACTIVE_SESSION_KEY);
+  }
+
+  function courseNameFor(session, courses) {
+    return courses.find((course) => course.id === session.courseId)?.name
+      || readSavedSession()?.courseName
+      || "진행 중인 수업";
+  }
+
+  function updateRecoveryControls() {
+    const courseId = $("course-select").value;
+    const matching = state.activeSessions.filter((session) => session.courseId === courseId);
+    const button = $("recover-session");
+    button.classList.toggle("hidden", matching.length === 0);
+    button.disabled = matching.length > 1;
+    button.textContent = matching.length > 1
+      ? "활성 수업이 여러 개라 복구할 수 없습니다"
+      : "진행 중 수업 복구";
+  }
+
+  async function refreshActiveSessions() {
+    state.activeSessions = await api("/sessions/active");
+    updateRecoveryControls();
+    return state.activeSessions;
+  }
+
+  async function restoreProfessorSession(session, courses) {
+    const button = $("recover-session");
+    setBusy(button, true, "수업 연결을 복구하고 있습니다...");
+    try {
+      state.micPausedByUser = false;
+      state.session = {
+        ...session,
+        courseName: courseNameFor(session, courses),
+      };
+      saveActiveSession(state.session);
+      const liveKit = await api(`/sessions/${session.id}/professor-token`, {
+        method: "POST",
+      });
+      state.session.liveKit = liveKit;
+      await connectProfessor(liveKit);
+      await loadQr(session.id);
+      enterProfessorLive();
+      toast("진행 중인 수업과 마이크 연결을 복구했습니다.");
+      return true;
+    } catch (error) {
+      await disconnectRoom();
+      clearSessionTimers();
+      clearSavedSession();
+      state.session = null;
+      $("professor-live").classList.add("hidden");
+      $("professor-setup").classList.remove("hidden");
+      updateRecoveryControls();
+      toast(`수업을 복구하지 못했습니다: ${error.message}`, "error");
+      return false;
+    } finally {
+      setBusy(button, false);
+      updateRecoveryControls();
+    }
+  }
+
+  async function recoverProfessorSession(courses) {
+    const sessions = await refreshActiveSessions();
+    const saved = readSavedSession();
+    if (!sessions.length) {
+      clearSavedSession();
+      return;
+    }
+
+    const savedMatch = saved
+      ? sessions.find((session) => session.id === saved.sessionId && session.courseId === saved.courseId)
+      : null;
+    const candidate = savedMatch || (sessions.length === 1 ? sessions[0] : null);
+    if (candidate) {
+      $("course-select").value = candidate.courseId;
+      updateRecoveryControls();
+      await restoreProfessorSession(candidate, courses);
+      return;
+    }
+
+    if (saved?.courseId && courses.some((course) => course.id === saved.courseId)) {
+      $("course-select").value = saved.courseId;
+    }
+    clearSavedSession();
+    updateRecoveryControls();
+    toast("진행 중인 수업이 여러 개입니다. 복구할 과목을 선택해주세요.");
+  }
+
+  async function recoverSelectedSession() {
+    const courseId = $("course-select").value;
+    if (!courseId) return toast("복구할 과목을 선택해주세요.", "error");
+    const sessions = await api(`/sessions/active?courseId=${encodeURIComponent(courseId)}`);
+    state.activeSessions = [
+      ...state.activeSessions.filter((session) => session.courseId !== courseId),
+      ...sessions,
+    ];
+    updateRecoveryControls();
+    if (!sessions.length) {
+      clearSavedSession();
+      return toast("이 과목에는 진행 중인 수업이 없습니다.", "error");
+    }
+    if (sessions.length > 1) {
+      return toast("이 과목에 활성 수업이 여러 개 있어 자동 복구하지 않았습니다.", "error");
+    }
+    const courses = [...$("course-select").options].map((option) => ({
+      id: option.value,
+      name: option.textContent,
+    }));
+    await restoreProfessorSession(sessions[0], courses);
+  }
+
+  async function initializeProfessor() {
+    const courses = await loadCourses();
+    await recoverProfessorSession(courses);
   }
 
   async function login(event) {
@@ -120,7 +262,7 @@
       if (result.role === "student") throw new Error("교수자 계정으로 로그인해주세요.");
       state.accessToken = result.accessToken;
       sessionStorage.setItem("univoice.accessToken", result.accessToken);
-      await loadCourses();
+      await initializeProfessor();
       toast("로그인되었습니다.");
     } catch (error) {
       toast(error.message, "error");
@@ -135,24 +277,45 @@
     const targetLocales = [...document.querySelectorAll("#professor-locales input:checked")].map((input) => input.value);
     if (!courseId) return toast("시작할 과목을 선택해주세요.", "error");
     if (!targetLocales.length) return toast("번역 언어를 하나 이상 선택해주세요.", "error");
+    let createdSession = null;
     setBusy(button, true, "수업을 준비하고 있습니다...");
     try {
       const result = await api("/sessions/start", {
         method: "POST",
         body: JSON.stringify({ courseId, targetLocales }),
       });
+      createdSession = result.session;
+      state.micPausedByUser = false;
       state.session = result.session;
       state.session.liveKit = result.liveKit;
       state.session.courseName = $("course-select").selectedOptions[0].textContent;
+      saveActiveSession(state.session);
+      state.activeSessions = [
+        ...state.activeSessions.filter((session) => session.id !== result.session.id),
+        result.session,
+      ];
       await connectProfessor(result.liveKit);
       await loadQr(result.session.id);
       enterProfessorLive();
     } catch (error) {
       if (state.room) await disconnectRoom();
+      if (createdSession) {
+        state.session = null;
+        await refreshActiveSessions().catch(() => undefined);
+      }
       toast(error.message, "error");
     } finally {
       setBusy(button, false);
     }
+  }
+
+  async function syncProfessorMicrophone(room) {
+    if (state.room !== room) return;
+    const shouldEnable = !state.micPausedByUser;
+    if (room.localParticipant.isMicrophoneEnabled !== shouldEnable) {
+      await room.localParticipant.setMicrophoneEnabled(shouldEnable);
+    }
+    $("mic-message").textContent = shouldEnable ? "ON" : "PAUSED";
   }
 
   async function connectProfessor(liveKit) {
@@ -175,19 +338,43 @@
         $("professor-transcript").textContent = data.sourceKo;
       }
     });
+    room.on(LivekitClient.RoomEvent.Reconnecting, () => {
+      if (state.room !== room) return;
+      clearTimeout(state.connectionStatusTimer);
+      $("session-status").innerHTML = "<i></i> 재연결 중";
+    });
+    room.on(LivekitClient.RoomEvent.Reconnected, async () => {
+      if (state.room !== room) return;
+      $("session-status").innerHTML = "<i></i> 다시 연결됨";
+      try {
+        await syncProfessorMicrophone(room);
+      } catch (error) {
+        toast(`마이크 상태를 복구하지 못했습니다: ${error.message}`, "error");
+      }
+      state.connectionStatusTimer = setTimeout(() => {
+        if (state.room === room) {
+          $("session-status").innerHTML = "<i></i> 수업 진행 중";
+        }
+      }, 2000);
+    });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      if (state.room !== room) return;
       $("session-status").innerHTML = "<i></i> 연결 끊김";
       $("mic-message").textContent = "LiveKit 연결이 끊겼습니다.";
     });
     await room.connect(liveKit.liveKitUrl, liveKit.token);
     try {
-      await room.localParticipant.setMicrophoneEnabled(true);
+      await syncProfessorMicrophone(room);
     } catch (error) {
       throw new Error(`마이크를 시작할 수 없습니다: ${error.message}`);
     }
   }
 
   async function loadQr(sessionId) {
+    state.joinUrl = "";
+    $("qr-image").removeAttribute("src");
+    $("qr-loading").textContent = "QR 생성 중";
+    $("qr-loading").classList.remove("hidden");
     try {
       const qr = await api(`/qr/${sessionId}`);
       state.joinUrl = qr.joinUrl;
@@ -200,11 +387,12 @@
   }
 
   function enterProfessorLive() {
+    clearSessionTimers();
     $("professor-setup").classList.add("hidden");
     $("professor-live").classList.remove("hidden");
     $("live-course-name").textContent = state.session.courseName;
     $("session-status").innerHTML = "<i></i> 수업 진행 중";
-    $("mic-message").textContent = "ON";
+    $("mic-message").textContent = state.micPausedByUser ? "PAUSED" : "ON";
     $("locale-count").textContent = `${state.session.targetLocales.length}개 언어`;
     $("material-link").textContent = `${state.session.courseName.replace(/\s+/g, "_")}_강의자료`;
     const startedAt = new Date(state.session.startedAt).getTime();
@@ -237,23 +425,32 @@
   }
 
   async function endSession() {
-    if (!state.session || !confirm("현재 수업을 종료할까요? 학생의 자막과 음성도 함께 종료됩니다.")) return;
+    if (state.endingSession || !state.session || !confirm("현재 수업을 종료할까요? 학생의 자막과 음성도 함께 종료됩니다.")) return;
     const button = $("end-session");
+    const endingSessionId = state.session.id;
+    state.endingSession = true;
     setBusy(button, true, "수업을 종료하고 있습니다...");
     try {
-      await api(`/sessions/${state.session.id}/end`, { method: "POST" });
+      await api(`/sessions/${endingSessionId}/end`, { method: "POST" });
       await disconnectRoom();
       clearSessionTimers();
+      clearSavedSession();
+      state.activeSessions = state.activeSessions.filter((session) => session.id !== endingSessionId);
       state.session = null;
+      state.joinUrl = "";
+      state.micPausedByUser = false;
       $("professor-live").classList.add("hidden");
       $("professor-setup").classList.remove("hidden");
       $("qr-image").removeAttribute("src");
+      $("qr-loading").textContent = "QR 생성 중";
       $("qr-loading").classList.remove("hidden");
       if ($("qr-dialog").open) $("qr-dialog").close();
+      updateRecoveryControls();
       toast("수업이 안전하게 종료되었습니다.");
     } catch (error) {
       toast(error.message, "error");
     } finally {
+      state.endingSession = false;
       setBusy(button, false);
     }
   }
@@ -381,13 +578,22 @@
   function clearSessionTimers() {
     clearInterval(state.elapsedTimer);
     clearInterval(state.statusTimer);
+    clearTimeout(state.connectionStatusTimer);
     state.elapsedTimer = null;
     state.statusTimer = null;
+    state.connectionStatusTimer = null;
   }
 
   function logout() {
     sessionStorage.removeItem("univoice.accessToken");
+    clearSavedSession();
+    clearSessionTimers();
+    void disconnectRoom();
     state.accessToken = "";
+    state.session = null;
+    state.activeSessions = [];
+    state.micPausedByUser = false;
+    $("professor-live").classList.add("hidden");
     $("professor-setup").classList.add("hidden");
     $("professor-login").classList.remove("hidden");
   }
@@ -421,21 +627,39 @@
     $("switch-mode").addEventListener("click", () => showMode(state.mode === "professor" ? "student" : "professor"));
     $("login-form").addEventListener("submit", login);
     $("start-session").addEventListener("click", startSession);
+    $("recover-session").addEventListener("click", () => {
+      recoverSelectedSession().catch((error) => toast(error.message, "error"));
+    });
+    $("course-select").addEventListener("change", updateRecoveryControls);
     $("end-session").addEventListener("click", endSession);
     $("logout").addEventListener("click", logout);
     $("join-session").addEventListener("click", joinStudentSession);
     $("leave-session").addEventListener("click", leaveStudentSession);
     $("mic-pause").addEventListener("click", async () => {
       if (!state.room) return;
-      await state.room.localParticipant.setMicrophoneEnabled(false);
-      $("mic-message").textContent = "PAUSED";
-      toast("마이크를 잠시 껐습니다.");
+      const room = state.room;
+      state.micPausedByUser = true;
+      try {
+        await room.localParticipant.setMicrophoneEnabled(false);
+        $("mic-message").textContent = "PAUSED";
+        toast("마이크를 잠시 껐습니다.");
+      } catch (error) {
+        state.micPausedByUser = false;
+        toast(`마이크를 끄지 못했습니다: ${error.message}`, "error");
+      }
     });
     $("mic-resume").addEventListener("click", async () => {
       if (!state.room) return;
-      await state.room.localParticipant.setMicrophoneEnabled(true);
-      $("mic-message").textContent = "ON";
-      toast("마이크를 다시 켰습니다.");
+      const room = state.room;
+      state.micPausedByUser = false;
+      try {
+        await room.localParticipant.setMicrophoneEnabled(true);
+        $("mic-message").textContent = "ON";
+        toast("마이크를 다시 켰습니다.");
+      } catch (error) {
+        state.micPausedByUser = true;
+        toast(`마이크를 켜지 못했습니다: ${error.message}`, "error");
+      }
     });
     const openQr = () => {
       if (typeof $("qr-dialog").showModal === "function") $("qr-dialog").showModal();
@@ -455,11 +679,15 @@
     });
     window.addEventListener("beforeunload", () => {
       clearSessionTimers();
-      if (state.room) state.room.disconnect();
+      if (state.room) {
+        const room = state.room;
+        state.room = null;
+        room.disconnect();
+      }
     });
 
-    if (state.accessToken) {
-      loadCourses().catch(() => logout());
+    if (state.accessToken && state.mode === "professor") {
+      initializeProfessor().catch(() => logout());
     }
   }
 

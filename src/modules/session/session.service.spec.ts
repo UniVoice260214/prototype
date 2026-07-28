@@ -6,6 +6,7 @@ jest.mock('bcrypt', () => ({
 import { SessionService } from './session.service';
 import { RedisKeys } from '../../common/redis-keys';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
 const ADMIN_USER: AuthUser = {
   sub: 'admin-1',
@@ -33,6 +34,8 @@ function makeService(options: {
   timeoutSec?: number;
   redisGetError?: Error;
   deleteRoomError?: Error;
+  sessionAccessError?: Error;
+  visibleSessions?: any[];
 }) {
   const order = options.order ?? [];
   const session = options.session ?? makeSession();
@@ -63,7 +66,7 @@ function makeService(options: {
   };
   const liveKit = {
     createRoom: jest.fn(),
-    createAccessToken: jest.fn(),
+    createAccessToken: jest.fn(async () => 'professor-livekit-token'),
     deleteRoom: jest.fn(async () => {
       order.push('livekit.deleteRoom');
       if (options.deleteRoomError) throw options.deleteRoomError;
@@ -88,7 +91,13 @@ function makeService(options: {
       id: 'course-1',
       professorId: 'professor-1',
     })),
-    findSessionForUser: jest.fn(async () => session),
+    findSessionForUser: jest.fn(async () => {
+      if (options.sessionAccessError) throw options.sessionAccessError;
+      return session;
+    }),
+    findSessionsForUser: jest.fn(
+      async () => options.visibleSessions ?? [session],
+    ),
   };
 
   const service = new SessionService(
@@ -114,6 +123,111 @@ function makeService(options: {
     order,
   };
 }
+
+describe('SessionService recovery', () => {
+  it('reissues the professor token for an active session', async () => {
+    const { service, liveKit } = makeService({});
+
+    await expect(
+      service.issueProfessorToken('session-123', ADMIN_USER),
+    ).resolves.toEqual({
+      liveKitUrl: 'ws://livekit',
+      token: 'professor-livekit-token',
+      roomName: 'room-1',
+      identity: 'professor-professor-1',
+    });
+    expect(liveKit.createAccessToken).toHaveBeenCalledWith({
+      identity: 'professor-professor-1',
+      roomName: 'room-1',
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+      name: 'Professor',
+      metadata: { role: 'professor', sessionId: 'session-123' },
+    });
+  });
+
+  it('rejects professor token reissue for an ended session', async () => {
+    const { service, liveKit } = makeService({
+      session: makeSession({ status: 'ended' }),
+    });
+
+    await expect(
+      service.issueProfessorToken('session-123', ADMIN_USER),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(liveKit.createAccessToken).not.toHaveBeenCalled();
+  });
+
+  it("rejects access to another professor's session", async () => {
+    const { service, liveKit } = makeService({
+      sessionAccessError: new ForbiddenException(
+        'Course is not owned by this professor',
+      ),
+    });
+
+    await expect(
+      service.issueProfessorToken('session-123', ADMIN_USER),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(liveKit.createAccessToken).not.toHaveBeenCalled();
+  });
+
+  it('lists only active sessions through the access service', async () => {
+    const { service, courseAccess } = makeService({ visibleSessions: [] });
+
+    await expect(service.findActive('course-1', ADMIN_USER)).resolves.toEqual(
+      [],
+    );
+    expect(courseAccess.findSessionsForUser).toHaveBeenCalledWith(
+      { courseId: 'course-1', status: 'active' },
+      ADMIN_USER,
+    );
+  });
+});
+
+describe('SessionService.start', () => {
+  it('rejects starting a second active session for the same course', async () => {
+    const { service, liveKit } = makeService({});
+
+    await expect(
+      service.start(
+        { courseId: 'course-1', targetLocales: ['vi-VN'] },
+        ADMIN_USER,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(liveKit.createRoom).not.toHaveBeenCalled();
+  });
+});
+
+describe('SessionService.getStatus', () => {
+  it('returns worker status after checking session access', async () => {
+    const worker = { status: 'ready', ts: 123 };
+    const { service, courseAccess } = makeService({
+      workerStatus: JSON.stringify(worker),
+    });
+
+    await expect(service.getStatus('session-123', ADMIN_USER)).resolves.toEqual({
+      session: expect.objectContaining({ id: 'session-123', status: 'active' }),
+      worker,
+    });
+    expect(courseAccess.findSessionForUser).toHaveBeenCalledWith(
+      'session-123',
+      ADMIN_USER,
+    );
+  });
+
+  it('rejects worker status access for a session the user cannot manage', async () => {
+    const { service, redis } = makeService({
+      sessionAccessError: new ForbiddenException(
+        'Course is not owned by this professor',
+      ),
+    });
+
+    await expect(
+      service.getStatus('session-123', ADMIN_USER),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(redis.get).not.toHaveBeenCalled();
+  });
+});
 
 describe('SessionService.end', () => {
   it('publishes sessions.ended before deleting the LiveKit room', async () => {

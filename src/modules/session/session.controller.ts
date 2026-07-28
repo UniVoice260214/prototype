@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -21,7 +22,11 @@ import {
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SessionService } from './session.service';
-import { IssueStudentTokenDto, StartSessionDto } from './dto/session.dto';
+import {
+  IssueStudentTokenDto,
+  LiveKitTokenResponseDto,
+  StartSessionDto,
+} from './dto/session.dto';
 
 @ApiBearerAuth()
 @ApiTags('sessions')
@@ -36,6 +41,24 @@ export class SessionController {
   })
   start(@Body() dto: StartSessionDto, @CurrentUser() user: AuthUser) {
     return this.service.start(dto, user);
+  }
+
+  @Roles('admin', 'professor')
+  @Get('active')
+  @ApiOperation({
+    summary: 'List active sessions visible to the current user',
+    description: 'Returns an empty array when there is no active session.',
+  })
+  @ApiQuery({
+    name: 'courseId',
+    required: false,
+    description: 'Optional course UUID filter',
+  })
+  findActive(
+    @Query('courseId') courseId: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findActive(courseId, user);
   }
 
   @Roles('professor', 'admin')
@@ -70,6 +93,24 @@ export class SessionController {
   ) {
     const studentId = user?.type === 'student' ? user.sub : null;
     return this.service.issueStudentToken(id, dto, studentId);
+  }
+
+  @Roles('professor', 'admin')
+  @Post(':sessionId/professor-token')
+  @ApiOperation({
+    summary: 'Reissue a professor LiveKit token for an active session',
+  })
+  @ApiOkResponse({ type: LiveKitTokenResponseDto })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Session UUID',
+    format: 'uuid',
+  })
+  issueProfessorToken(
+    @Param('sessionId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.issueProfessorToken(id, user);
   }
 
   @Roles('admin', 'professor')

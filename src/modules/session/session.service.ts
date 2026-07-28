@@ -81,24 +81,9 @@ export class SessionService {
         targetLocales: session.targetLocales,
       });
 
-      const token = await this.liveKit.createAccessToken({
-        identity: `professor-${course.professorId}`,
-        roomName,
-        canPublish: true,
-        canSubscribe: true,
-        canPublishData: true,
-        name: 'Professor',
-        metadata: { role: 'professor', sessionId: session.id },
-      });
-
       return {
         session,
-        liveKit: {
-          liveKitUrl: this.config.get<string>('LIVEKIT_URL') ?? '',
-          token,
-          roomName,
-          identity: `professor-${course.professorId}`,
-        },
+        liveKit: await this.createProfessorToken(session, course.professorId),
       };
     } catch (err) {
       await this.sessions.delete(session.id).catch(() => undefined);
@@ -215,8 +200,34 @@ export class SessionService {
     return this.courseAccess.findSessionsForUser({ courseId }, user);
   }
 
+  findActive(
+    courseId: string | undefined,
+    user: AuthUser,
+  ): Promise<Session[]> {
+    return this.courseAccess.findSessionsForUser(
+      { courseId, status: 'active' },
+      user,
+    );
+  }
+
   findOne(id: string, user: AuthUser): Promise<Session> {
     return this.courseAccess.findSessionForUser(id, user);
+  }
+
+  async issueProfessorToken(
+    id: string,
+    user: AuthUser,
+  ): Promise<LiveKitTokenResponseDto> {
+    const session = await this.courseAccess.findSessionForUser(id, user);
+    if (session.status !== 'active') {
+      throw new BadRequestException('Session is not active');
+    }
+
+    const course = await this.courseAccess.findCourseForUser(
+      session.courseId,
+      user,
+    );
+    return this.createProfessorToken(session, course.professorId);
   }
 
   async getStatus(
@@ -237,6 +248,29 @@ export class SessionService {
     const session = await this.sessions.findOne({ where: { id } });
     if (!session) throw new NotFoundException(`Session ${id} not found`);
     return session;
+  }
+
+  private async createProfessorToken(
+    session: Session,
+    professorId: string,
+  ): Promise<LiveKitTokenResponseDto> {
+    const identity = `professor-${professorId}`;
+    const token = await this.liveKit.createAccessToken({
+      identity,
+      roomName: session.liveKitRoomName,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+      name: 'Professor',
+      metadata: { role: 'professor', sessionId: session.id },
+    });
+
+    return {
+      liveKitUrl: this.config.get<string>('LIVEKIT_URL') ?? '',
+      token,
+      roomName: session.liveKitRoomName,
+      identity,
+    };
   }
 
   private async prewarmRedis(session: Session): Promise<void> {

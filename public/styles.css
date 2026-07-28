@@ -62,6 +62,7 @@ legend { margin-bottom: 10px; }
 .turquoise-button:hover { background: #29a9ab; color: white; }
 .turquoise-button:disabled { opacity: .55; cursor: wait; }
 .start-button { width: 100%; margin-top: 22px; font-size: 17px; }
+.recover-button { width: 100%; margin-top: 10px; font-size: 17px; background: #fff; border: 2px solid var(--aqua-strong); }
 .locale-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 .locale-option input { position: absolute; opacity: 0; pointer-events: none; }
 .locale-option > span {

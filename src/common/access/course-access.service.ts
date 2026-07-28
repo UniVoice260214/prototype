@@ -10,7 +10,10 @@ import { Course } from '../../modules/course/entities/course.entity';
 import { Glossary } from '../../modules/glossary/entities/glossary.entity';
 import { Material } from '../../modules/material/entities/material.entity';
 import { Professor } from '../../modules/professor/entities/professor.entity';
-import { Session } from '../../modules/session/entities/session.entity';
+import {
+  Session,
+  SessionStatus,
+} from '../../modules/session/entities/session.entity';
 
 @Injectable()
 export class CourseAccessService {
@@ -60,7 +63,7 @@ export class CourseAccessService {
   }
 
   async findSessionsForUser(
-    filters: { courseId?: string },
+    filters: { courseId?: string; status?: SessionStatus },
     user: AuthUser,
   ): Promise<Session[]> {
     const qb = this.sessions
@@ -70,6 +73,11 @@ export class CourseAccessService {
     if (filters.courseId) {
       qb.andWhere('session.courseId = :courseId', {
         courseId: filters.courseId,
+      });
+    }
+    if (filters.status) {
+      qb.andWhere('session.status = :status', {
+        status: filters.status,
       });
     }
 
