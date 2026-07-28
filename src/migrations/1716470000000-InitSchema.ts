@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * 초기 스키마. CLAUDE.md의 DB 스키마 그대로.
- * Postgres 13+ 가정 (gen_random_uuid 사용 가능).
+ * Initial schema matching the project database design.
+ * Assumes PostgreSQL 13+ with pgcrypto available.
  */
 export class InitSchema1716470000000 implements MigrationInterface {
   name = 'InitSchema1716470000000';
@@ -182,7 +182,9 @@ export class InitSchema1716470000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS "schools"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "students"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "users"`);
-    await queryRunner.query(`DROP TYPE IF EXISTS "materials_indexingstatus_enum"`);
+    await queryRunner.query(
+      `DROP TYPE IF EXISTS "materials_indexingstatus_enum"`,
+    );
     await queryRunner.query(`DROP TYPE IF EXISTS "materials_sourcetype_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "sessions_status_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "users_role_enum"`);

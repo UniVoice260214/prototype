@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="실시간 강의 번역 서비스 UniVoice" />
+    <title>UniVoice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <button id="switch-mode" class="mode-switch" type="button">학생 화면</button>
+
+    <main id="professor-app" class="professor-app">
+      <section id="professor-login" class="phone-page auth-page">
+        <header class="phone-header">
+          <img src="/logo.svg" alt="UniVoice" class="phone-logo" />
+          <div class="profile-icon" aria-hidden="true"><span></span></div>
+        </header>
+        <div class="auth-copy">
+          <p>교수자용 실시간 강의 도구</p>
+          <h1>강의를 시작해볼까요?</h1>
+        </div>
+        <form id="login-form" class="white-card login-card">
+          <label>이메일<input id="email" type="email" autocomplete="username" placeholder="professor@univ.ac.kr" required /></label>
+          <label>비밀번호<input id="password" type="password" autocomplete="current-password" placeholder="8자 이상 입력" minlength="8" required /></label>
+          <button class="turquoise-button" type="submit">로그인</button>
+        </form>
+      </section>
+
+      <section id="professor-setup" class="phone-page hidden">
+        <header class="phone-header">
+          <img src="/logo.svg" alt="UniVoice" class="phone-logo" />
+          <button id="logout" class="profile-icon" type="button" aria-label="로그아웃"><span></span></button>
+        </header>
+        <h1 class="course-title">수업 준비</h1>
+        <section class="white-card setup-card">
+          <label>오늘의 강의<select id="course-select"></select></label>
+          <fieldset>
+            <legend>제공할 번역 언어</legend>
+            <div id="professor-locales" class="locale-grid"></div>
+          </fieldset>
+        </section>
+        <button id="start-session" class="turquoise-button start-button" type="button">수업 시작</button>
+        <nav class="phone-nav" aria-label="교수자 메뉴">
+          <button type="button">홈</button><button class="active" type="button">강의실</button><button type="button">설정</button>
+        </nav>
+      </section>
+
+      <section id="professor-live" class="phone-page hidden">
+        <header class="phone-header">
+          <img src="/logo.svg" alt="UniVoice" class="phone-logo" />
+          <button id="show-qr" class="profile-icon qr-icon" type="button" aria-label="학생 입장 QR 보기">QR</button>
+        </header>
+        <div class="live-title-row">
+          <div>
+            <p id="session-status" class="small-live"><i></i> 수업 진행 중</p>
+            <h1 id="live-course-name" class="course-title">진행 중인 수업</h1>
+          </div>
+          <strong id="elapsed">00:00</strong>
+        </div>
+        <a id="material-link" class="white-card material-link" href="#" onclick="return false">등록된 강의 자료</a>
+        <section class="white-card mic-card">
+          <div class="mic-tile">
+            <div class="mic-symbol"><i></i><i></i><i></i><b></b></div>
+          </div>
+          <strong id="mic-message">ON</strong>
+          <div class="lecture-controls">
+            <button id="mic-resume" type="button" aria-label="마이크 켜기">▶</button>
+            <button id="mic-pause" type="button" aria-label="마이크 잠시 끄기">Ⅱ</button>
+            <button id="end-session" type="button" aria-label="수업 종료">■</button>
+          </div>
+          <div class="status-line">
+            <span>AI 워커 <b id="worker-status">확인 중</b></span>
+            <span>번역 <b id="locale-count">-</b></span>
+          </div>
+        </section>
+        <section class="white-card transcript-card">
+          <h2>실시간 원문 인식</h2>
+          <p id="professor-transcript">교수님의 음성을 기다리고 있습니다.</p>
+        </section>
+        <nav class="phone-nav" aria-label="교수자 메뉴">
+          <button id="show-qr-nav" type="button">입장 QR</button><button class="active" type="button">강의실</button><button type="button">설정</button>
+        </nav>
+      </section>
+
+      <dialog id="qr-dialog" class="qr-dialog">
+        <button id="close-qr" class="dialog-close" type="button" aria-label="닫기">×</button>
+        <img id="qr-image" alt="학생 입장 QR 코드" />
+        <div id="qr-loading">QR 생성 중</div>
+        <h2>학생 입장 QR</h2>
+        <p>학생이 스캔하면 언어 선택 화면으로 이동합니다.</p>
+        <button id="copy-link" class="turquoise-button" type="button">입장 링크 복사</button>
+      </dialog>
+    </main>
+
+    <main id="student-app" class="student-app hidden">
+      <section id="student-join" class="student-dashboard">
+        <aside class="student-sidebar">
+          <img src="/logo.svg" alt="UniVoice" class="sidebar-logo" />
+          <nav>
+            <button class="active" type="button">홈</button>
+            <button id="focus-token" type="button">QR로 바로가기</button>
+            <button type="button">설정</button>
+            <button type="button">문의하기</button>
+          </nav>
+          <div class="student-profile">
+            <div class="profile-icon" aria-hidden="true"><span></span></div>
+            <strong>UniVoice 학생</strong>
+            <small>게스트 입장</small>
+          </div>
+        </aside>
+        <div class="dashboard-content">
+          <div class="dashboard-top">
+            <section class="dashboard-card">
+              <h2>오늘의 강의</h2>
+              <div class="soft-panel lecture-list">
+                <p id="joined-session-label">QR을 스캔해 강의에 입장하세요.</p>
+                <small>입장 토큰을 확인하면 실시간 수업이 연결됩니다.</small>
+              </div>
+            </section>
+            <section class="dashboard-card">
+              <h2>최근 번역 기록</h2>
+              <div class="soft-panel recent-list">
+                <p>아직 저장된 번역 기록이 없습니다.</p>
+                <small>수업을 들으면 이곳에서 다시 확인할 수 있어요.</small>
+              </div>
+            </section>
+          </div>
+          <section class="dashboard-card translation-settings">
+            <h2>통역/보기 설정</h2>
+            <div class="language-route">
+              <div><small>강의 언어</small><strong>🇰🇷 한국어</strong></div>
+              <span>→</span>
+              <div><small>화면 표시 언어</small><strong id="selected-language">🇻🇳 베트남어</strong></div>
+              <button type="button" aria-label="접근성 설정">접근성</button>
+            </div>
+            <div class="join-controls soft-panel">
+              <label>입장 토큰<textarea id="join-token" rows="2" placeholder="QR 링크로 접속하면 자동으로 입력됩니다."></textarea></label>
+              <fieldset>
+                <legend>번역 언어 선택</legend>
+                <div id="student-locales" class="student-locale-list"></div>
+              </fieldset>
+              <div class="caption-preview">
+                <strong>자막 미리보기</strong>
+                <div><p>실시간 한국어 음성이 선택한 언어로 번역됩니다.</p><p>Live Korean speech is translated into your language.</p></div>
+              </div>
+              <button id="join-session" class="turquoise-button" type="button">실시간 강의 시작</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="student-live" class="student-translation hidden">
+        <header class="slide-header">
+          <strong id="slide-course-title">실시간 강의</strong>
+          <span id="slide-section-title">UniVoice 번역 모드</span>
+        </header>
+        <div class="sample-slide">
+          <h1>실시간 강의 번역</h1>
+          <p>교수님의 강의 자료와 함께 번역 자막을 확인하세요.</p>
+          <div class="network-diagram" aria-hidden="true">
+            <section><b>1. 입력</b><div class="nodes"><i></i><i></i><i></i></div></section>
+            <span>→</span>
+            <section><b>2. 처리 및 번역</b><div class="nodes"><i></i><i></i><i></i></div></section>
+            <span>→</span>
+            <section><b>3. 실시간 출력</b><div class="nodes"><i></i><i></i><i></i></div></section>
+          </div>
+        </div>
+        <div class="translation-status">
+          <div class="audio-wave"><i></i><i></i><i></i><i></i></div>
+          <span id="audio-status">번역 음성 연결 대기 중</span>
+          <span id="student-locale-label">번역 음성</span>
+          <button id="leave-session" type="button">나가기</button>
+        </div>
+        <div id="captions" class="fullscreen-captions" aria-live="polite">
+          <div class="caption-empty">교수님의 발화를 기다리고 있습니다.</div>
+        </div>
+        <audio id="translation-audio" autoplay></audio>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status"></div>
+    <script src="/vendor/livekit/livekit-client.umd.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

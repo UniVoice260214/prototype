@@ -1,6 +1,5 @@
 /**
- * Pub/Sub 채널 표준 — CLAUDE.md "Redis 키 / 채널 표준" 참조.
- * Python 워커 / RAG 워커가 이 채널을 구독한다.
+ * Redis Pub/Sub channel names shared with the Python workers.
  */
 export const EVENT_CHANNELS = {
   SESSIONS_STARTED: 'sessions.started',
@@ -20,6 +19,23 @@ export interface SessionsStartedEvent {
 
 export interface SessionsEndedEvent {
   sessionId: string;
+}
+
+/**
+ * Worker lifecycle is tracked through RedisKeys.workerStatus(sessionId) rather
+ * than extra Pub/Sub events so restarts can recover from Redis state alone.
+ */
+export type WorkerStatus =
+  | 'starting'
+  | 'ready'
+  | 'stopping'
+  | 'stopped'
+  | 'failed';
+
+export interface WorkerStatusPayload {
+  status: WorkerStatus;
+  ts: number;
+  error?: string;
 }
 
 export interface MaterialsIndexingRequestedEvent {

@@ -12,25 +12,25 @@ export class CreateGlossaryDto {
   @IsUUID()
   courseId: string;
 
-  @ApiProperty({ example: '미토콘드리아' })
+  @ApiProperty({ example: 'mitochondria' })
   @IsString()
   @MaxLength(200)
   term: string;
 
-  @ApiPropertyOptional({ example: '미토콘드리아' })
+  @ApiPropertyOptional({ example: 'my-toe-kon-dree-uh' })
   @IsOptional()
   @IsString()
   @MaxLength(200)
   pronunciation?: string;
 
-  @ApiPropertyOptional({ example: '세포의 에너지 공장' })
+  @ApiPropertyOptional({ example: 'cell energy factory' })
   @IsOptional()
   @IsString()
   definition?: string;
 
   @ApiPropertyOptional({
-    example: { 'zh-CN': '线粒体', 'vi-VN': 'Ty thể' },
-    description: 'locale → 번역어 매핑',
+    example: { 'zh-CN': 'xianliti', 'vi-VN': 'ty-the' },
+    description: 'Mapping from locale to translated term',
   })
   @IsOptional()
   @IsObject()

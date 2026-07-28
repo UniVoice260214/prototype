@@ -9,17 +9,17 @@ import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 export interface LiveKitTokenOptions {
   identity: string;
   roomName: string;
-  /** 발화/track publish 가능 여부 */
+  /** Whether the participant may publish audio/video tracks. */
   canPublish: boolean;
-  /** track subscribe 가능 여부 */
+  /** Whether the participant may subscribe to tracks. */
   canSubscribe: boolean;
-  /** DataChannel publish 가능 여부 */
+  /** Whether the participant may publish data messages. */
   canPublishData?: boolean;
-  /** 표시 이름 */
+  /** Optional display name. */
   name?: string;
-  /** 추가 metadata (JSON 직렬화 가능) */
+  /** Optional JSON-serializable metadata. */
   metadata?: Record<string, unknown>;
-  /** access token TTL (초). 기본 3600. */
+  /** Token TTL in seconds. Defaults to 3600+. */
   ttl?: number;
 }
 
@@ -30,15 +30,20 @@ export class LiveKitService {
   private readonly apiKey: string;
   private readonly apiSecret: string;
   private readonly configured: boolean;
+  private readonly defaultTokenTtlSec: number;
 
   constructor(config: ConfigService) {
     const url = config.get<string>('LIVEKIT_URL');
     this.apiKey = config.get<string>('LIVEKIT_API_KEY') ?? '';
     this.apiSecret = config.get<string>('LIVEKIT_API_SECRET') ?? '';
+    this.defaultTokenTtlSec = Math.max(
+      60,
+      config.get<number>('LIVEKIT_TOKEN_TTL_SEC', 4 * 60 * 60),
+    );
 
     if (!url || !this.apiKey || !this.apiSecret) {
       this.logger.warn(
-        'LiveKit credentials missing — session token/room APIs will be rejected at runtime.',
+        'LiveKit credentials are missing; room and token APIs will reject requests.',
       );
       this.roomService = null;
       this.configured = false;
@@ -48,7 +53,11 @@ export class LiveKitService {
     const httpUrl = url
       .replace(/^wss:\/\//, 'https://')
       .replace(/^ws:\/\//, 'http://');
-    this.roomService = new RoomServiceClient(httpUrl, this.apiKey, this.apiSecret);
+    this.roomService = new RoomServiceClient(
+      httpUrl,
+      this.apiKey,
+      this.apiSecret,
+    );
     this.configured = true;
   }
 
@@ -68,7 +77,7 @@ export class LiveKitService {
     try {
       await this.roomService.deleteRoom(roomName);
     } catch {
-      // already gone — ignore
+      // Ignore rooms that are already gone.
     }
   }
 
@@ -80,7 +89,7 @@ export class LiveKitService {
       identity: opts.identity,
       name: opts.name,
       metadata: opts.metadata ? JSON.stringify(opts.metadata) : undefined,
-      ttl: opts.ttl ?? 3600,
+      ttl: opts.ttl ?? this.defaultTokenTtlSec,
     });
     at.addGrant({
       room: opts.roomName,

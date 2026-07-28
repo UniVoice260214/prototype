@@ -1,8 +1,15 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import type Redis from 'ioredis';
 import { Repository } from 'typeorm';
+import { CourseAccessService } from '../../common/access/course-access.service';
+import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { RAG_INDEX_QUEUE_DEFAULT } from '../../common/redis-keys';
 import { BlobService } from '../../infra/blob/blob.service';
 import { REDIS_CLIENT } from '../../infra/redis/redis.module';
@@ -27,28 +34,52 @@ export class MaterialService {
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly blob: BlobService,
     private readonly events: EventsService,
+    private readonly courseAccess: CourseAccessService,
     config: ConfigService,
   ) {
-    this.ragQueue = config.get<string>('RAG_INDEX_QUEUE', RAG_INDEX_QUEUE_DEFAULT);
+    this.ragQueue = config.get<string>(
+      'RAG_INDEX_QUEUE',
+      RAG_INDEX_QUEUE_DEFAULT,
+    );
   }
 
-  async upload(file: UploadFile, dto: UploadMaterialDto): Promise<Material> {
+  async upload(
+    file: UploadFile,
+    dto: UploadMaterialDto,
+    user: AuthUser,
+  ): Promise<Material> {
+    await this.courseAccess.findCourseForUser(dto.courseId, user);
+    if (dto.sessionId) {
+      const session = await this.courseAccess.findSessionForUser(
+        dto.sessionId,
+        user,
+      );
+      if (session.courseId !== dto.courseId) {
+        throw new BadRequestException('sessionId does not belong to courseId');
+      }
+    }
+
     const { blobUrl } = await this.blob.upload(file, 'materials');
 
-    const material = await this.repo.save(
-      this.repo.create({
-        courseId: dto.courseId,
-        sessionId: dto.sessionId ?? null,
-        blobUrl,
-        originalFilename: file.originalname,
-        sourceType: dto.sourceType,
-        week: dto.week ?? null,
-        indexingStatus: 'pending',
-      }),
-    );
+    let material: Material;
+    try {
+      material = await this.repo.save(
+        this.repo.create({
+          courseId: dto.courseId,
+          sessionId: dto.sessionId ?? null,
+          blobUrl,
+          originalFilename: file.originalname,
+          sourceType: dto.sourceType,
+          week: dto.week ?? null,
+          indexingStatus: 'pending',
+        }),
+      );
+    } catch (err) {
+      await this.deleteBlobBestEffort(blobUrl, 'failed material DB save');
+      throw err;
+    }
 
-    // RAG 인덱싱 트리거 — 2단계 전달 (best-of: 세희 pub/sub + 서영 durable queue)
-    //  (1) 내구성 큐(Redis List)에 적재 → RAG 워커가 꺼져 있어도 유실 없음 (서영 설계)
+    // Deliver the indexing job through both a durable queue and a live event.
     const job = {
       materialId: material.id,
       courseId: material.courseId,
@@ -57,35 +88,49 @@ export class MaterialService {
       week: material.week ?? undefined,
     };
     await this.redis.lpush(this.ragQueue, JSON.stringify(job));
-    //  (2) 라이브 알림 이벤트도 publish (세희 설계) → 워커가 떠 있으면 즉시 반응
-    await this.events.publishMaterialIndexingRequested(job);
+    try {
+      await this.events.publishMaterialIndexingRequested(job);
+    } catch (err) {
+      this.logger.warn(
+        `Material ${material.id} enqueued, but live publish failed: ${this.errorMessage(err)}`,
+      );
+    }
 
-    this.logger.log(
-      `Material ${material.id} enqueued to ${this.ragQueue} + event published`,
-    );
+    this.logger.log(`Material ${material.id} enqueued to ${this.ragQueue}`);
     return material;
   }
 
-  findAll(opts: { courseId?: string; sessionId?: string }) {
-    return this.repo.find({ where: opts });
+  findAll(
+    opts: { courseId?: string; sessionId?: string },
+    user: AuthUser,
+  ): Promise<Material[]> {
+    return this.courseAccess.findMaterialsForUser(opts, user);
   }
 
-  async findOne(id: string) {
-    const m = await this.repo.findOne({ where: { id } });
-    if (!m) throw new NotFoundException(`Material ${id} not found`);
-    return m;
+  findOne(id: string, user: AuthUser): Promise<Material> {
+    return this.courseAccess.findMaterialForUser(id, user);
   }
 
-  async remove(id: string) {
-    const material = await this.findOne(id);
-    // Blob 원본 정리 (best-effort — 실패해도 DB 레코드는 삭제 진행)
+  async remove(id: string, user: AuthUser) {
+    const material = await this.findOne(id, user);
+    await this.deleteBlobBestEffort(material.blobUrl, `material ${id} delete`);
+    await this.repo.delete(id);
+  }
+
+  private async deleteBlobBestEffort(
+    blobUrl: string,
+    reason: string,
+  ): Promise<void> {
     try {
-      await this.blob.deleteByUrl(material.blobUrl);
+      await this.blob.deleteByUrl(blobUrl);
     } catch (err) {
       this.logger.warn(
-        `Blob delete failed for material ${id}: ${(err as Error).message}`,
+        `Blob delete failed after ${reason}: ${this.errorMessage(err)}`,
       );
     }
-    await this.repo.delete(id);
+  }
+
+  private errorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
   }
 }

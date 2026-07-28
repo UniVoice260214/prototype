@@ -26,15 +26,19 @@ export class StudentController {
 
   @Roles('admin')
   @Get()
-  @ApiOperation({ summary: '학생 목록 조회 (admin)' })
+  @ApiOperation({ summary: 'List all students' })
   findAll() {
     return this.students.findAll();
   }
 
   @Roles('admin', 'student')
   @Get(':studentId')
-  @ApiOperation({ summary: '학생 1건 조회 (본인 또는 admin)' })
-  @ApiParam({ name: 'studentId', description: '학생(Student) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Get a student profile (self or admin)' })
+  @ApiParam({
+    name: 'studentId',
+    description: 'Student UUID',
+    format: 'uuid',
+  })
   findOne(
     @Param('studentId', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthUser,
@@ -47,8 +51,12 @@ export class StudentController {
 
   @Roles('admin', 'student')
   @Patch(':studentId')
-  @ApiOperation({ summary: '학생 정보 수정 (본인 또는 admin)' })
-  @ApiParam({ name: 'studentId', description: '학생(Student) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Update a student profile (self or admin)' })
+  @ApiParam({
+    name: 'studentId',
+    description: 'Student UUID',
+    format: 'uuid',
+  })
   update(
     @Param('studentId', ParseUUIDPipe) id: string,
     @Body() dto: UpdateStudentDto,
@@ -63,8 +71,12 @@ export class StudentController {
   @Roles('admin')
   @HttpCode(204)
   @Delete(':studentId')
-  @ApiOperation({ summary: '학생 삭제 (admin)' })
-  @ApiParam({ name: 'studentId', description: '학생(Student) UUID', format: 'uuid' })
+  @ApiOperation({ summary: 'Delete a student' })
+  @ApiParam({
+    name: 'studentId',
+    description: 'Student UUID',
+    format: 'uuid',
+  })
   remove(@Param('studentId', ParseUUIDPipe) id: string) {
     return this.students.remove(id);
   }

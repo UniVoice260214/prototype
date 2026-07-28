@@ -8,8 +8,8 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
 import { Student } from '../student/entities/student.entity';
+import { User } from '../user/entities/user.entity';
 import { LoginDto, TokenResponseDto } from './dto/login.dto';
 import { SignupStudentDto } from './dto/signup-student.dto';
 
@@ -24,8 +24,6 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  // ─────────────────────────── USER (admin / professor) ───────────────────────────
-
   async loginUser(dto: LoginDto): Promise<TokenResponseDto> {
     const user = await this.users.findOne({ where: { email: dto.email } });
     if (!user) throw new UnauthorizedException('Invalid credentials');
@@ -39,14 +37,6 @@ export class AuthService {
     );
     return { accessToken, tokenType: 'Bearer', role: user.role };
   }
-
-  private signOpts(envKey: string, fallback: string): JwtSignOptions {
-    return {
-      expiresIn: this.config.get<string>(envKey, fallback) as JwtSignOptions['expiresIn'],
-    };
-  }
-
-  // ─────────────────────────── STUDENT ───────────────────────────
 
   async signupStudent(dto: SignupStudentDto): Promise<TokenResponseDto> {
     const exists = await this.students.findOne({ where: { email: dto.email } });
@@ -74,16 +64,6 @@ export class AuthService {
     return this.signStudentToken(student.id);
   }
 
-  private async signStudentToken(studentId: string): Promise<TokenResponseDto> {
-    const accessToken = await this.jwt.signAsync(
-      { sub: studentId, role: 'student', type: 'student' },
-      this.signOpts('JWT_EXPIRES_IN', '1d'),
-    );
-    return { accessToken, tokenType: 'Bearer', role: 'student' };
-  }
-
-  // ─────────────────────────── JOIN TOKEN (QR) ───────────────────────────
-
   async signJoinToken(
     sessionId: string,
     studentId: string | 'guest' = 'guest',
@@ -108,5 +88,24 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid or expired join token');
     }
+  }
+
+  private signOpts(envKey: string, fallback: string): JwtSignOptions {
+    return {
+      expiresIn: this.config.get<string>(
+        envKey,
+        fallback,
+      ) as JwtSignOptions['expiresIn'],
+    };
+  }
+
+  private async signStudentToken(
+    studentId: string,
+  ): Promise<TokenResponseDto> {
+    const accessToken = await this.jwt.signAsync(
+      { sub: studentId, role: 'student', type: 'student' },
+      this.signOpts('JWT_EXPIRES_IN', '1d'),
+    );
+    return { accessToken, tokenType: 'Bearer', role: 'student' };
   }
 }

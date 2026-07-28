@@ -17,7 +17,7 @@ export class Student {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
-  /** 응답 직렬화에서 제외 (ClassSerializerInterceptor). */
+  /** Hidden from serialized API responses by ClassSerializerInterceptor. */
   @Exclude()
   @Column({ type: 'varchar', length: 255 })
   passwordHash: string;
@@ -25,7 +25,7 @@ export class Student {
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  /** e.g. 'zh-CN', 'vi-VN'. nullable until student picks one. */
+  /** Preferred locale, nullable until the student picks one. */
   @Column({ type: 'varchar', length: 16, nullable: true })
   preferredLocale: string | null;
 

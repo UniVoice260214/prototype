@@ -1,0 +1,467 @@
+/* global LivekitClient */
+(() => {
+  "use strict";
+
+  const LOCALES = [
+    { code: "zh-CN", name: "중국어", native: "中文", flag: "中" },
+    { code: "vi-VN", name: "베트남어", native: "Tiếng Việt", flag: "Vi" },
+    { code: "mn-MN", name: "몽골어", native: "Монгол", flag: "Мн" },
+    { code: "en-US", name: "영어", native: "English", flag: "En" },
+    { code: "ja-JP", name: "일본어", native: "日本語", flag: "日" },
+  ];
+
+  const state = {
+    mode: "professor",
+    accessToken: sessionStorage.getItem("univoice.accessToken") || "",
+    room: null,
+    session: null,
+    joinUrl: "",
+    elapsedTimer: null,
+    statusTimer: null,
+    selectedStudentLocale: "vi-VN",
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  async function api(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+    if (options.auth !== false && state.accessToken) {
+      headers.Authorization = `Bearer ${state.accessToken}`;
+    }
+    const response = await fetch(path, { ...options, headers });
+    if (!response.ok) {
+      let detail;
+      try {
+        detail = await response.json();
+      } catch {
+        detail = { message: response.statusText };
+      }
+      throw new Error(Array.isArray(detail.message) ? detail.message.join(", ") : detail.message || "요청에 실패했습니다.");
+    }
+    if (response.status === 204) return null;
+    return response.json();
+  }
+
+  function toast(message, type = "") {
+    const el = $("toast");
+    el.textContent = message;
+    el.className = `toast show ${type}`;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { el.className = "toast"; }, 3200);
+  }
+
+  function setBusy(button, busy, label) {
+    if (!button.dataset.label) button.dataset.label = button.innerHTML;
+    button.disabled = busy;
+    button.innerHTML = busy ? label : button.dataset.label;
+  }
+
+  function renderLocales() {
+    $("professor-locales").innerHTML = LOCALES.map((locale, index) => `
+      <label class="locale-option">
+        <input type="checkbox" value="${locale.code}" ${index < 3 ? "checked" : ""}>
+        <span>${locale.name}<small>${locale.native}</small></span>
+      </label>
+    `).join("");
+    $("student-locales").innerHTML = LOCALES.map((locale) => `
+      <label class="locale-option">
+        <input type="radio" name="student-locale" value="${locale.code}" ${locale.code === state.selectedStudentLocale ? "checked" : ""}>
+        <span><b>${locale.flag}</b><span>${locale.name}<small>${locale.native}</small></span></span>
+      </label>
+    `).join("");
+    document.querySelectorAll('input[name="student-locale"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        const locale = LOCALES.find((item) => item.code === input.value);
+        state.selectedStudentLocale = input.value;
+        $("selected-language").textContent = `${locale.flag} ${locale.name}`;
+      });
+    });
+  }
+
+  function showMode(mode) {
+    state.mode = mode;
+    const professor = mode === "professor";
+    $("professor-app").classList.toggle("hidden", !professor);
+    $("student-app").classList.toggle("hidden", professor);
+    $("switch-mode").textContent = professor ? "학생 태블릿 화면" : "교수 모바일 화면";
+    history.replaceState({}, "", professor ? "/professor" : `/join${location.search}`);
+  }
+
+  function getJoinData(token) {
+    try {
+      const payloadPart = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(decodeURIComponent(escape(atob(payloadPart))));
+    } catch {
+      return null;
+    }
+  }
+
+  async function loadCourses() {
+    const courses = await api("/courses");
+    const select = $("course-select");
+    select.innerHTML = courses.length
+      ? courses.map((course) => `<option value="${course.id}">${escapeHtml(course.name)}</option>`).join("")
+      : '<option value="">등록된 과목이 없습니다</option>';
+    $("professor-login").classList.add("hidden");
+    $("professor-setup").classList.remove("hidden");
+  }
+
+  async function login(event) {
+    event.preventDefault();
+    const button = event.currentTarget.querySelector("button");
+    setBusy(button, true, "로그인 중...");
+    try {
+      const result = await api("/auth/login", {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({ email: $("email").value.trim(), password: $("password").value }),
+      });
+      if (result.role === "student") throw new Error("교수자 계정으로 로그인해주세요.");
+      state.accessToken = result.accessToken;
+      sessionStorage.setItem("univoice.accessToken", result.accessToken);
+      await loadCourses();
+      toast("로그인되었습니다.");
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function startSession() {
+    const button = $("start-session");
+    const courseId = $("course-select").value;
+    const targetLocales = [...document.querySelectorAll("#professor-locales input:checked")].map((input) => input.value);
+    if (!courseId) return toast("시작할 과목을 선택해주세요.", "error");
+    if (!targetLocales.length) return toast("번역 언어를 하나 이상 선택해주세요.", "error");
+    setBusy(button, true, "수업을 준비하고 있습니다...");
+    try {
+      const result = await api("/sessions/start", {
+        method: "POST",
+        body: JSON.stringify({ courseId, targetLocales }),
+      });
+      state.session = result.session;
+      state.session.liveKit = result.liveKit;
+      state.session.courseName = $("course-select").selectedOptions[0].textContent;
+      await connectProfessor(result.liveKit);
+      await loadQr(result.session.id);
+      enterProfessorLive();
+    } catch (error) {
+      if (state.room) await disconnectRoom();
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function connectProfessor(liveKit) {
+    ensureLiveKit();
+    const room = new LivekitClient.Room({
+      adaptiveStream: true,
+      dynacast: true,
+    });
+    state.room = room;
+    room.on(LivekitClient.RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+      let data;
+      try {
+        data = JSON.parse(new TextDecoder().decode(payload));
+      } catch {
+        return;
+      }
+      if (topic === "stt" && data.text) {
+        $("professor-transcript").textContent = data.text;
+      } else if (topic === "caption" && data.sourceKo) {
+        $("professor-transcript").textContent = data.sourceKo;
+      }
+    });
+    room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      $("session-status").innerHTML = "<i></i> 연결 끊김";
+      $("mic-message").textContent = "LiveKit 연결이 끊겼습니다.";
+    });
+    await room.connect(liveKit.liveKitUrl, liveKit.token);
+    try {
+      await room.localParticipant.setMicrophoneEnabled(true);
+    } catch (error) {
+      throw new Error(`마이크를 시작할 수 없습니다: ${error.message}`);
+    }
+  }
+
+  async function loadQr(sessionId) {
+    try {
+      const qr = await api(`/qr/${sessionId}`);
+      state.joinUrl = qr.joinUrl;
+      $("qr-image").src = qr.qrImage;
+      $("qr-loading").classList.add("hidden");
+    } catch (error) {
+      $("qr-loading").textContent = "QR 생성 실패";
+      toast(error.message, "error");
+    }
+  }
+
+  function enterProfessorLive() {
+    $("professor-setup").classList.add("hidden");
+    $("professor-live").classList.remove("hidden");
+    $("live-course-name").textContent = state.session.courseName;
+    $("session-status").innerHTML = "<i></i> 수업 진행 중";
+    $("mic-message").textContent = "ON";
+    $("locale-count").textContent = `${state.session.targetLocales.length}개 언어`;
+    $("material-link").textContent = `${state.session.courseName.replace(/\s+/g, "_")}_강의자료`;
+    const startedAt = new Date(state.session.startedAt).getTime();
+    const updateElapsed = () => {
+      const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+      $("elapsed").textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    };
+    updateElapsed();
+    state.elapsedTimer = setInterval(updateElapsed, 1000);
+    pollSessionStatus();
+    state.statusTimer = setInterval(pollSessionStatus, 3000);
+  }
+
+  async function pollSessionStatus() {
+    if (!state.session) return;
+    try {
+      const data = await api(`/sessions/${state.session.id}/status`);
+      const worker = data.worker;
+      const labels = {
+        starting: "시작 중",
+        ready: "준비 완료",
+        stopping: "종료 중",
+        stopped: "종료됨",
+        failed: "오류",
+      };
+      $("worker-status").textContent = worker ? labels[worker.status] || worker.status : "응답 대기";
+    } catch {
+      $("worker-status").textContent = "확인 불가";
+    }
+  }
+
+  async function endSession() {
+    if (!state.session || !confirm("현재 수업을 종료할까요? 학생의 자막과 음성도 함께 종료됩니다.")) return;
+    const button = $("end-session");
+    setBusy(button, true, "수업을 종료하고 있습니다...");
+    try {
+      await api(`/sessions/${state.session.id}/end`, { method: "POST" });
+      await disconnectRoom();
+      clearSessionTimers();
+      state.session = null;
+      $("professor-live").classList.add("hidden");
+      $("professor-setup").classList.remove("hidden");
+      $("qr-image").removeAttribute("src");
+      $("qr-loading").classList.remove("hidden");
+      if ($("qr-dialog").open) $("qr-dialog").close();
+      toast("수업이 안전하게 종료되었습니다.");
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function joinStudentSession() {
+    const button = $("join-session");
+    const joinToken = $("join-token").value.trim();
+    const localeInput = document.querySelector('input[name="student-locale"]:checked');
+    if (!joinToken) return toast("입장 토큰이 필요합니다. QR 링크로 다시 접속해주세요.", "error");
+    if (!localeInput) return toast("번역 언어를 선택해주세요.", "error");
+    const payload = getJoinData(joinToken);
+    if (!payload?.sessionId) return toast("올바른 입장 토큰이 아닙니다.", "error");
+    state.selectedStudentLocale = localeInput.value;
+    setBusy(button, true, "강의실에 연결 중...");
+    try {
+      const liveKit = await api(`/sessions/${payload.sessionId}/token`, {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({ joinToken, locale: state.selectedStudentLocale }),
+      });
+      await connectStudent(liveKit);
+      $("student-join").classList.add("hidden");
+      $("student-live").classList.remove("hidden");
+      const locale = LOCALES.find((item) => item.code === state.selectedStudentLocale);
+      $("student-locale-label").textContent = `${locale.name} · ${locale.native}`;
+      $("slide-course-title").textContent = $("joined-session-label").textContent.replace(/^•\s*/, "") || "실시간 강의";
+      toast("강의실에 입장했습니다.");
+    } catch (error) {
+      await disconnectRoom();
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  async function connectStudent(liveKit) {
+    ensureLiveKit();
+    const room = new LivekitClient.Room({ adaptiveStream: true });
+    state.room = room;
+    room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication) => {
+      if (track.kind !== LivekitClient.Track.Kind.Audio || publication.trackName !== `tts.${state.selectedStudentLocale}`) return;
+      const audio = $("translation-audio");
+      track.attach(audio);
+      audio.play().catch(() => toast("화면을 한 번 눌러 음성 재생을 허용해주세요."));
+      $("audio-status").textContent = "번역 음성 재생 중";
+    });
+    room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
+      track.detach();
+      $("audio-status").textContent = "다음 번역 음성을 기다리는 중";
+    });
+    room.on(LivekitClient.RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+      handleStudentData(payload, topic);
+    });
+    room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      $("audio-status").textContent = "연결이 종료되었습니다";
+      toast("강의실 연결이 종료되었습니다.");
+    });
+    await room.connect(liveKit.liveKitUrl, liveKit.token);
+  }
+
+  function handleStudentData(payload, topic) {
+    let data;
+    try {
+      data = JSON.parse(new TextDecoder().decode(payload));
+    } catch {
+      return;
+    }
+    if (data.locale !== state.selectedStudentLocale) return;
+    if (topic === "caption" && data.type !== "caption.partial") {
+      addCaption(data.text, data.sourceKo);
+    }
+    if (topic === "audio-status") {
+      const labels = {
+        queued: "번역 음성 준비 중",
+        playing: "번역 음성 재생 중",
+        completed: "다음 발화를 기다리는 중",
+        failed: "음성 생성에 실패했습니다",
+      };
+      $("audio-status").textContent = labels[data.status] || "번역 음성 처리 중";
+    }
+  }
+
+  function addCaption(text, sourceKo) {
+    if (!text) return;
+    const captions = $("captions");
+    const empty = captions.querySelector(".caption-empty");
+    if (empty) empty.remove();
+    const item = document.createElement("div");
+    item.className = "caption";
+    if (sourceKo) {
+      const source = document.createElement("span");
+      source.className = "source";
+      source.textContent = sourceKo;
+      item.appendChild(source);
+    }
+    const content = document.createElement("span");
+    content.className = "translated";
+    content.textContent = text;
+    const time = document.createElement("time");
+    time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    item.append(content, time);
+    captions.appendChild(item);
+    while (captions.children.length > 3) captions.firstElementChild.remove();
+    captions.scrollTop = captions.scrollHeight;
+  }
+
+  async function leaveStudentSession() {
+    await disconnectRoom();
+    $("student-live").classList.add("hidden");
+    $("student-join").classList.remove("hidden");
+    $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
+  }
+
+  async function disconnectRoom() {
+    if (!state.room) return;
+    const room = state.room;
+    state.room = null;
+    try {
+      await room.disconnect();
+    } catch {
+      // The server may already have closed the room.
+    }
+  }
+
+  function clearSessionTimers() {
+    clearInterval(state.elapsedTimer);
+    clearInterval(state.statusTimer);
+    state.elapsedTimer = null;
+    state.statusTimer = null;
+  }
+
+  function logout() {
+    sessionStorage.removeItem("univoice.accessToken");
+    state.accessToken = "";
+    $("professor-setup").classList.add("hidden");
+    $("professor-login").classList.remove("hidden");
+  }
+
+  function ensureLiveKit() {
+    if (typeof LivekitClient === "undefined") {
+      throw new Error("LiveKit 브라우저 SDK를 불러오지 못했습니다.");
+    }
+  }
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+  }
+
+  function initialize() {
+    renderLocales();
+    const query = new URLSearchParams(location.search);
+    const token = query.get("token") || "";
+    if (token) {
+      $("join-token").value = token;
+      const payload = getJoinData(token);
+      $("joined-session-label").textContent = payload?.sessionId
+        ? "• QR로 연결된 오늘의 실시간 강의"
+        : "입장 정보가 올바르지 않습니다.";
+    }
+    const studentRoute = location.pathname === "/join" || location.pathname === "/student" || Boolean(token);
+    showMode(studentRoute ? "student" : "professor");
+
+    $("switch-mode").addEventListener("click", () => showMode(state.mode === "professor" ? "student" : "professor"));
+    $("login-form").addEventListener("submit", login);
+    $("start-session").addEventListener("click", startSession);
+    $("end-session").addEventListener("click", endSession);
+    $("logout").addEventListener("click", logout);
+    $("join-session").addEventListener("click", joinStudentSession);
+    $("leave-session").addEventListener("click", leaveStudentSession);
+    $("mic-pause").addEventListener("click", async () => {
+      if (!state.room) return;
+      await state.room.localParticipant.setMicrophoneEnabled(false);
+      $("mic-message").textContent = "PAUSED";
+      toast("마이크를 잠시 껐습니다.");
+    });
+    $("mic-resume").addEventListener("click", async () => {
+      if (!state.room) return;
+      await state.room.localParticipant.setMicrophoneEnabled(true);
+      $("mic-message").textContent = "ON";
+      toast("마이크를 다시 켰습니다.");
+    });
+    const openQr = () => {
+      if (typeof $("qr-dialog").showModal === "function") $("qr-dialog").showModal();
+      else $("qr-dialog").setAttribute("open", "");
+    };
+    $("show-qr").addEventListener("click", openQr);
+    $("show-qr-nav").addEventListener("click", openQr);
+    $("close-qr").addEventListener("click", () => $("qr-dialog").close());
+    $("focus-token").addEventListener("click", () => {
+      $("join-token").focus();
+      $("join-token").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    $("copy-link").addEventListener("click", async () => {
+      if (!state.joinUrl) return;
+      await navigator.clipboard.writeText(state.joinUrl);
+      toast("입장 링크를 복사했습니다.");
+    });
+    window.addEventListener("beforeunload", () => {
+      clearSessionTimers();
+      if (state.room) state.room.disconnect();
+    });
+
+    if (state.accessToken) {
+      loadCourses().catch(() => logout());
+    }
+  }
+
+  initialize();
+})();

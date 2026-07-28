@@ -1,15 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as QRCode from 'qrcode';
+import { CourseAccessService } from '../../common/access/course-access.service';
+import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { AuthService } from '../auth/auth.service';
-import { Session } from '../session/entities/session.entity';
 
 export interface QrPayload {
-  /** Data URL (image/png base64) */
+  /** PNG data URL */
   qrImage: string;
-  /** 클라이언트에서 직접 사용할 수 있도록 함께 반환 */
+  /** Returned separately so clients can open the join link directly. */
   joinUrl: string;
   joinToken: string;
   sessionId: string;
@@ -19,14 +18,16 @@ export interface QrPayload {
 @Injectable()
 export class QrService {
   constructor(
-    @InjectRepository(Session) private readonly sessions: Repository<Session>,
     private readonly auth: AuthService,
     private readonly config: ConfigService,
+    private readonly courseAccess: CourseAccessService,
   ) {}
 
-  async generateForSession(sessionId: string): Promise<QrPayload> {
-    const session = await this.sessions.findOne({ where: { id: sessionId } });
-    if (!session) throw new NotFoundException(`Session ${sessionId} not found`);
+  async generateForSession(
+    sessionId: string,
+    user: AuthUser,
+  ): Promise<QrPayload> {
+    const session = await this.courseAccess.findSessionForUser(sessionId, user);
 
     const joinToken = await this.auth.signJoinToken(session.id, 'guest');
     const base = this.config.getOrThrow<string>('QR_BASE_URL');
