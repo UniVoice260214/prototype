@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import signal
 from typing import Any, Awaitable, Callable
 
 try:  # pragma: no cover - Redis is runtime-provided; tests use fakes.
@@ -221,6 +222,19 @@ async def handle_pubsub_message(message: dict[str, Any], registry: WorkerRegistr
 async def main() -> None:
     if aioredis is None:
         raise RuntimeError("redis package is required for the AI worker")
+    loop = asyncio.get_running_loop()
+    main_task = asyncio.current_task()
+
+    def request_shutdown() -> None:
+        if main_task is not None and not main_task.done():
+            main_task.cancel()
+
+    for shutdown_signal in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(shutdown_signal, request_shutdown)
+        except NotImplementedError:  # pragma: no cover - Windows local runtime.
+            pass
+
     config = load_config()
     redis = aioredis.from_url(config.redis_url, decode_responses=True)
     pubsub = redis.pubsub()
@@ -236,6 +250,8 @@ async def main() -> None:
                 await handle_pubsub_message(message, registry)
             except Exception:  # noqa: BLE001
                 logger.exception("Pub/Sub message handling failed: %r", message)
+    except asyncio.CancelledError:
+        logger.info("shutdown signal received")
     finally:
         await registry.stop_all()
         await pubsub.aclose()

@@ -1,0 +1,164 @@
+name: univoice-staging
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: univoice
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: univoice
+    volumes:
+      - staging-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U univoice -d univoice"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - staging-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    restart: "no"
+    environment: &api-environment
+      NODE_ENV: production
+      DATABASE_URL: postgresql://univoice:${POSTGRES_PASSWORD}@postgres:5432/univoice
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      JWT_JOIN_TOKEN_EXPIRES_IN: ${JWT_JOIN_TOKEN_EXPIRES_IN:-24h}
+      AUTH_DISABLED: "false"
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_TOKEN_TTL_SEC: ${LIVEKIT_TOKEN_TTL_SEC:-14400}
+      AZURE_BLOB_CONNECTION_STRING: ${AZURE_BLOB_CONNECTION_STRING}
+      AZURE_BLOB_CONTAINER: ${AZURE_BLOB_CONTAINER:-univoice-materials}
+      QR_BASE_URL: https://${STAGING_DOMAIN}/join
+      RAG_INDEX_QUEUE: ${RAG_INDEX_QUEUE:-rag:index:queue}
+      WORKER_STOP_TIMEOUT_SEC: ${WORKER_STOP_TIMEOUT_SEC:-8}
+      WORKER_STOP_POLL_INTERVAL_MS: ${WORKER_STOP_POLL_INTERVAL_MS:-200}
+      CORS_ORIGINS: https://${STAGING_DOMAIN}
+      TRUST_PROXY: "true"
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    command: ["npm", "run", "migration:run:prod"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    build:
+      context: .
+      target: runtime
+    restart: "no"
+    environment:
+      <<: *api-environment
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Staging Admin}
+    command: ["npm", "run", "seed:prod"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    environment:
+      <<: *api-environment
+      PORT: 3000
+      HOST: 0.0.0.0
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  ai-worker:
+    build:
+      context: ./ai-worker
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      AZURE_SPEECH_KEY: ${AZURE_SPEECH_KEY}
+      AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION}
+      STT_LANGUAGE: ${STT_LANGUAGE:-ko-KR}
+      TRANSLATE_PROVIDER: ${TRANSLATE_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-08-01-preview}
+      SEGMENT_MAX_CHARS: ${SEGMENT_MAX_CHARS:-120}
+      SEGMENT_IDLE_FLUSH_MS: ${SEGMENT_IDLE_FLUSH_MS:-2000}
+      TTS_TIMEOUT_SEC: ${TTS_TIMEOUT_SEC:-15}
+      TTS_MAX_RETRIES: ${TTS_MAX_RETRIES:-2}
+      TTS_MAX_CONCURRENCY: ${TTS_MAX_CONCURRENCY:-3}
+      WORKER_STATUS_TTL_SEC: ${WORKER_STATUS_TTL_SEC:-3600}
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    environment:
+      STAGING_DOMAIN: ${STAGING_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - staging-caddy-data:/data
+      - staging-caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  staging-postgres:
+  staging-redis:
+  staging-caddy-data:
+  staging-caddy-config:

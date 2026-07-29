@@ -23,6 +23,7 @@ import { SessionModule } from './modules/session/session.module';
 import { StudentModule } from './modules/student/student.module';
 import { UserModule } from './modules/user/user.module';
 import { WebModule } from './modules/web/web.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WebModule } from './modules/web/web.module';
     GlossaryModule,
     QrModule,
     WebModule,
+    HealthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

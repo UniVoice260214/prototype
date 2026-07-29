@@ -17,6 +17,10 @@ export class EnvVars {
   @IsInt()
   PORT: number = 3000;
 
+  @IsString()
+  @IsOptional()
+  HOST: string = '0.0.0.0';
+
   @IsEnum(NodeEnv)
   NODE_ENV: NodeEnv = NodeEnv.Development;
 
@@ -85,6 +89,21 @@ export class EnvVars {
   @IsOptional()
   @IsString()
   AUTH_DISABLED?: string;
+
+  /** Comma-separated browser origins allowed to call the API. */
+  @IsOptional()
+  @IsString()
+  CORS_ORIGINS?: string;
+
+  /** Enable Express proxy awareness when TLS is terminated by Caddy. */
+  @IsOptional()
+  @IsString()
+  TRUST_PROXY?: string;
+
+  /** Swagger is enabled by default outside production. */
+  @IsOptional()
+  @IsString()
+  SWAGGER_ENABLED?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvVars {
@@ -107,6 +126,18 @@ export function validateEnv(config: Record<string, unknown>): EnvVars {
     validated.AUTH_DISABLED === 'true'
   ) {
     throw new Error('AUTH_DISABLED=true is not allowed in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    validated.JWT_SECRET.length < 32
+  ) {
+    throw new Error('JWT_SECRET must be at least 32 characters in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    !validated.QR_BASE_URL.startsWith('https://')
+  ) {
+    throw new Error('QR_BASE_URL must use https:// in production');
   }
   return validated;
 }

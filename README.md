@@ -60,6 +60,16 @@ Useful local URLs:
 - API: `http://localhost:3000`
 - Swagger: `http://localhost:3000/docs`
 
+## HTTPS Staging
+
+실제 모바일·태블릿 통합 테스트용 Docker Compose와 Caddy HTTPS 구성이
+포함되어 있습니다.
+
+- 배포 절차: [docs/staging-deployment.md](docs/staging-deployment.md)
+- 실제 기기 체크리스트:
+  [docs/device-integration-checklist.md](docs/device-integration-checklist.md)
+- 환경변수 예시: [.env.staging.example](.env.staging.example)
+
 ## Scripts
 
 - `npm run start:dev`: Start the API in watch mode

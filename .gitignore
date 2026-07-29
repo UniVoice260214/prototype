@@ -8,6 +8,7 @@ dist/
 # env (secrets)
 .env
 .env.local
+.env.staging
 .env.*.local
 
 # dev tools (PC-specific portable binaries: Redis Windows port, Azurite emulator data)
