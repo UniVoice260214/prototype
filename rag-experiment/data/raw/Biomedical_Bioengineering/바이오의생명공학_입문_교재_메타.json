@@ -1,0 +1,126 @@
+{
+  "book_title": "바이오의생명공학 입문",
+  "source_pdf": "바이오의생명공학_입문_교재.pdf",
+  "chapters": {
+    "1": {
+      "title": "생명과학의 기초와 세포의 구조",
+      "part": "제1부 생명의 분자와 세포",
+      "field": "세포생물학",
+      "field_en": "cell biology"
+    },
+    "2": {
+      "title": "생체분자: 단백질, 핵산, 탄수화물, 지질",
+      "part": "제1부 생명의 분자와 세포",
+      "field": "생화학",
+      "field_en": "biochemistry"
+    },
+    "3": {
+      "title": "효소와 물질대사",
+      "part": "제1부 생명의 분자와 세포",
+      "field": "생화학",
+      "field_en": "biochemistry"
+    },
+    "4": {
+      "title": "분자생물학의 중심원리: 복제, 전사, 번역",
+      "part": "제1부 생명의 분자와 세포",
+      "field": "분자생물학",
+      "field_en": "molecular biology"
+    },
+    "5": {
+      "title": "유전학과 유전체",
+      "part": "제1부 생명의 분자와 세포",
+      "field": "유전학",
+      "field_en": "genetics"
+    },
+    "6": {
+      "title": "세포 신호전달, 세포주기, 그리고 암",
+      "part": "제2부 인체와 질병",
+      "field": "세포생물학",
+      "field_en": "cell biology"
+    },
+    "7": {
+      "title": "인체생리학: 항상성과 기관계",
+      "part": "제2부 인체와 질병",
+      "field": "생리학",
+      "field_en": "physiology"
+    },
+    "8": {
+      "title": "면역학: 방어 체계와 항체",
+      "part": "제2부 인체와 질병",
+      "field": "면역학",
+      "field_en": "immunology"
+    },
+    "9": {
+      "title": "미생물학과 바이러스",
+      "part": "제2부 인체와 질병",
+      "field": "미생물학",
+      "field_en": "microbiology"
+    },
+    "10": {
+      "title": "유전자 재조합과 클로닝",
+      "part": "제3부 생명공학 핵심 기술",
+      "field": "유전공학",
+      "field_en": "genetic engineering"
+    },
+    "11": {
+      "title": "핵심 실험기법: PCR, 전기영동, 블로팅",
+      "part": "제3부 생명공학 핵심 기술",
+      "field": "실험기법",
+      "field_en": "laboratory methods"
+    },
+    "12": {
+      "title": "유전자 편집과 오믹스",
+      "part": "제3부 생명공학 핵심 기술",
+      "field": "유전공학",
+      "field_en": "genetic engineering"
+    },
+    "13": {
+      "title": "생물정보학과 데이터 분석",
+      "part": "제3부 생명공학 핵심 기술",
+      "field": "생물정보학",
+      "field_en": "bioinformatics"
+    },
+    "14": {
+      "title": "세포배양과 생물반응기",
+      "part": "제4부 바이오공정과 의약품",
+      "field": "생물공정공학",
+      "field_en": "bioprocess engineering"
+    },
+    "15": {
+      "title": "바이오공정: 분리와 정제",
+      "part": "제4부 바이오공정과 의약품",
+      "field": "생물공정공학",
+      "field_en": "bioprocess engineering"
+    },
+    "16": {
+      "title": "신약 개발과 임상시험",
+      "part": "제4부 바이오공정과 의약품",
+      "field": "약학·신약개발",
+      "field_en": "pharmacology and drug development"
+    },
+    "17": {
+      "title": "바이오의약품과 세포·유전자 치료",
+      "part": "제4부 바이오공정과 의약품",
+      "field": "바이오의약품",
+      "field_en": "biopharmaceuticals"
+    },
+    "18": {
+      "title": "생체재료와 조직공학",
+      "part": "제5부 의공학",
+      "field": "생체재료·조직공학",
+      "field_en": "biomaterials and tissue engineering"
+    },
+    "19": {
+      "title": "생체계측과 의료영상",
+      "part": "제5부 의공학",
+      "field": "의공학·의료영상",
+      "field_en": "biomedical instrumentation and imaging"
+    },
+    "20": {
+      "title": "생체역학, 의료기기, 그리고 생명윤리",
+      "part": "제5부 의공학",
+      "field": "의공학·생명윤리",
+      "field_en": "biomechanics, medical devices and bioethics"
+    }
+  }
+}

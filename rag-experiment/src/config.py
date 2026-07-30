@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
 DATA_RAW_DIR = ROOT / "data" / "raw"
+# 전공별 원본 자료 디렉터리 (raw/ 아래 전공 단위로 분리)
+DATA_RAW_AI_DIR = DATA_RAW_DIR / "ai"
+DATA_RAW_HSS_DIR = DATA_RAW_DIR / "Humanities_Social_Sciences"
+DATA_RAW_BME_DIR = DATA_RAW_DIR / "Biomedical_Bioengineering"
 DATA_RAW_DISTRACTOR_DIR = ROOT / "data" / "raw_distractor"
 CHUNKS_PATH = ROOT / "data" / "chunks" / "chunks.jsonl"
 INDEXES_DIR = ROOT / "indexes"
@@ -46,8 +50,17 @@ MODELS: dict[str, ModelSpec] = {
 }
 
 # 분리 인덱스: doc_type 부분집합 → indexes/{index_name}/{model}/
+# 전공 RAG는 전공마다 doc_type을 분리해 서로 섞이지 않게 한다.
 INDEX_SUBSETS: dict[str, list[str]] = {
     "major_ai": ["glossary", "concept_doc", "textbook"],  # 전공 RAG: 용어사전 + 개념문서 + 입문교재
+    "major_humanities_social_sciences": [                 # 전공 RAG: 인문사회 개념문서 + 입문교재
+        "hss_concept_doc",
+        "hss_textbook",
+    ],
+    "major_biomedical_bioengineering": [                  # 전공 RAG: 바이오의생명공학 입문교재
+        "bme_concept_doc",
+        "bme_textbook",
+    ],
     "lecture_kim_i2a": ["lecture_slide"],     # 강의 RAG: 김교수 I2A 슬라이드
 }
 
