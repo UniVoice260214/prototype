@@ -20,10 +20,12 @@ load_dotenv()
 # locale → Azure Neural Voice 기본 매핑. TTS_VOICE_MAP(JSON)으로 덮어쓸 수 있다.
 DEFAULT_VOICE_MAP = {
     "zh-CN": "zh-CN-XiaoxiaoNeural",
+    "zh-TW": "zh-TW-HsiaoChenNeural",
     "vi-VN": "vi-VN-HoaiMyNeural",
     "mn-MN": "mn-MN-YesuiNeural",
     "en-US": "en-US-JennyNeural",
     "ja-JP": "ja-JP-NanamiNeural",
+    "uk-UA": "uk-UA-PolinaNeural",
 }
 
 DEFAULT_SEGMENT_MAX_CHARS = 120

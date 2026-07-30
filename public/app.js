@@ -4,10 +4,12 @@
 
   const LOCALES = [
     { code: "zh-CN", name: "중국어", native: "中文", flag: "中" },
+    { code: "zh-TW", name: "대만 중국어", native: "繁體中文", flag: "台" },
     { code: "vi-VN", name: "베트남어", native: "Tiếng Việt", flag: "Vi" },
     { code: "mn-MN", name: "몽골어", native: "Монгол", flag: "Мн" },
     { code: "en-US", name: "영어", native: "English", flag: "En" },
     { code: "ja-JP", name: "일본어", native: "日本語", flag: "日" },
+    { code: "uk-UA", name: "우크라이나어", native: "Українська", flag: "Uk" },
   ];
   const ACTIVE_SESSION_KEY = "univoice.activeSession";
 
