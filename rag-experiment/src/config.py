@@ -62,6 +62,11 @@ INDEX_SUBSETS: dict[str, list[str]] = {
         "bme_textbook",
     ],
     "lecture_kim_i2a": ["lecture_slide"],     # 강의 RAG: 김교수 I2A 슬라이드
+    # 강의 RAG는 과목 단위다. 같은 전공이라도 과목이 다르면 인덱스를 나눈다
+    # (인문사회에 국어학개론·종교사회학 두 과목이 있다).
+    "lecture_heo_korling": ["korling_lecture_slide"],   # 허용 · 국어학개론
+    "lecture_nam_relsoc": ["relsoc_lecture_slide"],     # 남은경 · 종교사회학
+    "lecture_lee_molbio": ["molbio_lecture_slide"],     # 이우일 · 분자생물학
 }
 
 # Azure OpenAI (.env에서 로드)

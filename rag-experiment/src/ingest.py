@@ -16,6 +16,13 @@
 | AI | 용어사전 | glossary | glossary_ |
 | 인문사회 | 개념 지식자료 | hss_concept_doc | hssconcept_ |
 | 인문사회 | 입문 교재 | hss_textbook | hsstb_ |
+| 인문사회 | 국어학개론 강의자료 | korling_lecture_slide | korlec_ |
+| 인문사회 | 종교사회학 강의자료 | relsoc_lecture_slide | rellec_ |
+| 바이오 | 입문 교재 | bme_textbook | bmetb_ |
+| 바이오 | 분자생물학 강의자료 | molbio_lecture_slide | biolec_ |
+
+전공 RAG는 전공 단위, 강의 RAG는 **과목 단위**로 인덱스를 나눈다
+(config.INDEX_SUBSETS의 lecture_* 항목).
 
 실행: python src/ingest.py
 """
@@ -127,6 +134,133 @@ def ingest_lecture_pdf(
 def _lecture_short_name(filename: str) -> str:
     match = re.search(r"Lecture(\d+)", filename)
     return f"lec{match.group(1)}" if match else Path(filename).stem
+
+
+# ── (1b) 일반 강의 슬라이드 PDF (Week 마커 없는 실제 강의자료) ─────────
+# KOCW에서 받은 실제 강의자료는 덱마다 머리글 규칙이 달라 I2A용 'WeekN' 규칙이
+# 통하지 않는다. 페이지=슬라이드로 보고 첫 줄을 제목으로 삼는 공용 파서를 두고,
+# 덱별 차이는 header_fn / drop_res / section_re로 주입한다.
+
+# 문장부호만 남은 줄 — 괄호·따옴표가 본문과 다른 baseline에 그려져 별도 줄로
+# 추출되는 PDF가 있다(종교사회학 덱). 정보가 없으므로 버린다.
+PUNCT_ONLY_RE = re.compile(r"^[\s\W_]+$")
+
+
+def _clean_slide_lines(
+    text: str, drop_res: tuple[re.Pattern[str], ...], drop_single_char: bool
+) -> list[str]:
+    """페이지 텍스트에서 잡음 줄을 걷어낸다.
+
+    drop_single_char는 세로쓰기 사이드바('L','e','c',...가 한 줄씩 추출되는
+    분자생물학 덱)를 위한 것이라 덱별로 켠다 — 국어학 덱의 한 자리 숫자는
+    대단원 번호라서 지우면 안 된다.
+    """
+    lines: list[str] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if drop_single_char and len(line) <= 1:
+            continue
+        if PUNCT_ONLY_RE.match(line):
+            continue
+        if any(pattern.search(line) for pattern in drop_res):
+            continue
+        lines.append(line)
+    return lines
+
+
+def _default_slide_header(lines: list[str]) -> tuple[str, list[str]]:
+    return lines[0], lines[1:]
+
+
+def ingest_slide_deck_pdf(
+    path: Path,
+    *,
+    doc_type: str,
+    id_prefix: str,
+    deck_label: str = "",
+    drop_res: tuple[re.Pattern[str], ...] = (),
+    drop_single_char: bool = False,
+    header_fn: Any = None,
+) -> list[Chunk]:
+    """페이지 첫 줄=제목, 나머지=본문. 같은 제목의 연속 슬라이드는 병합.
+
+    deck_label(과목·차시)을 chunk 본문 머리에 붙여, 슬라이드 제목만으로는
+    어느 수업인지 알 수 없는 조각도 맥락을 갖게 한다. AI 슬라이드의 '[Week3]'
+    접두와 같은 역할이다. 덱 안의 대단원은 제목 규칙이 덱마다 제각각이라
+    추적하지 않는다 — 잘못된 단원명이 본문에 섞이면 임베딩까지 오염된다.
+    """
+    header = header_fn or _default_slide_header
+    slides: list[tuple[int, str, str]] = []  # (page_no, title, body)
+    with pdfplumber.open(path) as pdf:
+        for page_no, page in enumerate(pdf.pages, start=1):
+            try:
+                text = page.extract_text() or ""
+            except Exception:
+                continue
+            lines = _clean_slide_lines(text, drop_res, drop_single_char)
+            if not lines:
+                continue
+            title, body_lines = header(lines)
+            slides.append((page_no, title, "\n".join(body_lines)))
+
+    chunks: list[Chunk] = []
+    i = 0
+    while i < len(slides):
+        page_no, title, body = slides[i]
+        pages = [page_no]
+        bodies = [body] if body else []
+        j = i + 1
+        while j < len(slides) and slides[j][1] == title and slides[j][0] == pages[-1] + 1:
+            pages.append(slides[j][0])
+            if slides[j][2]:
+                bodies.append(slides[j][2])
+            j += 1
+        i = j
+
+        head = f"[{deck_label}] {title}" if deck_label else title
+        merged = f"{head}\n" + "\n".join(bodies)
+        if len(merged) < MIN_SLIDE_CHARS:
+            continue  # 제목·그림만 있는 슬라이드
+        base_id = f"{id_prefix}_p{pages[0]:02d}_{pages[-1]:02d}"
+        for part_no, part_text in enumerate(
+            _split_with_overlap(merged, MAX_SECTION_TOKENS, OVERLAP_TOKENS)
+        ):
+            suffix = f"_{part_no + 1}" if part_no > 0 else ""
+            chunks.append(
+                Chunk(
+                    chunk_id=f"{base_id}{suffix}",
+                    source=path.name,
+                    doc_type=doc_type,
+                    text=part_text,
+                    metadata={
+                        "lecture": deck_label,
+                        "slide_title": title,
+                        "page_range": [pages[0], pages[-1]],
+                    },
+                )
+            )
+    return chunks
+
+
+# 국어학개론 덱: '1 음운론의 주요 개념' / '2'(대단원 번호) / '1) 음절이란...'
+# 3단 머리글. 첫 줄 앞의 숫자는 장식이고 실제 번호는 둘째 줄에 홀로 온다.
+KOR_HEAD_RE = re.compile(r"^\d+\s+(\S.*)$")
+KOR_NUM_RE = re.compile(r"^\d+$")
+
+
+def _korling_slide_header(lines: list[str]) -> tuple[str, list[str]]:
+    if len(lines) >= 3 and KOR_NUM_RE.match(lines[1]):
+        head_match = KOR_HEAD_RE.match(lines[0])
+        if head_match:
+            unit = f"{lines[1]}. {head_match.group(1)}"
+            return f"{unit} — {lines[2]}", lines[3:]
+    return _default_slide_header(lines)
+
+
+# 분자생물학 덱: 매 페이지 하단 기관명 푸터 + 세로쓰기 사이드바가 섞인다.
+MOLBIO_FOOTER_RE = re.compile(r"^Konyang Univ\./|Lecture materials for Molecular Biology")
 
 
 # ── (2) 문서형 PDF ────────────────────────────────────────────────────
@@ -513,6 +647,38 @@ def ingest_hss_major() -> list[Chunk]:
                 footer_re=HSS_TB_FOOTER_RE,
             )
         )
+    chunks.extend(ingest_hss_lectures())
+    return chunks
+
+
+def ingest_hss_lectures() -> list[Chunk]:
+    """인문사회 강의자료 — 과목이 둘이라 doc_type/인덱스를 과목별로 나눈다.
+
+    Korean_lecture07.pdf : 국어학개론(허용) 4주차 '한국어 말소리의 체계(1)'
+    hss_lecture3.pdf     : 종교사회학(남은경) 2강 '종교사회학의 이해'
+    """
+    chunks: list[Chunk] = []
+    korling_path = DATA_RAW_HSS_DIR / "Korean_lecture07.pdf"
+    if korling_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                korling_path,
+                doc_type="korling_lecture_slide",
+                id_prefix="korlec",
+                deck_label="국어학개론 4주차 · 한국어 말소리의 체계(1)",
+                header_fn=_korling_slide_header,
+            )
+        )
+    relsoc_path = DATA_RAW_HSS_DIR / "hss_lecture3.pdf"
+    if relsoc_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                relsoc_path,
+                doc_type="relsoc_lecture_slide",
+                id_prefix="rellec",
+                deck_label="종교사회학 2강 · 종교사회학의 이해",
+            )
+        )
     return chunks
 
 
@@ -548,6 +714,21 @@ def ingest_bme_major() -> list[Chunk]:
             )
         )
         _attach_field_metadata(chunks, textbook_path)
+
+    # 강의자료: bio_lecture9.pdf — 분자생물학(이우일) 9차시 'Molecular Cloning'.
+    # 교재 chunk에만 분야 태그를 붙이도록 _attach_field_metadata 뒤에서 합친다.
+    molbio_path = DATA_RAW_BME_DIR / "bio_lecture9.pdf"
+    if molbio_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                molbio_path,
+                doc_type="molbio_lecture_slide",
+                id_prefix="biolec",
+                deck_label="분자생물학 9차시 · Molecular Cloning",
+                drop_res=(MOLBIO_FOOTER_RE,),
+                drop_single_char=True,
+            )
+        )
     return chunks
 
 
