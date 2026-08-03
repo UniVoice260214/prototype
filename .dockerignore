@@ -8,6 +8,7 @@
 .env.*
 !.env.example
 !.env.staging.example
+!.env.demo.example
 node_modules
 dist
 coverage

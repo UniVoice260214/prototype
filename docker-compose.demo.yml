@@ -1,0 +1,240 @@
+name: univoice-demo
+
+x-azurite-connection: &azurite-connection 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: univoice
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: univoice
+    volumes:
+      - demo-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U univoice -d univoice']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - demo-redis:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" ping | grep PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.36.0
+    restart: unless-stopped
+    command:
+      - azurite-blob
+      - --blobHost
+      - 0.0.0.0
+      - --blobPort
+      - '10000'
+      - --location
+      - /data
+      - --disableProductStyleUrl
+      - --skipApiVersionCheck
+      - --disableTelemetry
+    ports:
+      - '127.0.0.1:10000:10000'
+    volumes:
+      - demo-azurite:/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:10000/devstoreaccount1?comp=list').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    restart: 'no'
+    environment: &api-environment
+      NODE_ENV: production
+      DATABASE_URL: postgresql://univoice:${POSTGRES_PASSWORD}@postgres:5432/univoice
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      JWT_JOIN_TOKEN_EXPIRES_IN: ${JWT_JOIN_TOKEN_EXPIRES_IN:-24h}
+      AUTH_DISABLED: 'false'
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_TOKEN_TTL_SEC: ${LIVEKIT_TOKEN_TTL_SEC:-14400}
+      AZURE_BLOB_CONNECTION_STRING: *azurite-connection
+      AZURE_BLOB_CONTAINER: ${AZURE_BLOB_CONTAINER:-univoice-materials}
+      AZURE_BLOB_PUBLIC_BASE_URL: https://${TAILSCALE_HOSTNAME}:8443/devstoreaccount1/${AZURE_BLOB_CONTAINER:-univoice-materials}
+      AZURE_BLOB_PUBLIC_ACCESS: 'true'
+      QR_BASE_URL: https://${TAILSCALE_HOSTNAME}/join
+      RAG_INDEX_QUEUE: ${RAG_INDEX_QUEUE:-rag:index:queue}
+      WORKER_STOP_TIMEOUT_SEC: ${WORKER_STOP_TIMEOUT_SEC:-8}
+      WORKER_STOP_POLL_INTERVAL_MS: ${WORKER_STOP_POLL_INTERVAL_MS:-200}
+      CORS_ORIGINS: https://${TAILSCALE_HOSTNAME}
+      TRUST_PROXY: 'true'
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    command: ['npm', 'run', 'migration:run:prod']
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    build:
+      context: .
+      target: runtime
+    restart: 'no'
+    environment:
+      <<: *api-environment
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Demo Admin}
+    command: ['npm', 'run', 'seed:prod']
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    environment:
+      <<: *api-environment
+      PORT: 3000
+      HOST: 0.0.0.0
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      azurite:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  rag-indexer:
+    image: univoice-demo-rag
+    build:
+      context: ./rag-experiment
+    restart: "no"
+    command: ["python", "src/build_demo_indexes.py"]
+    environment:
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - demo-rag-indexes:/app/indexes
+      - demo-rag-chunks:/app/data/chunks
+      - demo-hf-cache:/cache/huggingface
+
+  rag-service:
+    image: univoice-demo-rag
+    build:
+      context: ./rag-experiment
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      RAG_TOP_K: ${RAG_TOP_K:-3}
+      RAG_CONTEXT_MAX_CHARS: ${RAG_CONTEXT_MAX_CHARS:-4000}
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - demo-rag-indexes:/app/indexes:ro
+      - demo-rag-chunks:/app/data/chunks:ro
+      - demo-hf-cache:/cache/huggingface
+    depends_on:
+      rag-indexer:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+  ai-worker:
+    build:
+      context: ./ai-worker
+    restart: unless-stopped
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      AZURE_SPEECH_KEY: ${AZURE_SPEECH_KEY}
+      AZURE_SPEECH_REGION: ${AZURE_SPEECH_REGION}
+      STT_LANGUAGE: ${STT_LANGUAGE:-ko-KR}
+      TRANSLATE_PROVIDER: ${TRANSLATE_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-08-01-preview}
+      SEGMENT_MAX_CHARS: ${SEGMENT_MAX_CHARS:-120}
+      SEGMENT_IDLE_FLUSH_MS: ${SEGMENT_IDLE_FLUSH_MS:-2000}
+      TTS_TIMEOUT_SEC: ${TTS_TIMEOUT_SEC:-15}
+      TTS_MAX_RETRIES: ${TTS_MAX_RETRIES:-2}
+      TTS_MAX_CONCURRENCY: ${TTS_MAX_CONCURRENCY:-3}
+      WORKER_STATUS_TTL_SEC: ${WORKER_STATUS_TTL_SEC:-3600}
+      RAG_ENABLED: ${RAG_ENABLED:-true}
+      RAG_URL: http://rag-service:8000
+      RAG_DEFAULT_MAJOR: ${RAG_DEFAULT_MAJOR:-auto}
+      RAG_COURSE_MAJOR_MAP: ${RAG_COURSE_MAJOR_MAP:-}
+      RAG_TIMEOUT_SEC: ${RAG_TIMEOUT_SEC:-5}
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+      rag-service:
+        condition: service_healthy
+
+volumes:
+  demo-postgres:
+  demo-redis:
+  demo-azurite:
+  demo-rag-indexes:
+  demo-rag-chunks:
+  demo-hf-cache:

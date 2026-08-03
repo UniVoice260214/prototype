@@ -17,6 +17,7 @@ export interface UploadResult {
 export class BlobService implements OnModuleInit {
   private readonly logger = new Logger(BlobService.name);
   private container: ContainerClient | null = null;
+  private publicBaseUrl: string | null = null;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -26,6 +27,13 @@ export class BlobService implements OnModuleInit {
       'AZURE_BLOB_CONTAINER',
       'univoice-materials',
     );
+    this.publicBaseUrl =
+      this.config
+        .get<string>('AZURE_BLOB_PUBLIC_BASE_URL')
+        ?.trim()
+        .replace(/\/+$/, '') || null;
+    const allowPublicAccess =
+      this.config.get<string>('AZURE_BLOB_PUBLIC_ACCESS') === 'true';
 
     if (!conn || conn.length === 0) {
       this.logger.warn(
@@ -37,7 +45,16 @@ export class BlobService implements OnModuleInit {
     try {
       const client = BlobServiceClient.fromConnectionString(conn);
       this.container = client.getContainerClient(containerName);
-      await this.container.createIfNotExists();
+      await this.container.createIfNotExists({
+        access: allowPublicAccess ? 'blob' : undefined,
+      });
+      if (allowPublicAccess) {
+        // createIfNotExists does not update an existing container's ACL.
+        await this.container.setAccessPolicy('blob');
+        this.logger.warn(
+          `Anonymous blob reads enabled for container: ${containerName}`,
+        );
+      }
       this.logger.log(`Blob container ready: ${containerName}`);
     } catch (err) {
       this.logger.warn(
@@ -67,7 +84,14 @@ export class BlobService implements OnModuleInit {
     await block.uploadData(file.buffer, {
       blobHTTPHeaders: { blobContentType: file.mimetype },
     });
-    return { blobName, blobUrl: block.url };
+    const encodedBlobName = blobName
+      .split('/')
+      .map((segment) => encodeURIComponent(segment))
+      .join('/');
+    const blobUrl = this.publicBaseUrl
+      ? `${this.publicBaseUrl}/${encodedBlobName}`
+      : block.url;
+    return { blobName, blobUrl };
   }
 
   async delete(blobName: string): Promise<void> {
@@ -88,11 +112,18 @@ export class BlobService implements OnModuleInit {
     if (!this.container) return;
     let blobName: string;
     try {
-      const path = decodeURIComponent(new URL(blobUrl).pathname);
-      const prefix = `/${this.container.containerName}/`;
-      blobName = path.startsWith(prefix)
-        ? path.slice(prefix.length)
-        : path.replace(/^\//, '');
+      const segments = new URL(blobUrl).pathname
+        .split('/')
+        .filter(Boolean)
+        .map((segment) => decodeURIComponent(segment));
+      const containerOffset = segments.indexOf(this.container.containerName);
+      if (containerOffset < 0 || containerOffset === segments.length - 1) {
+        this.logger.warn(
+          `deleteByUrl: container path not found in blob URL ${blobUrl}`,
+        );
+        return;
+      }
+      blobName = segments.slice(containerOffset + 1).join('/');
     } catch {
       this.logger.warn(`deleteByUrl: cannot parse blobUrl ${blobUrl}`);
       return;

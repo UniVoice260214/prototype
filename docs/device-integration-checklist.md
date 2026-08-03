@@ -15,10 +15,11 @@
 
 - [ ] `/health/live`가 200을 반환한다.
 - [ ] `/health/ready`가 200을 반환한다.
-- [ ] Caddy 인증서가 브라우저에서 신뢰된다.
+- [ ] Caddy 또는 Tailscale Serve 인증서가 브라우저에서 신뢰된다.
 - [ ] 브라우저 콘솔에 mixed-content 오류가 없다.
 - [ ] AI Worker 로그에 Redis 구독 시작이 표시된다.
 - [ ] LiveKit URL이 `wss://`를 사용한다.
+- [ ] 업로드된 강의자료의 HTTPS Blob URL이 실제 기기에서 200으로 열린다.
 
 ## 교수 모바일
 

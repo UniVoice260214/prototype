@@ -1,0 +1,5 @@
+-r requirements.txt
+sentence-transformers>=3.0,<4.0
+transformers>=4.41,<5.0
+fastapi>=0.115
+uvicorn>=0.30

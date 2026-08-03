@@ -22,6 +22,7 @@ except ImportError:  # pragma: no cover
 
 from .config import WorkerConfig, load_config
 from .glossary import GlossaryEntry, parse_glossary
+from .rag import HttpRagClient, NoOpRagClient, RagClient
 from .session_worker import SessionWorker
 from .worker_status import RedisWorkerStatusStore
 
@@ -125,6 +126,19 @@ async def recover_active_sessions(
         await start_session(event)
 
 
+def build_rag_client(config: WorkerConfig, course_id: str) -> RagClient:
+    """세션 과목에 맞는 데모 RAG 클라이언트를 만든다."""
+    if not config.rag_enabled:
+        return NoOpRagClient()
+    major = config.rag_course_major_map.get(course_id, config.rag_default_major)
+    logger.info("RAG client configured: course=%s major=%s url=%s", course_id, major, config.rag_url)
+    return HttpRagClient(
+        config.rag_url,
+        major=major,
+        course_id=course_id,
+        timeout_sec=config.rag_timeout_sec,
+    )
+
 class WorkerRegistry:
     def __init__(self, redis: aioredis.Redis, config: WorkerConfig) -> None:
         self._redis = redis
@@ -142,6 +156,7 @@ class WorkerRegistry:
             logger.warning("[%s] 이미 실행 중인 세션, 무시", session_id)
             return
         glossary = await load_glossary(self._redis, validated["courseId"])
+        rag = build_rag_client(self._config, validated["courseId"])
         worker = SessionWorker(
             config=self._config,
             session_id=session_id,
@@ -149,7 +164,7 @@ class WorkerRegistry:
             target_locales=validated["targetLocales"],
             glossary=glossary,
             status_store=self._status_store,
-            # rag=AzureSearchRagClient(...),  # 실제 RAG 를 붙일 때 여기서 주입
+            rag=rag,
         )
 
         task = asyncio.create_task(worker.run(), name=f"session-{session_id}")

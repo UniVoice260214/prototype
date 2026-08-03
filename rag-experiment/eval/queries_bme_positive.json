@@ -1,0 +1,109 @@
+[
+  {"query": "원핵세포와 진핵세포의 차이가 뭐야?", "answer_chunk_ids": ["bmetb_ch01_s2"], "query_type": "comparison"},
+  {"query": "능동수송이 뭔가요?", "answer_chunk_ids": ["bmetb_ch01_s4"], "query_type": "definition"},
+  {"query": "미토콘드리아는 무슨 일을 해?", "answer_chunk_ids": ["bmetb_ch01_s3"], "query_type": "definition"},
+  {"query": "세포막은 어떤 구조로 되어 있어?", "answer_chunk_ids": ["bmetb_ch01_s4"], "query_type": "principle"},
+
+  {"query": "단백질 변성이 뭐야?", "answer_chunk_ids": ["bmetb_ch02_s2"], "query_type": "definition"},
+  {"query": "단백질 1차 구조부터 4차 구조까지 설명해줘", "answer_chunk_ids": ["bmetb_ch02_s2"], "query_type": "principle"},
+  {"query": "DNA와 RNA는 뭐가 달라?", "answer_chunk_ids": ["bmetb_ch02_s3"], "query_type": "comparison"},
+  {"query": "상보적 염기쌍 규칙이 뭐지?", "answer_chunk_ids": ["bmetb_ch02_s3"], "query_type": "definition"},
+  {"query": "중성지방과 인지질의 차이는?", "answer_chunk_ids": ["bmetb_ch02_s4"], "query_type": "comparison"},
+
+  {"query": "Km이 무슨 의미야?", "answer_chunk_ids": ["bmetb_ch03_s3", "bmetb_ch03_s3_2"], "query_type": "definition"},
+  {"query": "경쟁적 저해와 비경쟁적 저해는 어떻게 달라?", "answer_chunk_ids": ["bmetb_ch03_s2", "bmetb_ch03_s2_2"], "query_type": "comparison"},
+  {"query": "효소는 어떻게 반응 속도를 높여?", "answer_chunk_ids": ["bmetb_ch03_s2"], "query_type": "principle"},
+  {"query": "세포호흡은 어떤 단계로 진행돼?", "answer_chunk_ids": ["bmetb_ch03_s4"], "query_type": "principle"},
+  {"query": "이화작용과 동화작용의 차이는?", "answer_chunk_ids": ["bmetb_ch03_s1"], "query_type": "comparison"},
+
+  {"query": "중심원리가 뭐야?", "answer_chunk_ids": ["bmetb_ch04_s1"], "query_type": "definition"},
+  {"query": "선도가닥과 지연가닥이 왜 나뉘어?", "answer_chunk_ids": ["bmetb_ch04_s1"], "query_type": "principle"},
+  {"query": "인트론과 엑손의 차이가 뭐지?", "answer_chunk_ids": ["bmetb_ch04_s2"], "query_type": "comparison"},
+  {"query": "코돈이 왜 세 글자야?", "answer_chunk_ids": ["bmetb_ch04_s3"], "query_type": "principle"},
+  {"query": "틀이동돌연변이가 뭐야?", "answer_chunk_ids": ["bmetb_ch04_s4"], "query_type": "definition"},
+
+  {"query": "체세포분열과 감수분열은 어떻게 달라?", "answer_chunk_ids": ["bmetb_ch05_s2"], "query_type": "comparison"},
+  {"query": "보인자가 무슨 뜻이야?", "answer_chunk_ids": ["bmetb_ch05_s3"], "query_type": "definition"},
+  {"query": "SNP가 뭔가요?", "answer_chunk_ids": ["bmetb_ch05_s4"], "query_type": "definition"},
+  {"query": "침투도와 발현도의 차이는?", "answer_chunk_ids": ["bmetb_ch05_s3"], "query_type": "comparison"},
+
+  {"query": "세포주기 검문지점은 무슨 역할을 해?", "answer_chunk_ids": ["bmetb_ch06_s2"], "query_type": "principle"},
+  {"query": "세포자멸사와 세포괴사는 뭐가 달라?", "answer_chunk_ids": ["bmetb_ch06_s3"], "query_type": "comparison"},
+  {"query": "원발암유전자와 종양억제유전자의 차이는?", "answer_chunk_ids": ["bmetb_ch06_s4"], "query_type": "comparison"},
+  {"query": "GPCR이 뭐야?", "answer_chunk_ids": ["bmetb_ch06_s1"], "query_type": "definition"},
+
+  {"query": "음성 되먹임과 양성 되먹임의 차이가 뭐야?", "answer_chunk_ids": ["bmetb_ch07_s1"], "query_type": "comparison"},
+  {"query": "활동전위는 어떻게 발생해?", "answer_chunk_ids": ["bmetb_ch07_s2"], "query_type": "principle"},
+  {"query": "네프론은 어떻게 오줌을 만들어?", "answer_chunk_ids": ["bmetb_ch07_s4"], "query_type": "principle"},
+  {"query": "폐포에서 기체 교환은 어떻게 일어나?", "answer_chunk_ids": ["bmetb_ch07_s3"], "query_type": "principle"},
+
+  {"query": "선천면역과 적응면역의 차이는?", "answer_chunk_ids": ["bmetb_ch08_s1"], "query_type": "comparison"},
+  {"query": "항원과 항체가 어떻게 달라?", "answer_chunk_ids": ["bmetb_ch08_s1"], "query_type": "comparison"},
+  {"query": "에피토프가 뭐야?", "answer_chunk_ids": ["bmetb_ch08_s1"], "query_type": "definition"},
+  {"query": "MHC는 무슨 역할을 해?", "answer_chunk_ids": ["bmetb_ch08_s3"], "query_type": "principle"},
+  {"query": "단일클론항체가 뭔가요?", "answer_chunk_ids": ["bmetb_ch08_s4"], "query_type": "definition"},
+
+  {"query": "플라스미드가 뭐지?", "answer_chunk_ids": ["bmetb_ch09_s1"], "query_type": "definition"},
+  {"query": "멸균과 소독은 어떻게 구분해?", "answer_chunk_ids": ["bmetb_ch09_s2", "bmetb_ch09_s2_2"], "query_type": "comparison"},
+  {"query": "바이러스는 어떻게 증식해?", "answer_chunk_ids": ["bmetb_ch09_s3"], "query_type": "principle"},
+  {"query": "항생제 내성은 왜 생겨?", "answer_chunk_ids": ["bmetb_ch09_s4"], "query_type": "principle"},
+
+  {"query": "제한효소가 뭐야?", "answer_chunk_ids": ["bmetb_ch10_s1"], "query_type": "definition"},
+  {"query": "점착말단과 평활말단의 차이는?", "answer_chunk_ids": ["bmetb_ch10_s1"], "query_type": "comparison"},
+  {"query": "좋은 벡터는 어떤 요소를 갖춰야 해?", "answer_chunk_ids": ["bmetb_ch10_s2"], "query_type": "principle"},
+  {"query": "청백 선별은 어떤 원리야?", "answer_chunk_ids": ["bmetb_ch10_s3"], "query_type": "principle"},
+  {"query": "His-태그가 뭔가요?", "answer_chunk_ids": ["bmetb_ch10_s4"], "query_type": "definition"},
+
+  {"query": "PCR은 어떤 단계로 진행돼?", "answer_chunk_ids": ["bmetb_ch11_s1", "bmetb_ch11_s1_2"], "query_type": "principle"},
+  {"query": "SDS-PAGE는 어떤 원리로 분리해?", "answer_chunk_ids": ["bmetb_ch11_s2"], "query_type": "principle"},
+  {"query": "웨스턴 블롯과 서던 블롯의 차이가 뭐야?", "answer_chunk_ids": ["bmetb_ch11_s3"], "query_type": "comparison"},
+  {"query": "ELISA가 뭐지?", "answer_chunk_ids": ["bmetb_ch11_s3"], "query_type": "definition"},
+  {"query": "광학현미경과 전자현미경은 뭐가 달라?", "answer_chunk_ids": ["bmetb_ch11_s4"], "query_type": "comparison"},
+
+  {"query": "CRISPR는 어떻게 표적을 찾아?", "answer_chunk_ids": ["bmetb_ch12_s1"], "query_type": "principle"},
+  {"query": "NHEJ와 HDR의 차이는?", "answer_chunk_ids": ["bmetb_ch12_s2"], "query_type": "comparison"},
+  {"query": "표적이탈 효과가 뭐야?", "answer_chunk_ids": ["bmetb_ch12_s2"], "query_type": "definition"},
+  {"query": "오믹스가 무슨 개념이야?", "answer_chunk_ids": ["bmetb_ch12_s4"], "query_type": "definition"},
+
+  {"query": "BLAST는 뭘 하는 도구야?", "answer_chunk_ids": ["bmetb_ch13_s1"], "query_type": "definition"},
+  {"query": "커버리지가 왜 중요해?", "answer_chunk_ids": ["bmetb_ch13_s2"], "query_type": "principle"},
+  {"query": "알파폴드가 뭐지?", "answer_chunk_ids": ["bmetb_ch13_s3"], "query_type": "definition"},
+
+  {"query": "회분식 배양과 유가식 배양의 차이는?", "answer_chunk_ids": ["bmetb_ch14_s2"], "query_type": "comparison"},
+  {"query": "계대배양을 왜 해야 해?", "answer_chunk_ids": ["bmetb_ch14_s1", "bmetb_ch14_s1_2"], "query_type": "principle"},
+  {"query": "생물반응기에서 산소 공급이 왜 까다로워?", "answer_chunk_ids": ["bmetb_ch14_s3"], "query_type": "principle"},
+  {"query": "스케일업이 왜 어려운 거야?", "answer_chunk_ids": ["bmetb_ch14_s4"], "query_type": "principle"},
+
+  {"query": "상류공정과 하류공정이 어떻게 달라?", "answer_chunk_ids": ["bmetb_ch15_s1"], "query_type": "comparison"},
+  {"query": "친화크로마토그래피가 뭐야?", "answer_chunk_ids": ["bmetb_ch15_s3"], "query_type": "definition"},
+  {"query": "이온교환크로마토그래피는 무슨 원리로 분리해?", "answer_chunk_ids": ["bmetb_ch15_s3"], "query_type": "principle"},
+  {"query": "GMP가 뭔가요?", "answer_chunk_ids": ["bmetb_ch15_s4"], "query_type": "definition"},
+
+  {"query": "약동학과 약력학의 차이가 뭐야?", "answer_chunk_ids": ["bmetb_ch16_s2"], "query_type": "comparison"},
+  {"query": "임상시험 1상 2상 3상은 각각 뭘 봐?", "answer_chunk_ids": ["bmetb_ch16_s3"], "query_type": "principle"},
+  {"query": "치료지수가 뭐지?", "answer_chunk_ids": ["bmetb_ch16_s2"], "query_type": "definition"},
+  {"query": "무작위 배정과 눈가림은 왜 필요해?", "answer_chunk_ids": ["bmetb_ch16_s4", "bmetb_ch16_s4_2"], "query_type": "principle"},
+  {"query": "바이오시밀러와 제네릭의 차이는?", "answer_chunk_ids": ["bmetb_ch16_s4", "bmetb_ch16_s4_2"], "query_type": "comparison"},
+
+  {"query": "항체약물접합체가 뭐야?", "answer_chunk_ids": ["bmetb_ch17_s1"], "query_type": "definition"},
+  {"query": "CAR-T 치료는 어떻게 작동해?", "answer_chunk_ids": ["bmetb_ch17_s3"], "query_type": "principle"},
+  {"query": "iPSC가 뭔가요?", "answer_chunk_ids": ["bmetb_ch17_s4"], "query_type": "definition"},
+  {"query": "ex vivo와 in vivo 유전자 치료의 차이는?", "answer_chunk_ids": ["bmetb_ch17_s3"], "query_type": "comparison"},
+
+  {"query": "생체적합성이 무슨 뜻이야?", "answer_chunk_ids": ["bmetb_ch18_s1"], "query_type": "definition"},
+  {"query": "응력차폐가 왜 문제가 돼?", "answer_chunk_ids": ["bmetb_ch18_s2"], "query_type": "principle"},
+  {"query": "이물반응은 어떤 순서로 일어나?", "answer_chunk_ids": ["bmetb_ch18_s3"], "query_type": "principle"},
+  {"query": "조직공학의 세 요소가 뭐야?", "answer_chunk_ids": ["bmetb_ch18_s4", "bmetb_ch18_s4_2"], "query_type": "definition"},
+
+  {"query": "CMRR이 왜 중요해?", "answer_chunk_ids": ["bmetb_ch19_s1"], "query_type": "principle"},
+  {"query": "에일리어싱이 뭐지?", "answer_chunk_ids": ["bmetb_ch19_s1"], "query_type": "definition"},
+  {"query": "CT와 MRI는 뭐가 달라?", "answer_chunk_ids": ["bmetb_ch19_s4", "bmetb_ch19_s3", "bmetb_ch19_s4_2"], "query_type": "comparison"},
+  {"query": "초음파는 어떤 원리로 영상을 만들어?", "answer_chunk_ids": ["bmetb_ch19_s3"], "query_type": "principle"},
+  {"query": "PET은 무엇을 보는 검사야?", "answer_chunk_ids": ["bmetb_ch19_s4", "bmetb_ch19_s4_2"], "query_type": "definition"},
+
+  {"query": "점탄성이 무슨 성질이야?", "answer_chunk_ids": ["bmetb_ch20_s1"], "query_type": "definition"},
+  {"query": "볼프의 법칙이 뭐야?", "answer_chunk_ids": ["bmetb_ch20_s1"], "query_type": "definition"},
+  {"query": "혈액투석은 어떤 원리로 작동해?", "answer_chunk_ids": ["bmetb_ch20_s2", "bmetb_ch20_s2_2"], "query_type": "principle"},
+  {"query": "의료기기는 어떻게 등급을 나눠?", "answer_chunk_ids": ["bmetb_ch20_s3"], "query_type": "principle"},
+  {"query": "생명의료윤리 네 원칙이 뭐지?", "answer_chunk_ids": ["bmetb_ch20_s4"], "query_type": "definition"}
+]

@@ -70,6 +70,16 @@ Useful local URLs:
   [docs/device-integration-checklist.md](docs/device-integration-checklist.md)
 - 환경변수 예시: [.env.staging.example](.env.staging.example)
 
+## Local Tailscale Demo
+
+로컬 PC에서 PostgreSQL, Redis, Azurite, API 및 AI Worker를 실행하고 Tailscale
+Serve로 실제 모바일·태블릿 HTTPS 시연을 할 수 있습니다.
+
+- 실행 절차: [docs/local-tailscale-demo.md](docs/local-tailscale-demo.md)
+- 환경변수 예시: [.env.demo.example](.env.demo.example)
+- Compose: [docker-compose.demo.yml](docker-compose.demo.yml)
+- 완전 통합 RAG 시연: [docs/rag-demo.md](docs/rag-demo.md)
+
 ## Scripts
 
 - `npm run start:dev`: Start the API in watch mode

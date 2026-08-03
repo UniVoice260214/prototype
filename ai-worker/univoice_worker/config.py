@@ -82,6 +82,11 @@ class WorkerConfig:
     stt_max_reconnects: int = DEFAULT_STT_MAX_RECONNECTS
     stt_reconnect_base_delay_ms: int = DEFAULT_STT_RECONNECT_BASE_DELAY_MS
     worker_status_ttl_sec: int = DEFAULT_WORKER_STATUS_TTL_SEC
+    rag_enabled: bool = False
+    rag_url: str = ""
+    rag_default_major: str = "auto"
+    rag_course_major_map: dict[str, str] = field(default_factory=dict)
+    rag_timeout_sec: float = 5.0
 
 
 def _load_voice_map() -> dict[str, str]:
@@ -120,6 +125,34 @@ def _load_float(name: str, default: float, *, min_value: float = 0.001) -> float
         raise SystemExit(f"{name} must be >= {min_value} (current: {value})")
     return value
 
+
+def _load_bool(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    normalized = raw.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise SystemExit(f"{name} must be a boolean (current: {raw!r})")
+
+
+def _load_rag_course_major_map() -> dict[str, str]:
+    raw = os.environ.get("RAG_COURSE_MAJOR_MAP", "").strip()
+    if not raw:
+        return {}
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"RAG_COURSE_MAJOR_MAP JSON 파싱 실패: {exc}") from exc
+    if not isinstance(value, dict):
+        raise SystemExit("RAG_COURSE_MAJOR_MAP must be a JSON object")
+    allowed = {"auto", "ai", "hss", "bme"}
+    invalid = {str(key): major for key, major in value.items() if major not in allowed}
+    if invalid:
+        raise SystemExit(f"RAG_COURSE_MAJOR_MAP has invalid majors: {invalid}")
+    return {str(key): str(major) for key, major in value.items()}
 
 def load_config() -> WorkerConfig:
     provider = os.environ.get("TRANSLATE_PROVIDER", "openai").lower()
@@ -182,4 +215,9 @@ def load_config() -> WorkerConfig:
             "STT_RECONNECT_BASE_DELAY_MS", DEFAULT_STT_RECONNECT_BASE_DELAY_MS, min_value=0
         ),
         worker_status_ttl_sec=_load_int("WORKER_STATUS_TTL_SEC", DEFAULT_WORKER_STATUS_TTL_SEC),
+        rag_enabled=_load_bool("RAG_ENABLED"),
+        rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
+        rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),
+        rag_course_major_map=_load_rag_course_major_map(),
+        rag_timeout_sec=_load_float("RAG_TIMEOUT_SEC", 5.0),
     )

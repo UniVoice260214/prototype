@@ -1,10 +1,28 @@
 """원본 자료 → data/chunks/chunks.jsonl 청킹.
 
+원본은 전공 단위로 분리되어 있다 (data/raw/{ai,Humanities_Social_Sciences}/).
+전공별 RAG가 섞이지 않도록 doc_type과 chunk_id prefix를 전공마다 다르게 부여한다.
+
 자료별 규칙:
 - I2A_*.pdf (강의 슬라이드): 같은 제목의 연속 슬라이드 병합, 50자 미만 제외
-- 인공지능_개념_지식자료.pdf (문서형): 소제목 단위, 500토큰 초과 시만 overlap 분할
-- 인공지능_입문_교재.pdf (교재형): '제N장'+'N.M 절' 단위 청킹, 요약/핵심용어 별도 chunk
+- *_개념_지식자료.pdf (문서형): 소제목 단위, 500토큰 초과 시만 overlap 분할
+- *_입문_교재.pdf (교재형): '제N장'+'N.M 절' 단위 청킹, 요약/핵심용어 별도 chunk
 - ai_glossary*.json: 용어당 1 chunk, 필드명 포함 텍스트로 변환
+
+전공별 doc_type / chunk_id prefix:
+| 전공 | 자료 | doc_type | prefix |
+| AI | 개념 지식자료 | concept_doc | concept_ |
+| AI | 입문 교재 | textbook | tb_ |
+| AI | 용어사전 | glossary | glossary_ |
+| 인문사회 | 개념 지식자료 | hss_concept_doc | hssconcept_ |
+| 인문사회 | 입문 교재 | hss_textbook | hsstb_ |
+| 인문사회 | 국어학개론 강의자료 | korling_lecture_slide | korlec_ |
+| 인문사회 | 종교사회학 강의자료 | relsoc_lecture_slide | rellec_ |
+| 바이오 | 입문 교재 | bme_textbook | bmetb_ |
+| 바이오 | 분자생물학 강의자료 | molbio_lecture_slide | biolec_ |
+
+전공 RAG는 전공 단위, 강의 RAG는 **과목 단위**로 인덱스를 나눈다
+(config.INDEX_SUBSETS의 lecture_* 항목).
 
 실행: python src/ingest.py
 """
@@ -21,7 +39,13 @@ from typing import Any
 import pdfplumber
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import CHUNKS_PATH, DATA_RAW_DIR, DATA_RAW_DISTRACTOR_DIR
+from config import (
+    CHUNKS_PATH,
+    DATA_RAW_AI_DIR,
+    DATA_RAW_BME_DIR,
+    DATA_RAW_DISTRACTOR_DIR,
+    DATA_RAW_HSS_DIR,
+)
 
 # ── 공통 ──────────────────────────────────────────────────────────────
 
@@ -112,16 +136,149 @@ def _lecture_short_name(filename: str) -> str:
     return f"lec{match.group(1)}" if match else Path(filename).stem
 
 
+# ── (1b) 일반 강의 슬라이드 PDF (Week 마커 없는 실제 강의자료) ─────────
+# KOCW에서 받은 실제 강의자료는 덱마다 머리글 규칙이 달라 I2A용 'WeekN' 규칙이
+# 통하지 않는다. 페이지=슬라이드로 보고 첫 줄을 제목으로 삼는 공용 파서를 두고,
+# 덱별 차이는 header_fn / drop_res / section_re로 주입한다.
+
+# 문장부호만 남은 줄 — 괄호·따옴표가 본문과 다른 baseline에 그려져 별도 줄로
+# 추출되는 PDF가 있다(종교사회학 덱). 정보가 없으므로 버린다.
+PUNCT_ONLY_RE = re.compile(r"^[\s\W_]+$")
+
+
+def _clean_slide_lines(
+    text: str, drop_res: tuple[re.Pattern[str], ...], drop_single_char: bool
+) -> list[str]:
+    """페이지 텍스트에서 잡음 줄을 걷어낸다.
+
+    drop_single_char는 세로쓰기 사이드바('L','e','c',...가 한 줄씩 추출되는
+    분자생물학 덱)를 위한 것이라 덱별로 켠다 — 국어학 덱의 한 자리 숫자는
+    대단원 번호라서 지우면 안 된다.
+    """
+    lines: list[str] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if drop_single_char and len(line) <= 1:
+            continue
+        if PUNCT_ONLY_RE.match(line):
+            continue
+        if any(pattern.search(line) for pattern in drop_res):
+            continue
+        lines.append(line)
+    return lines
+
+
+def _default_slide_header(lines: list[str]) -> tuple[str, list[str]]:
+    return lines[0], lines[1:]
+
+
+def ingest_slide_deck_pdf(
+    path: Path,
+    *,
+    doc_type: str,
+    id_prefix: str,
+    deck_label: str = "",
+    drop_res: tuple[re.Pattern[str], ...] = (),
+    drop_single_char: bool = False,
+    header_fn: Any = None,
+) -> list[Chunk]:
+    """페이지 첫 줄=제목, 나머지=본문. 같은 제목의 연속 슬라이드는 병합.
+
+    deck_label(과목·차시)을 chunk 본문 머리에 붙여, 슬라이드 제목만으로는
+    어느 수업인지 알 수 없는 조각도 맥락을 갖게 한다. AI 슬라이드의 '[Week3]'
+    접두와 같은 역할이다. 덱 안의 대단원은 제목 규칙이 덱마다 제각각이라
+    추적하지 않는다 — 잘못된 단원명이 본문에 섞이면 임베딩까지 오염된다.
+    """
+    header = header_fn or _default_slide_header
+    slides: list[tuple[int, str, str]] = []  # (page_no, title, body)
+    with pdfplumber.open(path) as pdf:
+        for page_no, page in enumerate(pdf.pages, start=1):
+            try:
+                text = page.extract_text() or ""
+            except Exception:
+                continue
+            lines = _clean_slide_lines(text, drop_res, drop_single_char)
+            if not lines:
+                continue
+            title, body_lines = header(lines)
+            slides.append((page_no, title, "\n".join(body_lines)))
+
+    chunks: list[Chunk] = []
+    i = 0
+    while i < len(slides):
+        page_no, title, body = slides[i]
+        pages = [page_no]
+        bodies = [body] if body else []
+        j = i + 1
+        while j < len(slides) and slides[j][1] == title and slides[j][0] == pages[-1] + 1:
+            pages.append(slides[j][0])
+            if slides[j][2]:
+                bodies.append(slides[j][2])
+            j += 1
+        i = j
+
+        head = f"[{deck_label}] {title}" if deck_label else title
+        merged = f"{head}\n" + "\n".join(bodies)
+        if len(merged) < MIN_SLIDE_CHARS:
+            continue  # 제목·그림만 있는 슬라이드
+        base_id = f"{id_prefix}_p{pages[0]:02d}_{pages[-1]:02d}"
+        for part_no, part_text in enumerate(
+            _split_with_overlap(merged, MAX_SECTION_TOKENS, OVERLAP_TOKENS)
+        ):
+            suffix = f"_{part_no + 1}" if part_no > 0 else ""
+            chunks.append(
+                Chunk(
+                    chunk_id=f"{base_id}{suffix}",
+                    source=path.name,
+                    doc_type=doc_type,
+                    text=part_text,
+                    metadata={
+                        "lecture": deck_label,
+                        "slide_title": title,
+                        "page_range": [pages[0], pages[-1]],
+                    },
+                )
+            )
+    return chunks
+
+
+# 국어학개론 덱: '1 음운론의 주요 개념' / '2'(대단원 번호) / '1) 음절이란...'
+# 3단 머리글. 첫 줄 앞의 숫자는 장식이고 실제 번호는 둘째 줄에 홀로 온다.
+KOR_HEAD_RE = re.compile(r"^\d+\s+(\S.*)$")
+KOR_NUM_RE = re.compile(r"^\d+$")
+
+
+def _korling_slide_header(lines: list[str]) -> tuple[str, list[str]]:
+    if len(lines) >= 3 and KOR_NUM_RE.match(lines[1]):
+        head_match = KOR_HEAD_RE.match(lines[0])
+        if head_match:
+            unit = f"{lines[1]}. {head_match.group(1)}"
+            return f"{unit} — {lines[2]}", lines[3:]
+    return _default_slide_header(lines)
+
+
+# 분자생물학 덱: 매 페이지 하단 기관명 푸터 + 세로쓰기 사이드바가 섞인다.
+MOLBIO_FOOTER_RE = re.compile(r"^Konyang Univ\./|Lecture materials for Molecular Biology")
+
+
 # ── (2) 문서형 PDF ────────────────────────────────────────────────────
 
 CHAPTER_RE = re.compile(r"^(\d+)장\.\s*(.+)$")
 FOOTER_RE = re.compile(r"^인공지능 개념 지식자료\s*\d*$")
+# 인문사회 개념 지식자료는 머리글이 '제목 · 쪽번호' 형태
+HSS_FOOTER_RE = re.compile(r"^인문사회 개념 지식자료\s*·?\s*\d*$")
 MAX_SECTION_TOKENS = 500
 OVERLAP_TOKENS = 50
 
 
 def ingest_concept_pdf(
-    path: Path, *, doc_type: str = "concept_doc", id_prefix: str = "concept"
+    path: Path,
+    *,
+    doc_type: str = "concept_doc",
+    id_prefix: str = "concept",
+    footer_re: re.Pattern[str] = FOOTER_RE,
 ) -> list[Chunk]:
     """'N장. 제목' 헤더 아래 소제목-본문 구조를 소제목 단위로 청킹."""
     with pdfplumber.open(path) as pdf:
@@ -129,7 +286,7 @@ def ingest_concept_pdf(
         for page in pdf.pages:
             text = page.extract_text() or ""
             raw_lines.extend(ln.strip() for ln in text.splitlines())
-    lines = [ln for ln in raw_lines if ln and not FOOTER_RE.match(ln)]
+    lines = [ln for ln in raw_lines if ln and not footer_re.match(ln)]
 
     # 장 헤더 / 소제목 / 본문 분리
     sections: list[tuple[str, str, list[str]]] = []  # (chapter, section_title, body_lines)
@@ -200,12 +357,18 @@ TB_CHAPTER_RE = re.compile(r"^제(\d+)장$")
 TB_PART_RE = re.compile(r"^제\d+부\s")
 TB_SECTION_RE = re.compile(r"^(\d+)\.(\d+)\s+(\S.*)$")
 TB_FOOTER_RE = re.compile(r"^인공지능 입문\s*\d+$")
+HSS_TB_FOOTER_RE = re.compile(r"^인문사회 입문\s*\d+$")
+BME_TB_FOOTER_RE = re.compile(r"^바이오의생명공학 입문\s*\d+$")
 TB_SUMMARY_HEADER = "이 장의 요약"
 TB_TERMS_HEADER = "핵심 용어"
 
 
 def ingest_textbook_pdf(
-    path: Path, *, doc_type: str = "textbook", id_prefix: str = "tb"
+    path: Path,
+    *,
+    doc_type: str = "textbook",
+    id_prefix: str = "tb",
+    footer_re: re.Pattern[str] = TB_FOOTER_RE,
 ) -> list[Chunk]:
     """'제N장' + 'N.M 절' 구조의 교재를 절 단위로 청킹.
 
@@ -218,7 +381,7 @@ def ingest_textbook_pdf(
             text = page.extract_text() or ""
             for raw in text.splitlines():
                 ln = raw.strip()
-                if ln and not TB_FOOTER_RE.match(ln):
+                if ln and not footer_re.match(ln):
                     lines.append(ln)
 
     # 첫 '제N장' 이전(표지/목차)은 버림
@@ -434,6 +597,165 @@ def ingest_glossary(path: Path) -> list[Chunk]:
     return chunks
 
 
+# ── 전공별 수집 ───────────────────────────────────────────────────────
+
+
+def ingest_ai_major() -> list[Chunk]:
+    """data/raw/ai/ — 강의 슬라이드 + 개념 지식자료 + 입문 교재 + 용어사전."""
+    chunks: list[Chunk] = []
+    for pdf_path in sorted(DATA_RAW_AI_DIR.glob("I2A_*.pdf")):
+        chunks.extend(ingest_lecture_pdf(pdf_path))
+    concept_path = DATA_RAW_AI_DIR / "인공지능_개념_지식자료.pdf"
+    if concept_path.exists():
+        chunks.extend(ingest_concept_pdf(concept_path))
+    textbook_path = DATA_RAW_AI_DIR / "인공지능_입문_교재.pdf"
+    if textbook_path.exists():
+        chunks.extend(ingest_textbook_pdf(textbook_path))
+    glossary_paths = sorted(DATA_RAW_AI_DIR.glob("ai_glossary*.json"))
+    if glossary_paths:
+        chunks.extend(ingest_glossary(glossary_paths[0]))
+    return chunks
+
+
+def ingest_hss_major() -> list[Chunk]:
+    """data/raw/Humanities_Social_Sciences/ — 개념 지식자료 + 입문 교재.
+
+    AI 전공과 인덱스가 섞이지 않도록 doc_type(hss_*)과 chunk_id prefix(hss*)를
+    따로 쓴다. 용어사전은 아직 없다.
+    """
+    chunks: list[Chunk] = []
+    if not DATA_RAW_HSS_DIR.exists():
+        print(f"⚠️  인문사회 자료 없음: {DATA_RAW_HSS_DIR}")
+        return chunks
+    concept_path = DATA_RAW_HSS_DIR / "인문사회_개념_지식자료.pdf"
+    if concept_path.exists():
+        chunks.extend(
+            ingest_concept_pdf(
+                concept_path,
+                doc_type="hss_concept_doc",
+                id_prefix="hssconcept",
+                footer_re=HSS_FOOTER_RE,
+            )
+        )
+    textbook_path = DATA_RAW_HSS_DIR / "인문사회_입문_교재.pdf"
+    if textbook_path.exists():
+        chunks.extend(
+            ingest_textbook_pdf(
+                textbook_path,
+                doc_type="hss_textbook",
+                id_prefix="hsstb",
+                footer_re=HSS_TB_FOOTER_RE,
+            )
+        )
+    chunks.extend(ingest_hss_lectures())
+    return chunks
+
+
+def ingest_hss_lectures() -> list[Chunk]:
+    """인문사회 강의자료 — 과목이 둘이라 doc_type/인덱스를 과목별로 나눈다.
+
+    Korean_lecture07.pdf : 국어학개론(허용) 4주차 '한국어 말소리의 체계(1)'
+    hss_lecture3.pdf     : 종교사회학(남은경) 2강 '종교사회학의 이해'
+    """
+    chunks: list[Chunk] = []
+    korling_path = DATA_RAW_HSS_DIR / "Korean_lecture07.pdf"
+    if korling_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                korling_path,
+                doc_type="korling_lecture_slide",
+                id_prefix="korlec",
+                deck_label="국어학개론 4주차 · 한국어 말소리의 체계(1)",
+                header_fn=_korling_slide_header,
+            )
+        )
+    relsoc_path = DATA_RAW_HSS_DIR / "hss_lecture3.pdf"
+    if relsoc_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                relsoc_path,
+                doc_type="relsoc_lecture_slide",
+                id_prefix="rellec",
+                deck_label="종교사회학 2강 · 종교사회학의 이해",
+            )
+        )
+    return chunks
+
+
+def ingest_bme_major() -> list[Chunk]:
+    """data/raw/Biomedical_Bioengineering/ — 입문 교재.
+
+    교재 옆의 `*_메타.json`(build_bme_textbook.py가 생성)에서 장별 분야 태그를
+    읽어 chunk metadata의 field/field_en에 채운다. 파일이 없으면 태그 없이 진행.
+    """
+    chunks: list[Chunk] = []
+    if not DATA_RAW_BME_DIR.exists():
+        print(f"⚠️  바이오의생명공학 자료 없음: {DATA_RAW_BME_DIR}")
+        return chunks
+
+    concept_path = DATA_RAW_BME_DIR / "바이오의생명공학_개념_지식자료.pdf"
+    if concept_path.exists():
+        chunks.extend(
+            ingest_concept_pdf(
+                concept_path,
+                doc_type="bme_concept_doc",
+                id_prefix="bmeconcept",
+                footer_re=re.compile(r"^바이오의생명공학 개념 지식자료\s*·?\s*\d*$"),
+            )
+        )
+    textbook_path = DATA_RAW_BME_DIR / "바이오의생명공학_입문_교재.pdf"
+    if textbook_path.exists():
+        chunks.extend(
+            ingest_textbook_pdf(
+                textbook_path,
+                doc_type="bme_textbook",
+                id_prefix="bmetb",
+                footer_re=BME_TB_FOOTER_RE,
+            )
+        )
+        _attach_field_metadata(chunks, textbook_path)
+
+    # 강의자료: bio_lecture9.pdf — 분자생물학(이우일) 9차시 'Molecular Cloning'.
+    # 교재 chunk에만 분야 태그를 붙이도록 _attach_field_metadata 뒤에서 합친다.
+    molbio_path = DATA_RAW_BME_DIR / "bio_lecture9.pdf"
+    if molbio_path.exists():
+        chunks.extend(
+            ingest_slide_deck_pdf(
+                molbio_path,
+                doc_type="molbio_lecture_slide",
+                id_prefix="biolec",
+                deck_label="분자생물학 9차시 · Molecular Cloning",
+                drop_res=(MOLBIO_FOOTER_RE,),
+                drop_single_char=True,
+            )
+        )
+    return chunks
+
+
+CH_NO_RE = re.compile(r"_ch(\d+)")
+
+
+def _attach_field_metadata(chunks: list[Chunk], textbook_path: Path) -> None:
+    """사이드카 JSON의 장별 분야 태그를 chunk metadata에 붙인다."""
+    meta_path = textbook_path.with_name(textbook_path.stem + "_메타.json")
+    if not meta_path.exists():
+        print(f"⚠️  분야 메타데이터 없음: {meta_path.name} — field 태그 없이 진행")
+        return
+    by_chapter = json.loads(meta_path.read_text(encoding="utf-8"))["chapters"]
+    tagged = 0
+    for chunk in chunks:
+        match = CH_NO_RE.search(chunk.chunk_id)
+        if not match:
+            continue
+        info = by_chapter.get(str(int(match.group(1))))
+        if not info:
+            continue
+        chunk.metadata["field"] = info.get("field", "")
+        chunk.metadata["field_en"] = info.get("field_en", "")
+        tagged += 1
+    print(f"[ingest] 분야 태그 부착: {tagged}/{len(chunks)}개 chunk")
+
+
 # ── main ──────────────────────────────────────────────────────────────
 
 
@@ -449,17 +771,9 @@ def main() -> None:
     args = parser.parse_args()
 
     all_chunks: list[Chunk] = []
-    for pdf_path in sorted(DATA_RAW_DIR.glob("I2A_*.pdf")):
-        all_chunks.extend(ingest_lecture_pdf(pdf_path))
-    concept_path = DATA_RAW_DIR / "인공지능_개념_지식자료.pdf"
-    if concept_path.exists():
-        all_chunks.extend(ingest_concept_pdf(concept_path))
-    textbook_path = DATA_RAW_DIR / "인공지능_입문_교재.pdf"
-    if textbook_path.exists():
-        all_chunks.extend(ingest_textbook_pdf(textbook_path))
-    glossary_paths = sorted(DATA_RAW_DIR.glob("ai_glossary*.json"))
-    if glossary_paths:
-        all_chunks.extend(ingest_glossary(glossary_paths[0]))
+    all_chunks.extend(ingest_ai_major())
+    all_chunks.extend(ingest_hss_major())
+    all_chunks.extend(ingest_bme_major())
     if args.with_distractors:
         all_chunks.extend(ingest_distractor_pdfs(DATA_RAW_DISTRACTOR_DIR))
 

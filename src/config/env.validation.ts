@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -64,6 +65,17 @@ export class EnvVars {
   @IsString()
   @IsOptional()
   AZURE_BLOB_CONTAINER: string = 'univoice-materials';
+
+  /** Optional browser-facing base URL used instead of the SDK's internal blob endpoint. */
+  @IsString()
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_BASE_URL?: string;
+
+  /** Demo-only switch for anonymous blob reads inside a private Tailscale network. */
+  @IsString()
+  @IsIn(['true', 'false'])
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_ACCESS?: string;
 
   @IsString()
   @IsOptional()
@@ -138,6 +150,30 @@ export function validateEnv(config: Record<string, unknown>): EnvVars {
     !validated.QR_BASE_URL.startsWith('https://')
   ) {
     throw new Error('QR_BASE_URL must use https:// in production');
+  }
+  if (validated.AZURE_BLOB_PUBLIC_BASE_URL) {
+    let publicBlobUrl: URL;
+    try {
+      publicBlobUrl = new URL(validated.AZURE_BLOB_PUBLIC_BASE_URL);
+    } catch {
+      throw new Error('AZURE_BLOB_PUBLIC_BASE_URL must be an absolute URL');
+    }
+    if (
+      validated.NODE_ENV === NodeEnv.Production &&
+      publicBlobUrl.protocol !== 'https:'
+    ) {
+      throw new Error(
+        'AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production',
+      );
+    }
+  }
+  if (
+    validated.AZURE_BLOB_PUBLIC_ACCESS === 'true' &&
+    !validated.AZURE_BLOB_PUBLIC_BASE_URL
+  ) {
+    throw new Error(
+      'AZURE_BLOB_PUBLIC_BASE_URL is required when AZURE_BLOB_PUBLIC_ACCESS=true',
+    );
   }
   return validated;
 }

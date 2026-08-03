@@ -46,4 +46,27 @@ describe('validateEnv production safety', () => {
       }),
     ).toThrow('AUTH_DISABLED=true is not allowed in production');
   });
+
+  it('rejects an insecure production public blob URL', () => {
+    expect(() =>
+      validateEnv({
+        ...baseEnv,
+        AZURE_BLOB_PUBLIC_BASE_URL:
+          'http://demo.example.ts.net:8443/devstoreaccount1/univoice-materials',
+      }),
+    ).toThrow(
+      'AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production',
+    );
+  });
+
+  it('requires a public blob URL when anonymous reads are enabled', () => {
+    expect(() =>
+      validateEnv({
+        ...baseEnv,
+        AZURE_BLOB_PUBLIC_ACCESS: 'true',
+      }),
+    ).toThrow(
+      'AZURE_BLOB_PUBLIC_BASE_URL is required when AZURE_BLOB_PUBLIC_ACCESS=true',
+    );
+  });
 });

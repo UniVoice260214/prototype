@@ -21,7 +21,7 @@ from typing import Any
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import EVAL_DIR, MODELS, RESULTS_PATH
+from config import EVAL_DIR, INDEX_SUBSETS, MODELS, RESULTS_PATH
 from embed import get_embedder
 from search import load_index
 
@@ -235,6 +235,10 @@ def main() -> None:
     )
     parser.add_argument("--topk", type=int, default=5)
     parser.add_argument(
+        "--index", choices=sorted(INDEX_SUBSETS), default=None,
+        help="분리 인덱스 이름 (생략 시 통합 인덱스)",
+    )
+    parser.add_argument(
         "--output", type=Path, default=RESULTS_PATH,
         help="결과 마크다운 경로 (기본: eval/results.md)",
     )
@@ -252,10 +256,12 @@ def main() -> None:
 
     all_rows: dict[str, list[dict[str, Any]]] = {}
     for model_key in MODELS:
-        rows = evaluate_model(model_key, queries, args.topk)
+        rows = evaluate_model(model_key, queries, args.topk, index_name=args.index)
         if rows is not None:
             all_rows[model_key] = rows
 
+    if args.index:
+        source_label = f"{source_label} (index: `{args.index}`)"
     report = build_report(all_rows, args.topk, source_label, len(queries))
     print("\n" + report)
 
