@@ -25,6 +25,7 @@ import { SessionService } from './session.service';
 import {
   IssueStudentTokenDto,
   LiveKitTokenResponseDto,
+  PublicSessionInfoDto,
   StartSessionDto,
 } from './dto/session.dto';
 
@@ -74,6 +75,23 @@ export class SessionController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.end(id, user);
+  }
+
+  @Public()
+  @Get(':sessionId/public')
+  @ApiOperation({
+    summary: 'Get public session info for the student join screen',
+    description:
+      'No auth required. Returns only the locales enabled for this session, so the join screen can restrict language choice.',
+  })
+  @ApiOkResponse({ type: PublicSessionInfoDto })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Session UUID',
+    format: 'uuid',
+  })
+  findPublic(@Param('sessionId', ParseUUIDPipe) id: string) {
+    return this.service.findPublic(id);
   }
 
   @Public()

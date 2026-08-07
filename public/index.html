@@ -102,53 +102,64 @@
         <aside class="student-sidebar">
           <img src="/logo.svg" alt="UniVoice" class="sidebar-logo" />
           <nav>
-            <button class="active" type="button">홈</button>
-            <button id="focus-token" type="button">QR로 바로가기</button>
-            <button type="button">설정</button>
-            <button type="button">문의하기</button>
+            <button class="active" type="button" data-i18n="nav.home">홈</button>
+            <button id="focus-token" type="button" data-i18n="nav.qrShortcut">QR로 바로가기</button>
+            <button type="button" data-i18n="nav.settings">설정</button>
+            <button type="button" data-i18n="nav.contact">문의하기</button>
           </nav>
           <div class="student-profile">
             <div class="profile-icon" aria-hidden="true"><span></span></div>
-            <strong>UniVoice 학생</strong>
-            <small>게스트 입장</small>
+            <strong data-i18n="profile.name">UniVoice 학생</strong>
+            <small data-i18n="profile.guest">게스트 입장</small>
           </div>
         </aside>
         <div class="dashboard-content">
           <div class="dashboard-top">
             <section class="dashboard-card">
-              <h2>오늘의 강의</h2>
+              <h2 data-i18n="today.title">오늘의 강의</h2>
               <div class="soft-panel lecture-list">
                 <p id="joined-session-label">QR을 스캔해 강의에 입장하세요.</p>
-                <small>입장 토큰을 확인하면 실시간 수업이 연결됩니다.</small>
+                <small id="joined-session-hint" data-i18n="today.emptyHint">입장 토큰을 확인하면 실시간 수업이 연결됩니다.</small>
               </div>
             </section>
             <section class="dashboard-card">
-              <h2>최근 번역 기록</h2>
+              <h2 data-i18n="recent.title">최근 번역 기록</h2>
               <div class="soft-panel recent-list">
-                <p>아직 저장된 번역 기록이 없습니다.</p>
-                <small>수업을 들으면 이곳에서 다시 확인할 수 있어요.</small>
+                <p data-i18n="recent.empty">아직 저장된 번역 기록이 없습니다.</p>
+                <small data-i18n="recent.emptyHint">수업을 들으면 이곳에서 다시 확인할 수 있어요.</small>
               </div>
             </section>
           </div>
           <section class="dashboard-card translation-settings">
-            <h2>통역/보기 설정</h2>
+            <h2 data-i18n="settings.title">통역/보기 설정</h2>
             <div class="language-route">
-              <div><small>강의 언어</small><strong>🇰🇷 한국어</strong></div>
-              <span>→</span>
-              <div><small>화면 표시 언어</small><strong id="selected-language">🇻🇳 베트남어</strong></div>
-              <button type="button" aria-label="접근성 설정">접근성</button>
+              <div><small data-i18n="settings.lectureLang">강의 언어</small><strong>🇰🇷 한국어</strong></div>
+              <span aria-hidden="true">→</span>
+              <div><small data-i18n="settings.displayLang">화면 표시 언어</small><strong id="selected-language">🇻🇳 베트남어(Tiếng Việt)</strong></div>
+              <button type="button" aria-label="접근성 설정" data-i18n="settings.accessibility">접근성</button>
             </div>
             <div class="join-controls soft-panel">
-              <label>입장 토큰<textarea id="join-token" rows="2" placeholder="QR 링크로 접속하면 자동으로 입력됩니다."></textarea></label>
+              <div id="token-status" class="token-status" role="status">
+                <span id="token-status-icon" class="token-status-icon" aria-hidden="true">○</span>
+                <span id="token-status-text">QR을 스캔하면 자동으로 연결됩니다.</span>
+              </div>
+              <details class="token-manual" id="token-manual">
+                <summary id="token-manual-summary" data-i18n="token.manualSummary">입장 토큰 직접 입력</summary>
+                <label>
+                  <span data-i18n="token.manualLabel">입장 토큰</span>
+                  <textarea id="join-token-input" rows="2" data-i18n-placeholder="token.manualPlaceholder" placeholder="QR 링크로 접속하면 자동으로 입력됩니다." aria-describedby="token-manual-hint" autocomplete="off" spellcheck="false"></textarea>
+                </label>
+                <small id="token-manual-hint" data-i18n="token.manualHint">QR 코드로 입장하면 이 입력이 필요 없습니다. 토큰은 다른 사람과 공유하지 마세요.</small>
+              </details>
               <fieldset>
-                <legend>번역 언어 선택</legend>
+                <legend id="student-locales-legend" data-i18n="locales.legend">번역 언어 선택</legend>
                 <div id="student-locales" class="student-locale-list"></div>
               </fieldset>
               <div class="caption-preview">
-                <strong>자막 미리보기</strong>
-                <div><p>실시간 한국어 음성이 선택한 언어로 번역됩니다.</p><p>Live Korean speech is translated into your language.</p></div>
+                <strong data-i18n="caption.previewTitle">자막 미리보기</strong>
+                <div><p data-i18n="caption.previewKo">실시간 한국어 음성이 선택한 언어로 번역됩니다.</p><p>Live Korean speech is translated into your language.</p></div>
               </div>
-              <button id="join-session" class="turquoise-button" type="button">실시간 강의 시작</button>
+              <button id="join-session" class="turquoise-button" type="button" data-i18n="join.button">실시간 강의 시작</button>
             </div>
           </section>
         </div>
@@ -157,11 +168,11 @@
       <section id="student-live" class="student-translation hidden">
         <header class="slide-header">
           <strong id="slide-course-title">실시간 강의</strong>
-          <span id="slide-section-title">UniVoice 번역 모드</span>
+          <span id="slide-section-title" data-i18n="live.subtitle2">UniVoice 번역 모드</span>
         </header>
         <div class="sample-slide">
-          <h1>실시간 강의 번역</h1>
-          <p>교수님의 강의 자료와 함께 번역 자막을 확인하세요.</p>
+          <h1 data-i18n="live.title">실시간 강의 번역</h1>
+          <p data-i18n="live.subtitle">교수님의 강의 자료와 함께 번역 자막을 확인하세요.</p>
           <div class="network-diagram" aria-hidden="true">
             <section><b>1. 입력</b><div class="nodes"><i></i><i></i><i></i></div></section>
             <span>→</span>
@@ -171,17 +182,30 @@
           </div>
         </div>
         <div class="translation-status">
-          <div class="audio-wave"><i></i><i></i><i></i><i></i></div>
-          <span id="audio-status">번역 음성 연결 대기 중</span>
-          <span id="student-locale-label">번역 음성</span>
-          <button id="leave-session" type="button">나가기</button>
+          <div class="audio-wave" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <span id="audio-status" class="audio-status-text" data-i18n="live.audioWaiting">번역 음성 연결 대기 중</span>
+          <button id="change-locale" type="button" class="locale-switch-btn" aria-haspopup="dialog">
+            <span aria-hidden="true">🌐</span>
+            <span id="student-locale-label">번역 음성</span>
+          </button>
+          <button id="leave-session" type="button" data-i18n="live.leave">나가기</button>
         </div>
-        <div id="captions" class="fullscreen-captions" aria-live="polite">
-          <div class="caption-empty">교수님의 발화를 기다리고 있습니다.</div>
+        <div class="captions-wrap">
+          <button id="toggle-captions-size" class="captions-toggle" type="button" aria-pressed="false" data-i18n="captions.enlarge" aria-label="자막 크게 보기">Aa</button>
+          <div id="captions" class="fullscreen-captions" aria-live="polite">
+            <div class="caption-empty" id="captions-empty" data-i18n="live.captionEmpty">교수님의 발화를 기다리고 있습니다.</div>
+          </div>
         </div>
         <audio id="translation-audio" autoplay></audio>
       </section>
     </main>
+
+    <dialog id="locale-dialog" class="qr-dialog locale-dialog">
+      <button id="close-locale-dialog" class="dialog-close" type="button" aria-label="닫기">×</button>
+      <h2 data-i18n="localeDialog.title">번역 언어 변경</h2>
+      <p data-i18n="localeDialog.desc">전환하면 선택한 언어의 통역 음성과 자막으로 즉시 바뀝니다.</p>
+      <div id="locale-dialog-options" class="student-locale-list"></div>
+    </dialog>
 
     <div id="toast" class="toast" role="status"></div>
     <script src="/vendor/livekit/livekit-client.umd.js"></script>

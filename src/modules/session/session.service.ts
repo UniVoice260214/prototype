@@ -17,6 +17,7 @@ import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { LiveKitService } from '../../infra/livekit/livekit.service';
 import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { AuthService } from '../auth/auth.service';
+import { Course } from '../course/entities/course.entity';
 import { EventsService } from '../events/events.service';
 import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
@@ -24,6 +25,7 @@ import { Session } from './entities/session.entity';
 import {
   IssueStudentTokenDto,
   LiveKitTokenResponseDto,
+  PublicSessionInfoDto,
   StartSessionDto,
 } from './dto/session.dto';
 
@@ -35,6 +37,7 @@ export class SessionService {
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
     @InjectRepository(Glossary)
     private readonly glossaries: Repository<Glossary>,
+    @InjectRepository(Course) private readonly courses: Repository<Course>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly liveKit: LiveKitService,
     private readonly events: EventsService,
@@ -212,6 +215,25 @@ export class SessionService {
 
   findOne(id: string, user: AuthUser): Promise<Session> {
     return this.courseAccess.findSessionForUser(id, user);
+  }
+
+  /**
+   * Unauthenticated lookup used by the student join flow (QR scan happens
+   * before the student has any credential). Only exposes what the join
+   * screen needs: which locales are enabled, so students can't pick a
+   * locale the session doesn't translate into.
+   */
+  async findPublic(id: string): Promise<PublicSessionInfoDto> {
+    const session = await this.findOneById(id);
+    const course = await this.courses.findOne({
+      where: { id: session.courseId },
+    });
+    return {
+      id: session.id,
+      status: session.status,
+      targetLocales: session.targetLocales,
+      courseName: course?.name ?? '',
+    };
   }
 
   async issueProfessorToken(
