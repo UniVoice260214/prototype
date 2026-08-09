@@ -50,40 +50,72 @@
         </nav>
       </section>
 
-      <section id="professor-live" class="phone-page hidden">
-        <header class="phone-header">
-          <img src="/logo.svg" alt="UniVoice" class="phone-logo" />
-          <button id="show-qr" class="profile-icon qr-icon" type="button" aria-label="학생 입장 QR 보기">QR</button>
+      <section id="professor-live" class="phone-page live-screen ui-scope hidden">
+        <header class="app-bar">
+          <button id="professor-live-back" class="icon-button" type="button" aria-label="강의실 나가기" title="강의실 나가기">‹</button>
+          <div class="app-bar-title">
+            <strong id="live-course-name">진행 중인 수업</strong>
+            <span id="live-course-meta">실시간 강의</span>
+          </div>
+          <div class="app-bar-actions">
+            <span id="session-status" class="status-badge status-badge--waiting"><i class="status-dot" aria-hidden="true"></i><span id="session-status-label">연결 대기</span></span>
+            <button id="show-qr" class="icon-button" type="button" aria-label="학생 입장 QR 보기" title="학생 입장 QR">▦</button>
+            <span id="professor-avatar" class="icon-button" aria-hidden="true">👤</span>
+          </div>
         </header>
-        <div class="live-title-row">
-          <div>
-            <p id="session-status" class="small-live"><i></i> 수업 진행 중</p>
-            <h1 id="live-course-name" class="course-title">진행 중인 수업</h1>
-          </div>
-          <strong id="elapsed">00:00</strong>
+
+        <div class="live-content">
+          <a id="material-link" class="card material-row" href="#" onclick="return false">
+            <span class="material-icon" aria-hidden="true">PDF</span>
+            <span class="material-info">
+              <strong id="material-name">등록된 강의 자료</strong>
+              <small id="material-meta">PDF 자료</small>
+            </span>
+            <span class="material-open">열기</span>
+          </a>
+
+          <section class="card translate-card">
+            <div class="translate-card-head">
+              <span id="session-status-lg" class="status-badge status-badge--lg status-badge--waiting"><i class="status-dot" aria-hidden="true"></i><span id="session-status-lg-label">연결 대기</span></span>
+              <strong id="elapsed">00:00</strong>
+            </div>
+            <button id="mic-resume" class="btn btn--primary btn--lg btn--block" type="button" aria-label="마이크 켜기">
+              <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M19 11a7 7 0 0 1-14 0"/><path d="M12 18v3"/></svg>
+              재개
+            </button>
+            <button id="mic-pause" class="btn btn--primary btn--lg btn--block" type="button" aria-label="마이크 잠시 끄기">
+              <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              일시정지
+            </button>
+            <p id="mic-message" class="sr-only" aria-live="polite">ON</p>
+            <div class="translate-card-actions">
+              <button id="end-session" class="btn btn--secondary btn--danger" type="button" aria-label="수업 종료">종료</button>
+            </div>
+            <div class="translate-status-line">
+              <span>AI 워커 <b id="worker-status">확인 중</b></span>
+              <span>번역 <b id="locale-count">-</b></span>
+            </div>
+          </section>
+
+          <button id="language-direction" class="card language-direction-row" type="button" aria-haspopup="dialog" aria-controls="language-dialog">
+            <span class="lang-chip">한국어</span>
+            <span class="lang-arrow" aria-hidden="true">→</span>
+            <span class="lang-chip" id="language-direction-target">번역 언어</span>
+          </button>
+
+          <section class="card transcript-panel">
+            <h2>실시간 자막</h2>
+            <p id="professor-transcript" class="transcript-live-line">교수님의 음성을 기다리고 있습니다.</p>
+            <div id="professor-transcript-list" class="transcript-list" aria-live="polite">
+              <p class="transcript-empty">발화가 인식되면 이곳에 문장 단위로 표시됩니다.</p>
+            </div>
+          </section>
         </div>
-        <a id="material-link" class="white-card material-link" href="#" onclick="return false">등록된 강의 자료</a>
-        <section class="white-card mic-card">
-          <div class="mic-tile">
-            <div class="mic-symbol"><i></i><i></i><i></i><b></b></div>
-          </div>
-          <strong id="mic-message">ON</strong>
-          <div class="lecture-controls">
-            <button id="mic-resume" type="button" aria-label="마이크 켜기">▶</button>
-            <button id="mic-pause" type="button" aria-label="마이크 잠시 끄기">Ⅱ</button>
-            <button id="end-session" type="button" aria-label="수업 종료">■</button>
-          </div>
-          <div class="status-line">
-            <span>AI 워커 <b id="worker-status">확인 중</b></span>
-            <span>번역 <b id="locale-count">-</b></span>
-          </div>
-        </section>
-        <section class="white-card transcript-card">
-          <h2>실시간 원문 인식</h2>
-          <p id="professor-transcript">교수님의 음성을 기다리고 있습니다.</p>
-        </section>
-        <nav class="phone-nav" aria-label="교수자 메뉴">
-          <button id="show-qr-nav" type="button">입장 QR</button><button class="active" type="button">강의실</button><button type="button">설정</button>
+
+        <nav class="bottom-nav" aria-label="교수자 메뉴">
+          <button type="button" class="bottom-nav-item"><i aria-hidden="true">⌂</i><span>홈</span></button>
+          <button type="button" class="bottom-nav-item bottom-nav-item--active" aria-current="page"><i aria-hidden="true">🎓</i><span>강의실</span></button>
+          <button type="button" class="bottom-nav-item"><i aria-hidden="true">⚙</i><span>설정</span></button>
         </nav>
       </section>
 
@@ -94,6 +126,13 @@
         <h2>학생 입장 QR</h2>
         <p>학생이 스캔하면 언어 선택 화면으로 이동합니다.</p>
         <button id="copy-link" class="turquoise-button" type="button">입장 링크 복사</button>
+      </dialog>
+
+      <dialog id="language-dialog" class="modal-sheet ui-scope">
+        <button id="close-language-dialog" class="dialog-close" type="button" aria-label="닫기">×</button>
+        <h2>번역 언어 미리보기</h2>
+        <p>이 수업에서 제공 중인 언어입니다. 하나를 골라 자막 미리보기에 표시할 번역을 바꿀 수 있어요.</p>
+        <div id="language-dialog-options" class="language-dialog-options"></div>
       </dialog>
     </main>
 

@@ -65,7 +65,12 @@ async function main() {
 
   // 2. School / Department
   console.log('2) School / Department');
-  const school = await req('POST', '/schools', { name: 'Global University' }, token);
+  const school = await req(
+    'POST',
+    '/schools',
+    { name: 'Global University' },
+    token,
+  );
   check('school created', school.status === 201, school.text);
   check(
     'school name persisted',
@@ -145,7 +150,11 @@ async function main() {
     email: profEmail,
     password: 'Prof1234!',
   });
-  check('professor login returns 200', profLogin.status === 200, profLogin.text);
+  check(
+    'professor login returns 200',
+    profLogin.status === 200,
+    profLogin.text,
+  );
   check('role=professor', profLogin.json?.role === 'professor');
 
   // 6. Student signup/login
@@ -230,10 +239,16 @@ async function main() {
     /* */
   }
   if (upRes.status === 503) {
-    console.log('  WARN upload skipped because Blob storage is not configured (503).');
+    console.log(
+      '  WARN upload skipped because Blob storage is not configured (503).',
+    );
   } else {
     check('material uploaded', upRes.status === 201, upText);
-    check('blobUrl returned', typeof upJson?.blobUrl === 'string', upJson?.blobUrl);
+    check(
+      'blobUrl returned',
+      typeof upJson?.blobUrl === 'string',
+      upJson?.blobUrl,
+    );
     check('indexingStatus=pending', upJson?.indexingStatus === 'pending');
   }
 

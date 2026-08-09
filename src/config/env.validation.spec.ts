@@ -54,9 +54,7 @@ describe('validateEnv production safety', () => {
         AZURE_BLOB_PUBLIC_BASE_URL:
           'http://demo.example.ts.net:8443/devstoreaccount1/univoice-materials',
       }),
-    ).toThrow(
-      'AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production',
-    );
+    ).toThrow('AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production');
   });
 
   it('requires a public blob URL when anonymous reads are enabled', () => {

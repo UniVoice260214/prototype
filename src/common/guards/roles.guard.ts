@@ -25,8 +25,9 @@ export class RolesGuard implements CanActivate {
     );
     if (!required || required.length === 0) return true;
 
-    const user = context.switchToHttp().getRequest()
-      .user as AuthUser | undefined;
+    const user = context.switchToHttp().getRequest().user as
+      | AuthUser
+      | undefined;
     if (!user?.role) throw new ForbiddenException('Role not present in token');
 
     if (!required.includes(user.role)) {

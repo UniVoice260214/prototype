@@ -32,6 +32,7 @@ export class DepartmentService {
 
   async remove(id: string) {
     const res = await this.repo.delete(id);
-    if (!res.affected) throw new NotFoundException(`Department ${id} not found`);
+    if (!res.affected)
+      throw new NotFoundException(`Department ${id} not found`);
   }
 }

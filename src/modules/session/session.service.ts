@@ -200,10 +200,7 @@ export class SessionService {
     return this.courseAccess.findSessionsForUser({ courseId }, user);
   }
 
-  findActive(
-    courseId: string | undefined,
-    user: AuthUser,
-  ): Promise<Session[]> {
+  findActive(courseId: string | undefined, user: AuthUser): Promise<Session[]> {
     return this.courseAccess.findSessionsForUser(
       { courseId, status: 'active' },
       user,

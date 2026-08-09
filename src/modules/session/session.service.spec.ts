@@ -205,10 +205,15 @@ describe('SessionService.getStatus', () => {
       workerStatus: JSON.stringify(worker),
     });
 
-    await expect(service.getStatus('session-123', ADMIN_USER)).resolves.toEqual({
-      session: expect.objectContaining({ id: 'session-123', status: 'active' }),
-      worker,
-    });
+    await expect(service.getStatus('session-123', ADMIN_USER)).resolves.toEqual(
+      {
+        session: expect.objectContaining({
+          id: 'session-123',
+          status: 'active',
+        }),
+        worker,
+      },
+    );
     expect(courseAccess.findSessionForUser).toHaveBeenCalledWith(
       'session-123',
       ADMIN_USER,

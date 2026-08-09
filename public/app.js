@@ -26,9 +26,107 @@
     activeSessions: [],
     micPausedByUser: false,
     endingSession: false,
+    // Presentation-only: which target locale's translation preview shows in
+    // the professor transcript list. Doesn't affect what the API/worker does.
+    previewLocale: null,
   };
 
   const $ = (id) => document.getElementById(id);
+
+  // ---- Professor live-screen presentation helpers (UI v2) ----
+  // Pure rendering: none of this changes when/why a state transition
+  // happens, only how the existing trigger points (below) reflect it.
+  const SESSION_STATUS_META = {
+    waiting: { label: "연결 대기", cls: "status-badge--waiting" },
+    connecting: { label: "연결 중", cls: "status-badge--connecting" },
+    reconnecting: { label: "재연결 중", cls: "status-badge--connecting" },
+    live: { label: "번역 중", cls: "status-badge--live" },
+    paused: { label: "일시정지", cls: "status-badge--paused" },
+    disconnected: { label: "연결 끊김", cls: "status-badge--disconnected" },
+    error: { label: "권한 오류", cls: "status-badge--error" },
+    ended: { label: "번역 종료", cls: "status-badge--ended" },
+  };
+  const SESSION_STATUS_CLASSES = Object.values(SESSION_STATUS_META).map((meta) => meta.cls);
+
+  function setSessionStatus(key) {
+    const meta = SESSION_STATUS_META[key] || SESSION_STATUS_META.waiting;
+    [["session-status", "session-status-label"], ["session-status-lg", "session-status-lg-label"]].forEach(
+      ([badgeId, labelId]) => {
+        const badge = $(badgeId);
+        badge.classList.remove(...SESSION_STATUS_CLASSES);
+        badge.classList.add(meta.cls);
+        $(labelId).textContent = meta.label;
+      },
+    );
+  }
+
+  // Only one of mic-resume/mic-pause is ever visible -- together they read
+  // as "one primary action" whose label/icon flips with mic state, while
+  // end-session stays a separate, permanently-visible secondary action.
+  function syncMicButtonVisibility() {
+    const paused = state.micPausedByUser;
+    $("mic-resume").classList.toggle("hidden", !paused);
+    $("mic-pause").classList.toggle("hidden", paused);
+  }
+
+  function resetProfessorTranscript() {
+    $("professor-transcript").textContent = "교수님의 음성을 기다리고 있습니다.";
+    $("professor-transcript-list").innerHTML = '<p class="transcript-empty">발화가 인식되면 이곳에 문장 단위로 표시됩니다.</p>';
+  }
+
+  function addProfessorTranscriptEntry(sourceKo, translated) {
+    if (!sourceKo) return;
+    const list = $("professor-transcript-list");
+    const empty = list.querySelector(".transcript-empty");
+    if (empty) empty.remove();
+    const entry = document.createElement("div");
+    entry.className = "transcript-entry";
+    const head = document.createElement("div");
+    head.className = "transcript-entry-head";
+    const speaker = document.createElement("b");
+    speaker.textContent = "교수님";
+    const time = document.createElement("time");
+    time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    head.append(speaker, time);
+    const source = document.createElement("p");
+    source.className = "transcript-source";
+    source.textContent = sourceKo;
+    entry.append(head, source);
+    if (translated) {
+      const translatedEl = document.createElement("p");
+      translatedEl.className = "transcript-translated";
+      translatedEl.textContent = translated;
+      entry.appendChild(translatedEl);
+    }
+    list.appendChild(entry);
+    while (list.children.length > 8) list.firstElementChild.remove();
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function updateLanguageDirectionLabel() {
+    const locale = LOCALES.find((item) => item.code === state.previewLocale);
+    $("language-direction-target").textContent = locale ? locale.native : "번역 언어";
+  }
+
+  function openLanguageDialog() {
+    const targetLocales = state.session?.targetLocales || [];
+    const options = LOCALES.filter((locale) => targetLocales.includes(locale.code));
+    $("language-dialog-options").innerHTML = (options.length ? options : LOCALES).map((locale) => `
+      <button type="button" class="language-option" data-locale="${locale.code}" aria-pressed="${locale.code === state.previewLocale}">
+        <span>${locale.name} · ${locale.native}</span>
+      </button>
+    `).join("");
+    $("language-dialog-options").querySelectorAll(".language-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.previewLocale = button.dataset.locale;
+        updateLanguageDirectionLabel();
+        $("language-dialog").close();
+      });
+    });
+    const dialog = $("language-dialog");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
 
   async function api(path, options = {}) {
     const headers = { ...(options.headers || {}) };
@@ -318,6 +416,7 @@
       await room.localParticipant.setMicrophoneEnabled(shouldEnable);
     }
     $("mic-message").textContent = shouldEnable ? "ON" : "PAUSED";
+    syncMicButtonVisibility();
   }
 
   async function connectProfessor(liveKit) {
@@ -338,16 +437,21 @@
         $("professor-transcript").textContent = data.text;
       } else if (topic === "caption" && data.sourceKo) {
         $("professor-transcript").textContent = data.sourceKo;
+        // Same event the student view consumes (see connectStudent below);
+        // filtering to the chosen preview locale here is presentation-only
+        // and avoids one duplicate list row per target locale.
+        const translated = data.locale === state.previewLocale ? data.text : undefined;
+        addProfessorTranscriptEntry(data.sourceKo, translated);
       }
     });
     room.on(LivekitClient.RoomEvent.Reconnecting, () => {
       if (state.room !== room) return;
       clearTimeout(state.connectionStatusTimer);
-      $("session-status").innerHTML = "<i></i> 재연결 중";
+      setSessionStatus("reconnecting");
     });
     room.on(LivekitClient.RoomEvent.Reconnected, async () => {
       if (state.room !== room) return;
-      $("session-status").innerHTML = "<i></i> 다시 연결됨";
+      setSessionStatus("reconnecting");
       try {
         await syncProfessorMicrophone(room);
       } catch (error) {
@@ -355,13 +459,13 @@
       }
       state.connectionStatusTimer = setTimeout(() => {
         if (state.room === room) {
-          $("session-status").innerHTML = "<i></i> 수업 진행 중";
+          setSessionStatus(state.micPausedByUser ? "paused" : "live");
         }
       }, 2000);
     });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
       if (state.room !== room) return;
-      $("session-status").innerHTML = "<i></i> 연결 끊김";
+      setSessionStatus("disconnected");
       $("mic-message").textContent = "LiveKit 연결이 끊겼습니다.";
     });
     await room.connect(liveKit.liveKitUrl, liveKit.token);
@@ -393,10 +497,14 @@
     $("professor-setup").classList.add("hidden");
     $("professor-live").classList.remove("hidden");
     $("live-course-name").textContent = state.session.courseName;
-    $("session-status").innerHTML = "<i></i> 수업 진행 중";
     $("mic-message").textContent = state.micPausedByUser ? "PAUSED" : "ON";
+    setSessionStatus(state.micPausedByUser ? "paused" : "live");
+    syncMicButtonVisibility();
     $("locale-count").textContent = `${state.session.targetLocales.length}개 언어`;
-    $("material-link").textContent = `${state.session.courseName.replace(/\s+/g, "_")}_강의자료`;
+    $("material-name").textContent = `${state.session.courseName.replace(/\s+/g, "_")}_강의자료`;
+    state.previewLocale = state.session.targetLocales[0] || null;
+    updateLanguageDirectionLabel();
+    resetProfessorTranscript();
     const startedAt = new Date(state.session.startedAt).getTime();
     const updateElapsed = () => {
       const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
@@ -434,6 +542,7 @@
     setBusy(button, true, "수업을 종료하고 있습니다...");
     try {
       await api(`/sessions/${endingSessionId}/end`, { method: "POST" });
+      setSessionStatus("ended");
       await disconnectRoom();
       clearSessionTimers();
       clearSavedSession();
@@ -644,9 +753,13 @@
       try {
         await room.localParticipant.setMicrophoneEnabled(false);
         $("mic-message").textContent = "PAUSED";
+        setSessionStatus("paused");
+        syncMicButtonVisibility();
         toast("마이크를 잠시 껐습니다.");
       } catch (error) {
         state.micPausedByUser = false;
+        setSessionStatus("error");
+        syncMicButtonVisibility();
         toast(`마이크를 끄지 못했습니다: ${error.message}`, "error");
       }
     });
@@ -657,9 +770,13 @@
       try {
         await room.localParticipant.setMicrophoneEnabled(true);
         $("mic-message").textContent = "ON";
+        setSessionStatus("live");
+        syncMicButtonVisibility();
         toast("마이크를 다시 켰습니다.");
       } catch (error) {
         state.micPausedByUser = true;
+        setSessionStatus("error");
+        syncMicButtonVisibility();
         toast(`마이크를 켜지 못했습니다: ${error.message}`, "error");
       }
     });
@@ -668,8 +785,9 @@
       else $("qr-dialog").setAttribute("open", "");
     };
     $("show-qr").addEventListener("click", openQr);
-    $("show-qr-nav").addEventListener("click", openQr);
     $("close-qr").addEventListener("click", () => $("qr-dialog").close());
+    $("language-direction").addEventListener("click", openLanguageDialog);
+    $("close-language-dialog").addEventListener("click", () => $("language-dialog").close());
     $("focus-token").addEventListener("click", () => {
       $("join-token").focus();
       $("join-token").scrollIntoView({ behavior: "smooth", block: "center" });

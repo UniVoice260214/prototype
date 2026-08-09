@@ -19,10 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { DepartmentService } from './department.service';
-import {
-  CreateDepartmentDto,
-  UpdateDepartmentDto,
-} from './dto/department.dto';
+import { CreateDepartmentDto, UpdateDepartmentDto } from './dto/department.dto';
 
 @ApiBearerAuth()
 @ApiTags('departments')
