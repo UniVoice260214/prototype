@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any
 
@@ -90,6 +91,54 @@ class SearchHit:
 
 
 @dataclass
+class _CacheEntry:
+    hits: list[SearchHit]
+    expires_at: float
+
+
+class _SearchCache:
+    """(인덱스 조합, 정규화된 질의) 재검색 결과를 짧은 TTL 동안 재사용하는 캐시.
+
+    강의 중 같은 용어가 반복 언급될 때마다 임베딩+FAISS 검색을 새로 하지 않기
+    위함이다 — TTS 쪽 dedupe.py(같은 작업이 중복 실행되지 않도록 막는 락)와
+    달리, 이건 순수 재사용 캐시라 정확성 문제 없이 크기 제한 LRU + TTL로 충분하다.
+    SearchHit이 frozen dataclass라 여러 호출자가 같은 리스트를 공유해도 안전하다.
+    """
+
+    def __init__(self, *, max_size: int = 256, ttl_sec: float = 300.0) -> None:
+        self._max_size = max(0, max_size)
+        self._ttl_sec = max(0.0, ttl_sec)
+        self._entries: OrderedDict[tuple[str, ...], _CacheEntry] = OrderedDict()
+        self._lock = threading.Lock()
+
+    @property
+    def enabled(self) -> bool:
+        return self._max_size > 0 and self._ttl_sec > 0
+
+    def get(self, key: tuple[str, ...]) -> list[SearchHit] | None:
+        if not self.enabled:
+            return None
+        with self._lock:
+            entry = self._entries.get(key)
+            if entry is None:
+                return None
+            if entry.expires_at <= time.monotonic():
+                del self._entries[key]
+                return None
+            self._entries.move_to_end(key)
+            return entry.hits
+
+    def put(self, key: tuple[str, ...], hits: list[SearchHit]) -> None:
+        if not self.enabled:
+            return
+        with self._lock:
+            self._entries[key] = _CacheEntry(hits=hits, expires_at=time.monotonic() + self._ttl_sec)
+            self._entries.move_to_end(key)
+            while len(self._entries) > self._max_size:
+                self._entries.popitem(last=False)
+
+
+@dataclass
 class Candidate:
     router: RagRouter
     decision: RouteDecision
@@ -115,6 +164,9 @@ class RagRuntime:
         top_k: int = 3,
         context_max_chars: int = 4000,
         course_index_map: dict[str, CourseIndexEntry] | None = None,
+        search_concurrency: int = 2,
+        cache_max_size: int = 256,
+        cache_ttl_sec: float = 300.0,
     ) -> None:
         self.model_key = model_key
         self.embedder = embedder
@@ -124,7 +176,12 @@ class RagRuntime:
         self.top_k = max(1, top_k)
         self.context_max_chars = max(500, context_max_chars)
         self.course_index_map = course_index_map or {}
-        self._search_lock = threading.Lock()
+        self.search_concurrency = max(1, search_concurrency)
+        # 임베딩+FAISS 호출만 감싸는 유계 세마포어. 세션마다 검색을 완전히 직렬화하던
+        # 이전의 전역 Lock을 대체한다 — CPU 임베딩 모델의 스레드 오버섭스크립션은
+        # 막으면서도, 여러 세션의 검색이 어느 정도는 겹쳐 돌 수 있게 한다.
+        self._search_semaphore = threading.Semaphore(self.search_concurrency)
+        self._search_cache = _SearchCache(max_size=cache_max_size, ttl_sec=cache_ttl_sec)
 
     @classmethod
     def load(
@@ -134,6 +191,9 @@ class RagRuntime:
         top_k: int = 3,
         context_max_chars: int = 4000,
         course_index_map_raw: str = "",
+        search_concurrency: int = 2,
+        cache_max_size: int = 256,
+        cache_ttl_sec: float = 300.0,
     ) -> "RagRuntime":
         chunks = {chunk["chunk_id"]: chunk for chunk in load_chunks()}
         routers = load_routers()
@@ -150,6 +210,9 @@ class RagRuntime:
             top_k=top_k,
             context_max_chars=context_max_chars,
             course_index_map=course_index_map,
+            search_concurrency=search_concurrency,
+            cache_max_size=cache_max_size,
+            cache_ttl_sec=cache_ttl_sec,
         )
 
     def retrieve(
@@ -183,18 +246,21 @@ class RagRuntime:
         if not triggered:
             return self._off_response(started, reason="NO_TRIGGER", major=effective_major)
 
+        # 세션 간 검색 직렬화를 피하기 위해 락을 걸지 않는다 — route()/apply_gate()는
+        # 호출마다 만드는 로컬 RouteDecision만 건드리므로 스레드 세이프하다. 실제
+        # 동시성 보호(임베딩 모델 스레드 오버섭스크립션 방지)는 _search() 내부의
+        # 좁은 세마포어 + 캐시가 담당한다.
         candidates: list[Candidate] = []
-        with self._search_lock:
-            for decision in triggered:
-                router = self.routers[decision.major]
-                index_names = self._indexes_for(decision.major, course_entry)
-                hits = self._search(decision, index_names)
-                if not hits:
-                    continue
-                router.apply_gate(decision, hits[0].score)
-                candidates.append(
-                    Candidate(router=router, decision=decision, hits=hits, index_names=index_names)
-                )
+        for decision in triggered:
+            router = self.routers[decision.major]
+            index_names = self._indexes_for(decision.major, course_entry)
+            hits = self._search(decision, index_names)
+            if not hits:
+                continue
+            router.apply_gate(decision, hits[0].score)
+            candidates.append(
+                Candidate(router=router, decision=decision, hits=hits, index_names=index_names)
+            )
 
         if not candidates:
             return self._off_response(started, reason="NO_RESULTS", major=effective_major)
@@ -237,29 +303,43 @@ class RagRuntime:
         return (MAJOR_PRIMARY_INDEX[decision_major],)
 
     def _search(self, decision: RouteDecision, index_names: tuple[str, ...]) -> list[SearchHit]:
-        vector = np.asarray(self.embedder.encode([decision.query]), dtype=np.float32)
-        norms = np.linalg.norm(vector, axis=1, keepdims=True)
-        norms[norms == 0] = 1.0
-        vector = vector / norms
+        # 같은 용어가 강의 중 반복될 때(예: "PCR", "PCR"...) 매번 재임베딩+재검색하지
+        # 않도록 (인덱스 조합, 정규화된 질의) 키로 짧게 캐시한다.
+        cache_key = (*index_names, decision.query)
+        cached = self._search_cache.get(cache_key)
+        if cached is not None:
+            return cached
 
-        by_chunk: dict[str, SearchHit] = {}
-        for index_name in index_names:
-            index, chunk_ids = self.indexes[index_name]
-            scores, positions = index.search(vector, self.top_k)
-            for score, position in zip(scores[0], positions[0]):
-                if position == -1:
-                    continue
-                chunk_id = chunk_ids[int(position)]
-                hit = SearchHit(
-                    chunk_id=chunk_id,
-                    score=float(score),
-                    index_name=index_name,
-                    chunk=self.chunks.get(chunk_id, {}),
-                )
-                previous = by_chunk.get(chunk_id)
-                if previous is None or hit.score > previous.score:
-                    by_chunk[chunk_id] = hit
-        return sorted(by_chunk.values(), key=lambda hit: hit.score, reverse=True)
+        # 임베딩+FAISS 호출만 세마포어로 감싼다 — CPU 임베딩 모델이 여러 스레드에서
+        # 동시에 호출될 때의 스레드 오버섭스크립션을 막되, 전 세션 검색을 완전히
+        # 직렬화하지는 않는다(세마포어 크기만큼은 겹쳐 돈다).
+        with self._search_semaphore:
+            vector = np.asarray(self.embedder.encode([decision.query]), dtype=np.float32)
+            norms = np.linalg.norm(vector, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            vector = vector / norms
+
+            by_chunk: dict[str, SearchHit] = {}
+            for index_name in index_names:
+                index, chunk_ids = self.indexes[index_name]
+                scores, positions = index.search(vector, self.top_k)
+                for score, position in zip(scores[0], positions[0]):
+                    if position == -1:
+                        continue
+                    chunk_id = chunk_ids[int(position)]
+                    hit = SearchHit(
+                        chunk_id=chunk_id,
+                        score=float(score),
+                        index_name=index_name,
+                        chunk=self.chunks.get(chunk_id, {}),
+                    )
+                    previous = by_chunk.get(chunk_id)
+                    if previous is None or hit.score > previous.score:
+                        by_chunk[chunk_id] = hit
+            hits = sorted(by_chunk.values(), key=lambda hit: hit.score, reverse=True)
+
+        self._search_cache.put(cache_key, hits)
+        return hits
 
     @staticmethod
     def _result_payload(hit: SearchHit) -> dict[str, Any]:

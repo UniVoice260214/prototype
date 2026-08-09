@@ -28,9 +28,11 @@ class NoOpRagClient:
 class HttpRagClient:
     """별도 RAG 서비스에서 Router + FAISS 검색 문맥을 가져온다.
 
-    RAG 장애가 실시간 번역 전체를 막지 않도록 네트워크/응답 오류 시에는
-    로그를 남기고 None으로 fail-open 한다. 데모 Compose에서는 서비스
-    healthcheck가 통과한 뒤 AI worker가 시작되므로 정상 시에는 항상 RAG를 쓴다.
+    RAG는 번역 직전 크리티컬 패스에 동기로 걸리므로 타임아웃을 짧게 잡는다
+    (기본 0.4초 — WorkerConfig.DEFAULT_RAG_TIMEOUT_SEC와 맞춤). 네트워크/응답
+    오류나 타임아웃 시에는 로그를 남기고 None으로 fail-open 해 번역이 RAG
+    지연 때문에 밀리지 않게 한다. 데모 Compose에서는 서비스 healthcheck가
+    통과한 뒤 AI worker가 시작되므로 정상 시에는 항상 RAG를 쓴다.
     """
 
     def __init__(
@@ -39,7 +41,7 @@ class HttpRagClient:
         *,
         major: str = "auto",
         course_id: str = "",
-        timeout_sec: float = 5.0,
+        timeout_sec: float = 0.4,
     ) -> None:
         self._url = f"{base_url.rstrip('/')}/retrieve"
         self._major = major

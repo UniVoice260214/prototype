@@ -174,6 +174,9 @@ services:
       RAG_TOP_K: ${RAG_TOP_K:-3}
       RAG_CONTEXT_MAX_CHARS: ${RAG_CONTEXT_MAX_CHARS:-4000}
       RAG_COURSE_INDEX_MAP: ${RAG_COURSE_INDEX_MAP:-}
+      RAG_SEARCH_CONCURRENCY: ${RAG_SEARCH_CONCURRENCY:-2}
+      RAG_SEARCH_CACHE_SIZE: ${RAG_SEARCH_CACHE_SIZE:-256}
+      RAG_SEARCH_CACHE_TTL_SEC: ${RAG_SEARCH_CACHE_TTL_SEC:-300}
       TOKENIZERS_PARALLELISM: "false"
     volumes:
       - demo-rag-indexes:/app/indexes:ro
@@ -223,7 +226,7 @@ services:
       RAG_URL: http://rag-service:8000
       RAG_DEFAULT_MAJOR: ${RAG_DEFAULT_MAJOR:-auto}
       RAG_COURSE_MAJOR_MAP: ${RAG_COURSE_MAJOR_MAP:-}
-      RAG_TIMEOUT_SEC: ${RAG_TIMEOUT_SEC:-5}
+      RAG_TIMEOUT_SEC: ${RAG_TIMEOUT_SEC:-0.4}
     depends_on:
       redis:
         condition: service_healthy

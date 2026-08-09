@@ -43,6 +43,9 @@ DEFAULT_TTS_FAILED_DEDUPE_TTL_SEC = 30
 DEFAULT_STT_MAX_RECONNECTS = 3
 DEFAULT_STT_RECONNECT_BASE_DELAY_MS = 500
 DEFAULT_WORKER_STATUS_TTL_SEC = 3600
+# RAG는 번역 크리티컬 패스에 동기로 걸린다 — fail-open으로 None을 반환하므로
+# 타임아웃을 짧게 유지해야 RAG 지연이 자막/TTS 전체를 밀어내지 않는다.
+DEFAULT_RAG_TIMEOUT_SEC = 0.4
 
 
 @dataclass(frozen=True)
@@ -86,7 +89,7 @@ class WorkerConfig:
     rag_url: str = ""
     rag_default_major: str = "auto"
     rag_course_major_map: dict[str, str] = field(default_factory=dict)
-    rag_timeout_sec: float = 5.0
+    rag_timeout_sec: float = DEFAULT_RAG_TIMEOUT_SEC
 
 
 def _load_voice_map() -> dict[str, str]:
@@ -219,5 +222,5 @@ def load_config() -> WorkerConfig:
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
         rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),
         rag_course_major_map=_load_rag_course_major_map(),
-        rag_timeout_sec=_load_float("RAG_TIMEOUT_SEC", 5.0),
+        rag_timeout_sec=_load_float("RAG_TIMEOUT_SEC", DEFAULT_RAG_TIMEOUT_SEC),
     )
