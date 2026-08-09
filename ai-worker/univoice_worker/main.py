@@ -36,6 +36,10 @@ CHANNEL_SESSIONS_STARTED = "sessions.started"
 CHANNEL_SESSIONS_ENDED = "sessions.ended"
 SESSION_STATUS_PATTERN = "session:*:status"
 
+RESTART_MAX_ATTEMPTS = 5
+RESTART_BASE_DELAY_SEC = 2.0
+RESTART_MAX_DELAY_SEC = 30.0
+
 
 async def load_glossary(redis: aioredis.Redis, course_id: str) -> list[GlossaryEntry]:
     """Core API 가 prewarm 한 glossary:{courseId} (JSON 배열)을 읽어 파싱."""
@@ -145,6 +149,8 @@ class WorkerRegistry:
         self._config = config
         self._status_store = RedisWorkerStatusStore(redis, ttl_sec=config.worker_status_ttl_sec)
         self._workers: dict[str, tuple[SessionWorker, asyncio.Task[None]]] = {}
+        self._restart_attempts: dict[str, int] = {}
+        self._shutting_down = False
 
     async def start_session(self, event: dict[str, Any]) -> None:
         validated = validate_started_payload(event, self._config)
@@ -170,6 +176,7 @@ class WorkerRegistry:
         task = asyncio.create_task(worker.run(), name=f"session-{session_id}")
         task.add_done_callback(lambda t, sid=session_id: self._on_worker_done(sid, t))
         self._workers[session_id] = (worker, task)
+        self._restart_attempts.pop(session_id, None)
         logger.info(
             "[%s] 세션 워커 시작 (locales=%s, glossary %d개)",
             session_id,
@@ -193,6 +200,7 @@ class WorkerRegistry:
             self._workers.pop(validated["sessionId"], None)
 
     async def stop_all(self) -> None:
+        self._shutting_down = True
         entries = list(self._workers.values())
         for worker, _task in entries:
             await worker.stop()
@@ -206,16 +214,81 @@ class WorkerRegistry:
         if task.cancelled():
             return
         exc = task.exception()
-        if exc is None:
+        if exc is not None:
+            logger.error(
+                "[%s] 세션 워커 비정상 종료",
+                session_id,
+                exc_info=(type(exc), exc, exc.__traceback__),
+            )
+            asyncio.create_task(
+                self._status_store.set_status(session_id, "failed", error=str(exc))
+            )
+        # 워커가 (예외든, LiveKit 재연결 소진으로 인한 disconnect든) 어떤 이유로든
+        # 종료됐을 때, Core API가 세션을 아직 'active'로 보고 있다면 사용자/교수가
+        # 아무 조치를 하지 않아도 자동으로 재기동을 시도한다. 정상 종료(sessions.ended
+        # 처리로 인한 stop)라면 Redis 상태가 이미 'active'가 아니므로 재시작하지 않는다.
+        asyncio.create_task(self._maybe_restart(session_id))
+
+    async def _maybe_restart(self, session_id: str) -> None:
+        if self._shutting_down or session_id in self._workers:
             return
-        logger.error(
-            "[%s] 세션 워커 비정상 종료",
+        try:
+            status = await self._redis.get(f"session:{session_id}:status")
+        except Exception:  # noqa: BLE001
+            logger.exception("[%s] 재시작 판단을 위한 세션 상태 조회 실패", session_id)
+            return
+        if status != "active":
+            self._restart_attempts.pop(session_id, None)
+            return
+
+        attempt = self._restart_attempts.get(session_id, 0) + 1
+        if attempt > RESTART_MAX_ATTEMPTS:
+            logger.error(
+                "[%s] 워커 재시작 %d회 초과, 포기", session_id, RESTART_MAX_ATTEMPTS
+            )
+            await self._status_store.set_status(
+                session_id,
+                "failed",
+                error=f"worker restart attempts exhausted ({RESTART_MAX_ATTEMPTS})",
+            )
+            return
+        self._restart_attempts[session_id] = attempt
+
+        delay = min(RESTART_MAX_DELAY_SEC, RESTART_BASE_DELAY_SEC * (2 ** (attempt - 1)))
+        logger.warning(
+            "[%s] 세션이 active 상태인데 워커가 종료됨. %.1fs 후 재시작 시도 (%d/%d)",
             session_id,
-            exc_info=(type(exc), exc, exc.__traceback__),
+            delay,
+            attempt,
+            RESTART_MAX_ATTEMPTS,
         )
-        asyncio.create_task(
-            self._status_store.set_status(session_id, "failed", error=str(exc))
-        )
+        await asyncio.sleep(delay)
+        if self._shutting_down or session_id in self._workers:
+            return
+
+        try:
+            status = await self._redis.get(f"session:{session_id}:status")
+        except Exception:  # noqa: BLE001
+            logger.exception("[%s] 재시작 직전 세션 상태 재조회 실패", session_id)
+            return
+        if status != "active":
+            self._restart_attempts.pop(session_id, None)
+            return
+
+        raw_config = await self._redis.get(f"session:{session_id}:config")
+        if not raw_config:
+            logger.warning("[%s] 재시작 실패: session config 없음", session_id)
+            return
+        try:
+            session_config = json.loads(raw_config)
+        except json.JSONDecodeError:
+            logger.warning("[%s] 재시작 실패: session config JSON 파싱 오류", session_id)
+            return
+        event = validate_started_payload(session_config, self._config)
+        if event is None:
+            logger.warning("[%s] 재시작 실패: session config 검증 실패", session_id)
+            return
+        await self.start_session(event)
 
 
 async def handle_pubsub_message(message: dict[str, Any], registry: WorkerRegistry) -> None:

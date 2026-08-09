@@ -42,7 +42,11 @@ DEFAULT_TTS_DEDUPE_TTL_SEC = 3600
 DEFAULT_TTS_FAILED_DEDUPE_TTL_SEC = 30
 DEFAULT_STT_MAX_RECONNECTS = 3
 DEFAULT_STT_RECONNECT_BASE_DELAY_MS = 500
-DEFAULT_WORKER_STATUS_TTL_SEC = 3600
+# 하트비트로 주기적으로 갱신되는 값이므로 TTL은 "죽은 워커를 얼마나 빨리
+# 감지하는가"를 결정한다. 하트비트 간격의 3배 정도로 잡아 한두 번의 갱신
+# 실패는 허용하면서도 장애 감지는 수십 초 안에 이뤄지도록 한다.
+DEFAULT_WORKER_HEARTBEAT_INTERVAL_SEC = 10
+DEFAULT_WORKER_STATUS_TTL_SEC = 30
 
 
 @dataclass(frozen=True)
@@ -82,6 +86,7 @@ class WorkerConfig:
     stt_max_reconnects: int = DEFAULT_STT_MAX_RECONNECTS
     stt_reconnect_base_delay_ms: int = DEFAULT_STT_RECONNECT_BASE_DELAY_MS
     worker_status_ttl_sec: int = DEFAULT_WORKER_STATUS_TTL_SEC
+    worker_heartbeat_interval_sec: int = DEFAULT_WORKER_HEARTBEAT_INTERVAL_SEC
     rag_enabled: bool = False
     rag_url: str = ""
     rag_default_major: str = "auto"
@@ -215,6 +220,9 @@ def load_config() -> WorkerConfig:
             "STT_RECONNECT_BASE_DELAY_MS", DEFAULT_STT_RECONNECT_BASE_DELAY_MS, min_value=0
         ),
         worker_status_ttl_sec=_load_int("WORKER_STATUS_TTL_SEC", DEFAULT_WORKER_STATUS_TTL_SEC),
+        worker_heartbeat_interval_sec=_load_int(
+            "WORKER_HEARTBEAT_INTERVAL_SEC", DEFAULT_WORKER_HEARTBEAT_INTERVAL_SEC
+        ),
         rag_enabled=_load_bool("RAG_ENABLED"),
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
         rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),

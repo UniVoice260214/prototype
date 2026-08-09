@@ -56,6 +56,7 @@ class LocaleAudioPublisher:
     async def push_pcm(self, locale: str, pcm: bytes) -> int:
         if self._closed:
             raise AudioPublishError("AUDIO_PUBLISHER_CLOSED", "Audio publisher is closed")
+        self._ensure_room_connected()
         source = self._sources.get(locale)
         if source is None:
             raise AudioPublishError(
@@ -80,6 +81,21 @@ class LocaleAudioPublisher:
                 await source.capture_frame(frame)
                 frame_count += 1
             return frame_count * FRAME_DURATION_MS
+
+    def _ensure_room_connected(self) -> None:
+        """`AudioSource.capture_frame` only writes into a local ring buffer —
+        it returns successfully even after the LiveKit room has disconnected
+        (e.g. the room was deleted from under us). Without this guard, TTS
+        audio synthesized after disconnect would be reported as
+        `audio.completed` even though no student could ever hear it.
+        """
+        is_connected = getattr(self._room, "isconnected", None)
+        if is_connected is None:
+            return  # room double doesn't expose connection state; nothing to check
+        if not is_connected():
+            raise AudioPublishError(
+                "AUDIO_ROOM_DISCONNECTED", "LiveKit room is not connected"
+            )
 
     async def aclose(self) -> None:
         if self._closed:

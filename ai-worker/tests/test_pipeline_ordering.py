@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 
 import pytest
 
@@ -98,11 +99,12 @@ async def test_fast_stt_finals_keep_sequence_order() -> None:
     await pipeline.flush_and_stop()
 
     assert [segment.sequence for segment in segments] == [1, 2, 3]
-    assert [segment.segment_id for segment in segments] == [
-        "session-123-seg-000001",
-        "session-123-seg-000002",
-        "session-123-seg-000003",
-    ]
+    assert [
+        re.fullmatch(r"session-123-[0-9a-f]{8}-seg-00000[123]", segment.segment_id) is not None
+        for segment in segments
+    ] == [True, True, True]
+    run_ids = {segment.segment_id.split("-seg-")[0] for segment in segments}
+    assert len(run_ids) == 1  # 동일 파이프라인 실행 내에서는 run_id가 일정해야 함
     assert [caption[2].sequence for caption in captions] == [1, 2, 3]
 
 
@@ -129,5 +131,7 @@ async def test_flush_and_stop_drains_residual_segment_and_queue() -> None:
     await pipeline.flush_and_stop()
 
     assert [segment.text for segment in segments] == ["residual without punctuation"]
-    assert [caption[2].segment_id for caption in captions] == ["session-123-seg-000001"]
+    assert re.fullmatch(
+        r"session-123-[0-9a-f]{8}-seg-000001", captions[0][2].segment_id
+    ) is not None
     assert pipeline._queue.empty()

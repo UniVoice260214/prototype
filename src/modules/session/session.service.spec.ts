@@ -171,6 +171,76 @@ describe('SessionService recovery', () => {
     expect(liveKit.createAccessToken).not.toHaveBeenCalled();
   });
 
+  it('republishes sessions.started when recovering a session with no worker status', async () => {
+    const { service, events } = makeService({ workerStatus: null });
+
+    await service.issueProfessorToken('session-123', ADMIN_USER);
+
+    expect(events.publishSessionStarted).toHaveBeenCalledWith({
+      sessionId: 'session-123',
+      courseId: 'course-1',
+      liveKitRoomName: 'room-1',
+      targetLocales: ['vi-VN'],
+    });
+  });
+
+  it('republishes sessions.started when the worker previously failed', async () => {
+    const { service, events } = makeService({
+      workerStatus: JSON.stringify({ status: 'failed', ts: 1, error: 'boom' }),
+    });
+
+    await service.issueProfessorToken('session-123', ADMIN_USER);
+
+    expect(events.publishSessionStarted).toHaveBeenCalledTimes(1);
+  });
+
+  it('republishes sessions.started when the worker previously stopped', async () => {
+    const { service, events } = makeService({
+      workerStatus: JSON.stringify({ status: 'stopped', ts: 1 }),
+    });
+
+    await service.issueProfessorToken('session-123', ADMIN_USER);
+
+    expect(events.publishSessionStarted).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not republish sessions.started when the worker is already ready', async () => {
+    const { service, events } = makeService({
+      workerStatus: JSON.stringify({ status: 'ready', ts: 1 }),
+    });
+
+    await service.issueProfessorToken('session-123', ADMIN_USER);
+
+    expect(events.publishSessionStarted).not.toHaveBeenCalled();
+  });
+
+  it('does not republish sessions.started while the worker is still starting', async () => {
+    const { service, events } = makeService({
+      workerStatus: JSON.stringify({ status: 'starting', ts: 1 }),
+    });
+
+    await service.issueProfessorToken('session-123', ADMIN_USER);
+
+    expect(events.publishSessionStarted).not.toHaveBeenCalled();
+  });
+
+  it('still issues a token when republishing sessions.started fails', async () => {
+    const { service, events, liveKit } = makeService({ workerStatus: null });
+    events.publishSessionStarted.mockRejectedValueOnce(
+      new Error('redis unavailable'),
+    );
+
+    await expect(
+      service.issueProfessorToken('session-123', ADMIN_USER),
+    ).resolves.toEqual({
+      liveKitUrl: 'ws://livekit',
+      token: 'professor-livekit-token',
+      roomName: 'room-1',
+      identity: 'professor-professor-1',
+    });
+    expect(liveKit.createAccessToken).toHaveBeenCalled();
+  });
+
   it('lists only active sessions through the access service', async () => {
     const { service, courseAccess } = makeService({ visibleSessions: [] });
 
@@ -195,6 +265,44 @@ describe('SessionService.start', () => {
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(liveKit.createRoom).not.toHaveBeenCalled();
+  });
+
+  it('translates a unique-constraint race into a BadRequestException', async () => {
+    // The pre-check (findOne) passes here (no session in the fixture's
+    // findOne/find path returns one), but the DB save itself fails as if a
+    // concurrent request already inserted the active session first.
+    const { service, liveKit, sessions } = makeService({});
+    sessions.findOne = jest.fn(async () => null);
+    const uniqueViolation = Object.assign(new Error('duplicate key value'), {
+      code: '23505',
+    });
+    sessions.save = jest.fn(async (_entity: unknown) => {
+      throw uniqueViolation;
+    });
+
+    await expect(
+      service.start(
+        { courseId: 'course-1', targetLocales: ['vi-VN'] },
+        ADMIN_USER,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(liveKit.createRoom).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-unique-violation save errors unchanged', async () => {
+    const { service, sessions } = makeService({});
+    sessions.findOne = jest.fn(async () => null);
+    const dbError = new Error('connection lost');
+    sessions.save = jest.fn(async (_entity: unknown) => {
+      throw dbError;
+    });
+
+    await expect(
+      service.start(
+        { courseId: 'course-1', targetLocales: ['vi-VN'] },
+        ADMIN_USER,
+      ),
+    ).rejects.toBe(dbError);
   });
 });
 

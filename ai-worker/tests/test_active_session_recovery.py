@@ -203,6 +203,110 @@ async def test_registry_end_session_waits_for_task_and_removes_worker(
     assert registry._workers == {}
 
 
+@pytest.mark.asyncio
+async def test_registry_restarts_worker_when_session_still_active(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """세션이 여전히 active인데 워커가 죽으면(예: LiveKit 재연결 소진) supervisor가
+    동일 config로 워커를 재기동해야 한다."""
+    created: list[str] = []
+    run_calls = 0
+
+    class FlakyThenStableWorker:
+        def __init__(self, *, session_id: str, **_kwargs: object) -> None:
+            self.session_id = session_id
+            created.append(session_id)
+
+        async def run(self) -> None:
+            nonlocal run_calls
+            run_calls += 1
+            if run_calls == 1:
+                return  # first attempt "dies" immediately (e.g. disconnect exhausted)
+            await asyncio.Event().wait()
+
+        async def stop(self) -> None:
+            return None
+
+    async def fake_load_glossary(*_args: object) -> list:
+        return []
+
+    monkeypatch.setattr(worker_main, "SessionWorker", FlakyThenStableWorker)
+    monkeypatch.setattr(worker_main, "load_glossary", fake_load_glossary)
+    monkeypatch.setattr(worker_main, "RESTART_BASE_DELAY_SEC", 0.0)
+    monkeypatch.setattr(worker_main, "RESTART_MAX_DELAY_SEC", 0.0)
+
+    session_config = {
+        "sessionId": "session-123",
+        "courseId": "course-1",
+        "liveKitRoomName": "room-1",
+        "targetLocales": ["vi-VN"],
+    }
+    redis = FakeRedis(
+        {
+            "session:session-123:status": "active",
+            "session:session-123:config": json.dumps(session_config),
+        }
+    )
+    registry = worker_main.WorkerRegistry(redis, config())
+
+    await registry.start_session(session_config)
+
+    for _ in range(50):
+        if len(created) >= 2:
+            break
+        await asyncio.sleep(0)
+
+    assert created == ["session-123", "session-123"]
+    assert "session-123" in registry._workers
+    for worker, task in list(registry._workers.values()):
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+
+@pytest.mark.asyncio
+async def test_registry_does_not_restart_worker_when_session_not_active(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """NestJS가 세션을 정상 종료(status != active)한 뒤 워커가 종료된 경우
+    supervisor는 재시작을 시도하지 않아야 한다."""
+    created: list[str] = []
+
+    class DyingWorker:
+        def __init__(self, *, session_id: str, **_kwargs: object) -> None:
+            self.session_id = session_id
+            created.append(session_id)
+
+        async def run(self) -> None:
+            return
+
+        async def stop(self) -> None:
+            return None
+
+    async def fake_load_glossary(*_args: object) -> list:
+        return []
+
+    monkeypatch.setattr(worker_main, "SessionWorker", DyingWorker)
+    monkeypatch.setattr(worker_main, "load_glossary", fake_load_glossary)
+
+    redis = FakeRedis({"session:session-123:status": "ending"})
+    registry = worker_main.WorkerRegistry(redis, config())
+
+    await registry.start_session(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["vi-VN"],
+        }
+    )
+
+    await asyncio.sleep(0.05)
+
+    assert created == ["session-123"]
+    assert registry._workers == {}
+
+
 def test_validate_started_payload_skips_unsupported_locales() -> None:
     event = worker_main.validate_started_payload(
         {

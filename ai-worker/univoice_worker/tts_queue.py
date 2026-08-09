@@ -75,8 +75,40 @@ class LocaleTtsQueue:
                 await self._emit_failed(job, "TTS_QUEUE_STOPPING")
                 return False
 
-        await self._queues[job.locale].put(job)
+        await self._put_or_drop_oldest(job)
         return True
+
+    async def _put_or_drop_oldest(self, job: TtsJob) -> None:
+        """Never block on a full queue. Blocking here would stall the segment
+        consumer upstream and cause *newer* segments to be dropped instead —
+        the opposite of what a live captioning/dubbing pipeline wants. Instead,
+        evict the oldest pending job for this locale so the freshest speech
+        always gets synthesized.
+        """
+        queue = self._queues[job.locale]
+        while True:
+            try:
+                queue.put_nowait(job)
+                return
+            except asyncio.QueueFull:
+                pass
+            try:
+                dropped = queue.get_nowait()
+            except asyncio.QueueEmpty:
+                continue  # a consumer freed a slot concurrently; retry the put
+            queue.task_done()
+            if dropped is None:
+                # Shutdown sentinel raced with us; put it back and retry.
+                await queue.put(None)
+                continue
+            logger.warning(
+                "[%s] TTS queue overflow (locale=%s); dropping oldest segment %s for %s",
+                job.session_id,
+                job.locale,
+                dropped.segment_id,
+                job.segment_id,
+            )
+            await self._emit_failed(dropped, "TTS_QUEUE_OVERFLOW")
 
     async def flush_and_stop(self) -> None:
         async with self._lifecycle_lock:

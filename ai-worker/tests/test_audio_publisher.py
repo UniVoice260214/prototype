@@ -102,6 +102,51 @@ async def test_same_locale_push_pcm_calls_do_not_interleave() -> None:
     assert frame_heads in ([b"a", b"a", b"b", b"b"], [b"b", b"b", b"a", b"a"])
 
 
+class FakeConnectedRoom:
+    def __init__(self, *, connected: bool = True) -> None:
+        self.connected = connected
+
+    def isconnected(self) -> bool:
+        return self.connected
+
+
+@pytest.mark.asyncio
+async def test_push_pcm_raises_when_room_is_disconnected() -> None:
+    room = FakeConnectedRoom(connected=False)
+    publisher = LocaleAudioPublisher(room=room, locales=["vi-VN"])
+    publisher._sources["vi-VN"] = FakeSource()
+
+    with pytest.raises(Exception) as exc_info:
+        await publisher.push_pcm("vi-VN", b"a" * FRAME_BYTES)
+
+    assert getattr(exc_info.value, "error_code") == "AUDIO_ROOM_DISCONNECTED"
+
+
+@pytest.mark.asyncio
+async def test_push_pcm_succeeds_when_room_is_connected() -> None:
+    room = FakeConnectedRoom(connected=True)
+    publisher = LocaleAudioPublisher(room=room, locales=["vi-VN"])
+    source = FakeSource()
+    publisher._sources["vi-VN"] = source
+
+    await publisher.push_pcm("vi-VN", b"a" * FRAME_BYTES)
+
+    assert len(source.frames) == 1
+
+
+@pytest.mark.asyncio
+async def test_push_pcm_skips_connection_guard_when_room_has_no_isconnected() -> None:
+    """Room test doubles (and unit tests using room=object()) shouldn't be
+    forced to implement isconnected(); the guard is best-effort."""
+    publisher = LocaleAudioPublisher(room=object(), locales=["vi-VN"])
+    source = FakeSource()
+    publisher._sources["vi-VN"] = source
+
+    await publisher.push_pcm("vi-VN", b"a" * FRAME_BYTES)
+
+    assert len(source.frames) == 1
+
+
 @pytest.mark.asyncio
 async def test_unknown_locale_and_closed_publisher_raise_clear_errors() -> None:
     publisher = LocaleAudioPublisher(room=object(), locales=["vi-VN"])

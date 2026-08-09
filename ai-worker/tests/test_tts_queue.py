@@ -281,6 +281,43 @@ async def test_failed_job_can_retry_when_policy_releases_failed_key() -> None:
 
 
 @pytest.mark.asyncio
+async def test_queue_overflow_drops_oldest_and_keeps_newest() -> None:
+    statuses: list[AudioStatus] = []
+    release = asyncio.Event()
+
+    class BlockingTts:
+        async def synthesize_job(self, tts_job: TtsJob) -> bytes:
+            await release.wait()
+            return f"vi-VN:{tts_job.sequence}".encode()
+
+    queue = LocaleTtsQueue(
+        locales=["vi-VN"],
+        tts=BlockingTts(),
+        publisher=FakePublisher(),
+        on_audio_status=statuses.append,
+        queue_max_size=2,
+    )
+
+    await queue.start()
+    # sequence=1 is picked up by the sole consumer immediately and blocks on
+    # `release`, so the queue (maxsize=2) fills with sequence 2 and 3.
+    await queue.enqueue(job(1))
+    await asyncio.sleep(0)  # let the consumer dequeue job 1 and start blocking
+    await queue.enqueue(job(2))
+    await queue.enqueue(job(3))
+    # Queue is now full (2, 3); enqueuing 4 must evict the oldest pending (2).
+    await queue.enqueue(job(4))
+
+    release.set()
+    await queue.flush_and_stop()
+
+    overflowed = [status for status in statuses if status.error_code == "TTS_QUEUE_OVERFLOW"]
+    assert [status.sequence for status in overflowed] == [2]
+    completed_sequences = [status.sequence for status in statuses if status.type == "audio.completed"]
+    assert completed_sequences == [1, 3, 4]
+
+
+@pytest.mark.asyncio
 async def test_flush_and_stop_drains_all_locale_queues() -> None:
     publisher = FakePublisher()
     queue = LocaleTtsQueue(

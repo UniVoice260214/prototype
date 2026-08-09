@@ -82,6 +82,9 @@ class SessionWorker:
         self._current_professor_identity: str | None = None
         self._reconnect_task: asyncio.Task[None] | None = None
         self._stt_reconnect_attempts = 0
+        self._heartbeat_task: asyncio.Task[None] | None = None
+        self._last_status: str = "starting"
+        self._last_status_error: str | None = None
 
         self._stopped = asyncio.Event()
         self._cleanup_lock = asyncio.Lock()
@@ -92,6 +95,9 @@ class SessionWorker:
 
     async def run(self) -> None:
         await self._set_worker_status("starting")
+        self._heartbeat_task = asyncio.create_task(
+            self._heartbeat_loop(), name=f"worker-heartbeat-{self._session_id}"
+        )
         try:
             token = self._build_token()
             self._register_room_handlers()
@@ -226,6 +232,12 @@ class SessionWorker:
         )
 
     def _on_room_disconnected(self, *_: Any) -> None:
+        # `stop()` 경로(세션 정상 종료)로 들어온 게 아니라면, 이는 LiveKit 엔진이
+        # 내부 재연결 시도를 모두 소진한 뒤 보내는 비자발적 disconnect다. 이를 정상
+        # 종료로 기록하면 Core API가 죽은 워커를 감지하지 못하므로 failed로 표시해
+        # 상태 폴링/heartbeat 부재와 함께 재시작 supervisor가 개입할 수 있게 한다.
+        if not self._stopping:
+            self._failed = True
         self._schedule(self.stop())
 
     async def _attach_professor_track(self, track: Any, participant: Any, *, track_key: str) -> bool:
@@ -562,6 +574,14 @@ class SessionWorker:
             self._stopping = True
             errors: list[str] = []
 
+            if self._heartbeat_task is not None:
+                self._heartbeat_task.cancel()
+                try:
+                    await self._heartbeat_task
+                except asyncio.CancelledError:
+                    pass
+                self._heartbeat_task = None
+
             async with self._attach_lock:
                 await self._cancel_reconnect_locked()
                 self._stop_stt_locked()
@@ -609,7 +629,29 @@ class SessionWorker:
             logger.info("[%s] session worker stopped", self._session_id)
 
     async def _set_worker_status(self, status: str, *, error: str | None = None) -> None:
+        self._last_status = status
+        self._last_status_error = error
         try:
             await self._status_store.set_status(self._session_id, status, error=error)  # type: ignore[arg-type]
         except Exception:  # noqa: BLE001
             logger.exception("[%s] worker status update failed: %s", self._session_id, status)
+
+    async def _heartbeat_loop(self) -> None:
+        """워커 상태 키의 TTL을 주기적으로 연장한다.
+
+        상태가 바뀔 때만 Redis에 쓰면, 프로세스가 죽거나 이벤트 루프가 멈춘 경우
+        마지막으로 기록된 상태(예: 'ready')가 TTL 동안(구 3600s) 그대로 남아
+        Core API가 워커 사망을 감지하지 못한다. 짧은 TTL + 주기적 재기록 조합으로
+        진짜 응답 없는 워커는 TTL 만료로 빠르게 드러나게 한다.
+        """
+        interval = self._config.worker_heartbeat_interval_sec
+        try:
+            while True:
+                await asyncio.sleep(interval)
+                if self._cleaned_up:
+                    return
+                await self._set_worker_status(self._last_status, error=self._last_status_error)
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001
+            logger.exception("[%s] heartbeat loop failed", self._session_id)

@@ -61,15 +61,29 @@ export class SessionService {
     }
 
     const roomName = `session-${uuid()}`;
-    const session = await this.sessions.save(
-      this.sessions.create({
-        courseId: dto.courseId,
-        liveKitRoomName: roomName,
-        status: 'active',
-        targetLocales: dto.targetLocales,
-        startedAt: new Date(),
-      }),
-    );
+    let session: Session;
+    try {
+      session = await this.sessions.save(
+        this.sessions.create({
+          courseId: dto.courseId,
+          liveKitRoomName: roomName,
+          status: 'active',
+          targetLocales: dto.targetLocales,
+          startedAt: new Date(),
+        }),
+      );
+    } catch (err) {
+      // The findOne() check above is not atomic, so a concurrent request
+      // (double click, two tabs) can race past it. The partial unique index
+      // UQ_sessions_active_per_course is the real guard; translate its
+      // violation into the same error the pre-check throws.
+      if (this.isUniqueViolation(err)) {
+        throw new BadRequestException(
+          `Course already has an active session`,
+        );
+      }
+      throw err;
+    }
 
     try {
       await this.liveKit.createRoom(roomName);
@@ -223,6 +237,12 @@ export class SessionService {
       throw new BadRequestException('Session is not active');
     }
 
+    // This endpoint doubles as the professor's "recover session" action, so
+    // it's the one place we can catch a dead/never-restarted AI worker and
+    // nudge it back to life instead of silently reissuing a LiveKit token
+    // that connects to a room nobody is transcribing.
+    await this.ensureWorkerRunning(session);
+
     const course = await this.courseAccess.findCourseForUser(
       session.courseId,
       user,
@@ -312,6 +332,49 @@ export class SessionService {
     await pipe.exec();
   }
 
+  /**
+   * The Python worker's own supervisor auto-restarts a session's worker while
+   * Redis still reports it 'active', but that supervisor gives up after a few
+   * attempts and requires an external nudge to try again. Detect a missing,
+   * failed, or stopped worker here and republish sessions.started — the
+   * worker registry treats an already-running session id as a no-op, so this
+   * is safe to call even when the worker is healthy and just hasn't reported
+   * 'ready' yet.
+   */
+  private async ensureWorkerRunning(session: Session): Promise<void> {
+    const status = await this.readWorkerStatus(session.id);
+    const needsRestart =
+      !status || status.status === 'failed' || status.status === 'stopped';
+    if (!needsRestart) return;
+
+    this.logger.warn(
+      `Worker for session ${session.id} is ${status?.status ?? 'missing'}; republishing sessions.started to trigger recovery`,
+    );
+    // Refresh and publish independently: the sessions.started payload is
+    // self-contained (the worker doesn't need the Redis prewarm keys to
+    // start), so a prewarm hiccup shouldn't block the republish that actually
+    // wakes the worker back up.
+    try {
+      await this.prewarmRedis(session);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to refresh Redis prewarm for ${session.id}: ${this.errorMessage(err)}`,
+      );
+    }
+    try {
+      await this.events.publishSessionStarted({
+        sessionId: session.id,
+        courseId: session.courseId,
+        liveKitRoomName: session.liveKitRoomName,
+        targetLocales: session.targetLocales,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to republish sessions.started for ${session.id}: ${this.errorMessage(err)}`,
+      );
+    }
+  }
+
   private async waitForWorkerStopped(sessionId: string): Promise<void> {
     const timeoutSec = this.config.get<number>('WORKER_STOP_TIMEOUT_SEC', 8);
     const pollIntervalMs =
@@ -381,5 +444,13 @@ export class SessionService {
 
   private errorMessage(err: unknown): string {
     return err instanceof Error ? err.message : String(err);
+  }
+
+  /** Postgres error code 23505 = unique_violation. */
+  private isUniqueViolation(err: unknown): boolean {
+    const candidate = err as { code?: unknown; driverError?: { code?: unknown } };
+    return (
+      candidate?.code === '23505' || candidate?.driverError?.code === '23505'
+    );
   }
 }

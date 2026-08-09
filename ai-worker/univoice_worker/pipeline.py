@@ -6,6 +6,7 @@ import asyncio
 import inspect
 import logging
 import time
+import uuid
 from typing import Any, Awaitable, Callable
 
 from .dedupe import DedupeStore
@@ -81,6 +82,10 @@ class TranslationPipeline:
         self._stopping = False
         self._stopped = False
         self._next_sequence = 1
+        # 워커가 재기동되어도 이전 실행의 segment_id와 겹치지 않도록 실행마다 고유 id를 붙인다.
+        # (Redis TTS dedupe TTL이 1시간이라 segment_id가 seg-000001부터 재사용되면 새 발화가
+        #  이전 실행의 완료/처리중 키와 충돌해 오진단·스킵된다.)
+        self._run_id = uuid.uuid4().hex[:8]
 
     async def start(self) -> None:
         async with self._lifecycle_lock:
@@ -178,7 +183,7 @@ class TranslationPipeline:
         sequence = self._next_sequence
         return SpeechSegment(
             session_id=self._session_id,
-            segment_id=f"{self._session_id}-seg-{sequence:06d}",
+            segment_id=f"{self._session_id}-{self._run_id}-seg-{sequence:06d}",
             sequence=sequence,
             text=draft.text,
             stt_confidence=draft.stt_confidence,

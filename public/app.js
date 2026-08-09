@@ -16,7 +16,11 @@
   const state = {
     mode: "professor",
     accessToken: sessionStorage.getItem("univoice.accessToken") || "",
-    room: null,
+    // 교수/학생 화면을 한 페이지에서 전환할 수 있으므로(데모 편의 기능) 두 LiveKit
+    // 연결을 별도 참조로 관리한다. 단일 state.room을 공유하면 학생 화면으로 전환해
+    // 입장하는 순간 교수 Room 참조가 덮어써져 마이크를 끌 방법이 없어지고, 교수 쪽
+    // 재연결 이벤트 가드(`state.room !== room`)도 함께 죽는다.
+    rooms: { professor: null, student: null },
     session: null,
     joinUrl: "",
     elapsedTimer: null,
@@ -161,6 +165,22 @@
     return state.activeSessions;
   }
 
+  async function waitForWorkerReady(sessionId, { timeoutMs = 15000, intervalMs = 1000 } = {}) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      try {
+        const data = await api(`/sessions/${sessionId}/status`);
+        const status = data.worker?.status;
+        if (status === "ready") return true;
+        if (status === "failed") return false;
+      } catch {
+        // Transient polling error; keep trying until the deadline.
+      }
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+    return false;
+  }
+
   async function restoreProfessorSession(session, courses) {
     const button = $("recover-session");
     setBusy(button, true, "수업 연결을 복구하고 있습니다...");
@@ -171,6 +191,8 @@
         courseName: courseNameFor(session, courses),
       };
       saveActiveSession(state.session);
+      // /professor-token doubles as the recovery trigger: if the AI worker
+      // died, the server republishes sessions.started here.
       const liveKit = await api(`/sessions/${session.id}/professor-token`, {
         method: "POST",
       });
@@ -178,10 +200,17 @@
       await connectProfessor(liveKit);
       await loadQr(session.id);
       enterProfessorLive();
-      toast("진행 중인 수업과 마이크 연결을 복구했습니다.");
+      // LiveKit reconnecting doesn't mean the translation pipeline is back —
+      // confirm the worker actually reports ready before claiming success.
+      const workerReady = await waitForWorkerReady(session.id);
+      if (workerReady) {
+        toast("진행 중인 수업과 마이크 연결을 복구했습니다.");
+      } else {
+        toast("LiveKit 연결은 복구됐지만 번역 음성 파이프라인이 아직 준비되지 않았습니다. 잠시 후 상태를 확인해주세요.", "error");
+      }
       return true;
     } catch (error) {
-      await disconnectRoom();
+      await disconnectRoom("professor");
       clearSessionTimers();
       clearSavedSession();
       state.session = null;
@@ -300,7 +329,7 @@
       await loadQr(result.session.id);
       enterProfessorLive();
     } catch (error) {
-      if (state.room) await disconnectRoom();
+      if (state.rooms.professor) await disconnectRoom("professor");
       if (createdSession) {
         state.session = null;
         await refreshActiveSessions().catch(() => undefined);
@@ -312,7 +341,7 @@
   }
 
   async function syncProfessorMicrophone(room) {
-    if (state.room !== room) return;
+    if (state.rooms.professor !== room) return;
     const shouldEnable = !state.micPausedByUser;
     if (room.localParticipant.isMicrophoneEnabled !== shouldEnable) {
       await room.localParticipant.setMicrophoneEnabled(shouldEnable);
@@ -326,7 +355,7 @@
       adaptiveStream: true,
       dynacast: true,
     });
-    state.room = room;
+    state.rooms.professor = room;
     room.on(LivekitClient.RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
       let data;
       try {
@@ -341,12 +370,12 @@
       }
     });
     room.on(LivekitClient.RoomEvent.Reconnecting, () => {
-      if (state.room !== room) return;
+      if (state.rooms.professor !== room) return;
       clearTimeout(state.connectionStatusTimer);
       $("session-status").innerHTML = "<i></i> 재연결 중";
     });
     room.on(LivekitClient.RoomEvent.Reconnected, async () => {
-      if (state.room !== room) return;
+      if (state.rooms.professor !== room) return;
       $("session-status").innerHTML = "<i></i> 다시 연결됨";
       try {
         await syncProfessorMicrophone(room);
@@ -354,13 +383,13 @@
         toast(`마이크 상태를 복구하지 못했습니다: ${error.message}`, "error");
       }
       state.connectionStatusTimer = setTimeout(() => {
-        if (state.room === room) {
+        if (state.rooms.professor === room) {
           $("session-status").innerHTML = "<i></i> 수업 진행 중";
         }
       }, 2000);
     });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
-      if (state.room !== room) return;
+      if (state.rooms.professor !== room) return;
       $("session-status").innerHTML = "<i></i> 연결 끊김";
       $("mic-message").textContent = "LiveKit 연결이 끊겼습니다.";
     });
@@ -434,7 +463,7 @@
     setBusy(button, true, "수업을 종료하고 있습니다...");
     try {
       await api(`/sessions/${endingSessionId}/end`, { method: "POST" });
-      await disconnectRoom();
+      await disconnectRoom("professor");
       clearSessionTimers();
       clearSavedSession();
       state.activeSessions = state.activeSessions.filter((session) => session.id !== endingSessionId);
@@ -481,7 +510,7 @@
       $("slide-course-title").textContent = $("joined-session-label").textContent.replace(/^•\s*/, "") || "실시간 강의";
       toast("강의실에 입장했습니다.");
     } catch (error) {
-      await disconnectRoom();
+      await disconnectRoom("student");
       toast(error.message, "error");
     } finally {
       setBusy(button, false);
@@ -491,7 +520,7 @@
   async function connectStudent(liveKit) {
     ensureLiveKit();
     const room = new LivekitClient.Room({ adaptiveStream: true });
-    state.room = room;
+    state.rooms.student = room;
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication) => {
       if (track.kind !== LivekitClient.Track.Kind.Audio || publication.trackName !== `tts.${state.selectedStudentLocale}`) return;
       const audio = $("translation-audio");
@@ -507,6 +536,7 @@
       handleStudentData(payload, topic);
     });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      if (state.rooms.student !== room) return;
       $("audio-status").textContent = "연결이 종료되었습니다";
       toast("강의실 연결이 종료되었습니다.");
     });
@@ -560,16 +590,16 @@
   }
 
   async function leaveStudentSession() {
-    await disconnectRoom();
+    await disconnectRoom("student");
     $("student-live").classList.add("hidden");
     $("student-join").classList.remove("hidden");
     $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
   }
 
-  async function disconnectRoom() {
-    if (!state.room) return;
-    const room = state.room;
-    state.room = null;
+  async function disconnectRoom(role) {
+    const room = state.rooms[role];
+    if (!room) return;
+    state.rooms[role] = null;
     try {
       await room.disconnect();
     } catch {
@@ -590,7 +620,7 @@
     sessionStorage.removeItem("univoice.accessToken");
     clearSavedSession();
     clearSessionTimers();
-    void disconnectRoom();
+    void disconnectRoom("professor");
     state.accessToken = "";
     state.session = null;
     state.activeSessions = [];
@@ -638,8 +668,8 @@
     $("join-session").addEventListener("click", joinStudentSession);
     $("leave-session").addEventListener("click", leaveStudentSession);
     $("mic-pause").addEventListener("click", async () => {
-      if (!state.room) return;
-      const room = state.room;
+      if (!state.rooms.professor) return;
+      const room = state.rooms.professor;
       state.micPausedByUser = true;
       try {
         await room.localParticipant.setMicrophoneEnabled(false);
@@ -651,8 +681,8 @@
       }
     });
     $("mic-resume").addEventListener("click", async () => {
-      if (!state.room) return;
-      const room = state.room;
+      if (!state.rooms.professor) return;
+      const room = state.rooms.professor;
       state.micPausedByUser = false;
       try {
         await room.localParticipant.setMicrophoneEnabled(true);
@@ -681,9 +711,10 @@
     });
     window.addEventListener("beforeunload", () => {
       clearSessionTimers();
-      if (state.room) {
-        const room = state.room;
-        state.room = null;
+      for (const role of ["professor", "student"]) {
+        const room = state.rooms[role];
+        if (!room) continue;
+        state.rooms[role] = null;
         room.disconnect();
       }
     });

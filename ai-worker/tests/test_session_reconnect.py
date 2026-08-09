@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 
 import pytest
 
@@ -198,6 +199,98 @@ async def test_permanent_stt_error_does_not_reconnect() -> None:
     assert len(stts) == 1
     assert status_store.statuses[-1][0] == "failed"
     await worker.stop()
+
+
+@pytest.mark.asyncio
+async def test_unsolicited_room_disconnect_marks_worker_failed() -> None:
+    """LiveKit이 재연결 시도를 모두 소진하고 보내는 비자발적 disconnect는
+    (우리가 stop()을 호출하지 않은 상태에서 발생하면) failed로 기록되어야
+    Core API/재시작 supervisor가 감지할 수 있다."""
+    stts: list[FakeStt] = []
+    status_store = StatusStore()
+    worker = make_worker(stts=stts, status_store=status_store)
+
+    worker._on_room_disconnected()
+    await asyncio.sleep(0.01)
+
+    assert worker._failed is True
+    assert status_store.statuses[-1][0] == "failed"
+
+
+@pytest.mark.asyncio
+async def test_graceful_stop_does_not_mark_worker_failed() -> None:
+    """세션 종료(stop()) 흐름에서 room이 disconnect되는 것은 정상 종료이며
+    failed로 오분류되면 안 된다."""
+    stts: list[FakeStt] = []
+    status_store = StatusStore()
+    worker = make_worker(stts=stts, status_store=status_store)
+
+    await worker.stop()
+    worker._on_room_disconnected()  # 우리 쪽 disconnect()로 인한 후속 이벤트
+    await asyncio.sleep(0.01)
+
+    assert worker._failed is False
+    assert status_store.statuses[-1][0] == "stopped"
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_loop_periodically_rewrites_last_known_status() -> None:
+    """상태가 바뀌지 않아도 heartbeat가 주기적으로 Redis 키를 재기록해
+    TTL을 연장해야, 응답 없는(hang된) 워커도 TTL 만료로 감지 가능하다."""
+    stts: list[FakeStt] = []
+    status_store = StatusStore()
+    cfg = dataclasses.replace(max_reconnects_config(3), worker_heartbeat_interval_sec=0.02)
+    worker = SessionWorker(
+        config=cfg,
+        session_id="session-123",
+        room_name="room",
+        target_locales=["vi-VN"],
+        glossary=[],
+        room=FakeRoom(),
+        stt_factory=lambda *_cb: (stts.append(FakeStt()) or stts[-1]),
+        audio_stream_factory=NeverEndingStream,
+        status_store=status_store,
+    )
+    worker._last_status = "ready"  # simulates pipeline having already reached "ready"
+
+    heartbeat_task = asyncio.create_task(worker._heartbeat_loop())
+    try:
+        # Windows' default event loop clock has ~15ms granularity, so give the
+        # 20ms-interval loop plenty of headroom to tick more than once.
+        await asyncio.sleep(0.2)
+    finally:
+        heartbeat_task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await heartbeat_task
+
+    assert len(status_store.statuses) >= 2
+    assert all(status == ("ready", None) for status in status_store.statuses)
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_loop_stops_once_worker_is_cleaned_up() -> None:
+    stts: list[FakeStt] = []
+    status_store = StatusStore()
+    cfg = dataclasses.replace(max_reconnects_config(3), worker_heartbeat_interval_sec=0.01)
+    worker = SessionWorker(
+        config=cfg,
+        session_id="session-123",
+        room_name="room",
+        target_locales=["vi-VN"],
+        glossary=[],
+        room=FakeRoom(),
+        stt_factory=lambda *_cb: (stts.append(FakeStt()) or stts[-1]),
+        audio_stream_factory=NeverEndingStream,
+        status_store=status_store,
+    )
+    worker._last_status = "ready"
+    worker._cleaned_up = True  # simulate cleanup having already run
+
+    heartbeat_task = asyncio.create_task(worker._heartbeat_loop())
+    await asyncio.sleep(0.03)
+
+    assert heartbeat_task.done()
+    assert status_store.statuses == []
 
 
 @pytest.mark.asyncio
