@@ -43,7 +43,29 @@
             <div id="professor-locales" class="locale-grid"></div>
           </fieldset>
         </section>
+        <section class="white-card setup-card materials-card">
+          <div class="materials-head">
+            <h2>강의 자료</h2>
+            <span id="material-count"></span>
+          </div>
+          <ul id="material-list" class="material-list">
+            <li class="material-empty">등록된 자료가 없습니다.</li>
+          </ul>
+          <div class="material-form">
+            <input id="material-file" type="file" accept=".pdf,.ppt,.pptx" aria-label="강의 자료 파일 선택" />
+            <div class="material-options">
+              <select id="material-source" aria-label="자료 유형">
+                <option value="lecture">강의안</option>
+                <option value="major">전공 자료</option>
+              </select>
+              <input id="material-week" type="number" min="1" max="16" placeholder="주차(선택)" aria-label="주차" />
+            </div>
+            <button id="material-upload" class="turquoise-button" type="button">자료 업로드</button>
+          </div>
+        </section>
         <button id="start-session" class="turquoise-button start-button" type="button">수업 시작</button>
+        <!-- 진행 중인 수업이 있을 때만 나타난다 (updateRecoveryControls 가 토글). -->
+        <button id="recover-session" class="turquoise-button start-button hidden" type="button">진행 중 수업 복구</button>
         <nav class="phone-nav" aria-label="교수자 메뉴">
           <button type="button">홈</button><button class="active" type="button">강의실</button><button type="button">설정</button>
         </nav>
@@ -78,8 +100,11 @@
           </div>
         </section>
         <section class="white-card transcript-card">
-          <h2>실시간 원문 인식</h2>
-          <p id="professor-transcript">교수님의 음성을 기다리고 있습니다.</p>
+          <div class="transcript-head">
+            <h2>실시간 원문 인식</h2>
+            <button id="prof-history" type="button">자막 기록</button>
+          </div>
+          <p id="professor-transcript"><span id="prof-final">교수님의 음성을 기다리고 있습니다.</span><span id="prof-partial" class="partial"></span></p>
         </section>
         <nav class="phone-nav" aria-label="교수자 메뉴">
           <button id="show-qr-nav" type="button">입장 QR</button><button class="active" type="button">강의실</button><button type="button">설정</button>
@@ -108,8 +133,9 @@
           </nav>
           <div class="student-profile">
             <div class="profile-icon" aria-hidden="true"><span></span></div>
-            <strong>UniVoice 학생</strong>
-            <small>게스트 입장</small>
+            <strong id="student-name">UniVoice 학생</strong>
+            <small id="student-login-status">게스트 입장</small>
+            <button id="student-auth" class="student-auth-button" type="button">로그인</button>
           </div>
         </aside>
         <div class="dashboard-content">
@@ -123,7 +149,7 @@
             </section>
             <section class="dashboard-card">
               <h2>최근 번역 기록</h2>
-              <div class="soft-panel recent-list">
+              <div class="soft-panel recent-list" id="recent-history">
                 <p>아직 저장된 번역 기록이 없습니다.</p>
                 <small>수업을 들으면 이곳에서 다시 확인할 수 있어요.</small>
               </div>
@@ -173,14 +199,40 @@
           <div class="audio-wave"><i></i><i></i><i></i><i></i></div>
           <span id="audio-status">번역 음성 연결 대기 중</span>
           <span id="student-locale-label">번역 음성</span>
+          <button id="show-history" type="button">자막 기록</button>
           <button id="leave-session" type="button">나가기</button>
         </div>
         <div id="captions" class="fullscreen-captions" aria-live="polite">
           <div class="caption-empty">교수님의 발화를 기다리고 있습니다.</div>
         </div>
-        <audio id="translation-audio" autoplay></audio>
+        <audio id="translation-audio" autoplay playsinline></audio>
+        <!-- 태블릿/모바일은 사용자 탭 전까지 자동재생을 차단한다. 차단 감지 시 표시. -->
+        <button id="audio-unlock" class="audio-unlock hidden" type="button">
+          🔊 탭하여 소리 켜기<small>Tap to enable sound</small>
+        </button>
       </section>
     </main>
+
+    <dialog id="history-dialog" class="history-dialog">
+      <button id="close-history" class="dialog-close" type="button" aria-label="닫기">×</button>
+      <h2>자막 기록</h2>
+      <p class="history-caption">수업을 선택하면 해당 수업의 전체 자막을 볼 수 있습니다.</p>
+      <select id="history-session-select" class="history-session-select hidden"></select>
+      <div id="history-list" class="history-list">
+        <p class="history-empty">아직 저장된 자막이 없습니다.</p>
+      </div>
+    </dialog>
+
+    <dialog id="student-login-dialog" class="student-login-dialog">
+      <button id="close-student-login" class="dialog-close" type="button" aria-label="닫기">×</button>
+      <h2>학생 로그인</h2>
+      <p class="history-caption">로그인하면 이름과 선호 언어가 프로필에 저장됩니다.</p>
+      <form id="student-login-form" class="student-login-form">
+        <label>이메일<input id="student-email" type="email" autocomplete="username" placeholder="student@univ.ac.kr" required /></label>
+        <label>비밀번호<input id="student-password" type="password" autocomplete="current-password" minlength="8" required /></label>
+        <button class="turquoise-button" type="submit">로그인</button>
+      </form>
+    </dialog>
 
     <div id="toast" class="toast" role="status"></div>
     <script src="/vendor/livekit/livekit-client.umd.js"></script>

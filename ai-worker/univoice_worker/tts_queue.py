@@ -34,6 +34,8 @@ class LocaleTtsQueue:
         on_audio_status: AudioStatusSink | None = None,
         dedupe_store: DedupeStore | None = None,
         queue_max_size: int = 100,
+        enqueue_timeout_sec: float = 1.0,
+        flush_timeout_sec: float = 3.0,
     ) -> None:
         self._locales = list(locales)
         self._locale_set = set(locales)
@@ -41,6 +43,8 @@ class LocaleTtsQueue:
         self._publisher = publisher
         self._on_audio_status = on_audio_status or _noop_audio_status
         self._dedupe = dedupe_store or InMemoryDedupeStore()
+        self._enqueue_timeout = max(0.05, enqueue_timeout_sec)
+        self._flush_timeout = max(0.1, flush_timeout_sec)
         self._queues: dict[str, asyncio.Queue[QueueItem]] = {
             locale: asyncio.Queue(maxsize=max(1, queue_max_size)) for locale in self._locales
         }
@@ -75,7 +79,22 @@ class LocaleTtsQueue:
                 await self._emit_failed(job, "TTS_QUEUE_STOPPING")
                 return False
 
-        await self._queues[job.locale].put(job)
+        try:
+            # 무제한 put 은 큐가 찼을 때 세그먼트 컨슈머를 영구 블록시켜
+            # 파이프라인 flush(queue.join)까지 연쇄로 매달리게 한다.
+            # 실시간 자막에서 밀린 음성은 어차피 시효가 지난 것 — 드롭이 맞다.
+            await asyncio.wait_for(
+                self._queues[job.locale].put(job), timeout=self._enqueue_timeout
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                "[%s] TTS 큐(%s) 가득참 — 세그먼트 %s 음성 드롭",
+                job.session_id,
+                job.locale,
+                job.segment_id,
+            )
+            await self._emit_failed(job, "TTS_QUEUE_FULL")
+            return False
         return True
 
     async def flush_and_stop(self) -> None:
@@ -87,16 +106,43 @@ class LocaleTtsQueue:
                 return
             self._stopping = True
 
-        for queue in self._queues.values():
-            await queue.join()
-        for locale, queue in self._queues.items():
-            task = self._tasks.get(locale)
-            if task is not None and not task.done():
-                await queue.put(None)
+        # 남은 잡을 실시간 재생 속도로 전부 드레인하면 세션 종료가 수십~수백 초
+        # 걸린다. NestJS 는 8초 뒤 룸을 지우므로 그 이후의 재생은 무가치하다.
+        # 제한 시간 안에 안 끝나면 백로그를 폐기한다.
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*(queue.join() for queue in self._queues.values())),
+                timeout=self._flush_timeout,
+            )
+        except asyncio.TimeoutError:
+            discarded = sum(queue.qsize() for queue in self._queues.values())
+            logger.warning(
+                "TTS flush 가 %.0f초 내 끝나지 않아 백로그 %d건을 폐기한다",
+                self._flush_timeout,
+                discarded,
+            )
+            for task in self._tasks.values():
+                if not task.done():
+                    task.cancel()
+            for queue in self._queues.values():
+                while not queue.empty():
+                    try:
+                        queue.get_nowait()
+                        queue.task_done()
+                    except asyncio.QueueEmpty:  # pragma: no cover - 경합 방어
+                        break
+        else:
+            for locale, queue in self._queues.items():
+                task = self._tasks.get(locale)
+                if task is not None and not task.done():
+                    await queue.put(None)
+
         if self._tasks:
             results = await asyncio.gather(*self._tasks.values(), return_exceptions=True)
             for result in results:
-                if isinstance(result, Exception):
+                if isinstance(result, Exception) and not isinstance(
+                    result, asyncio.CancelledError
+                ):
                     logger.error("TTS consumer stopped with error: %r", result)
 
         async with self._lifecycle_lock:

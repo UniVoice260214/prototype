@@ -31,6 +31,15 @@ export class StudentController {
     return this.students.findAll();
   }
 
+  @Roles('student')
+  @Get('me/sessions')
+  @ApiOperation({
+    summary: 'List sessions the logged-in student attended (newest first)',
+  })
+  listMySessions(@CurrentUser() user: AuthUser) {
+    return this.students.listMySessions(user.sub);
+  }
+
   @Roles('admin', 'student')
   @Get(':studentId')
   @ApiOperation({ summary: 'Get a student profile (self or admin)' })

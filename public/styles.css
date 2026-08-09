@@ -188,15 +188,32 @@ legend { margin-bottom: 10px; }
 .audio-wave i:nth-child(3) { height: 17px; animation-delay: .4s; }
 @keyframes wave { to { transform: scaleY(.45); } }
 .fullscreen-captions {
-  position: fixed; z-index: 4; left: 4%; right: 4%; bottom: 30px; min-height: 115px; max-height: 160px;
+  position: fixed; z-index: 4; left: 4%; right: 4%; bottom: 30px; min-height: 115px; max-height: min(38vh, 300px);
   padding: 18px 34px; overflow-y: auto; border-radius: 0 0 17px 17px; color: white;
   background: rgba(40,40,40,.72); font-size: clamp(18px, 2.2vw, 34px);
 }
-.caption { padding: 3px 0 12px; }
-.caption .source { display: block; }
-.caption .translated { display: block; margin-top: 7px; color: #f0f5ff; font-size: .78em; }
+/* 학생이 읽어야 하는 것은 번역문이다. 한국어 원문은 STT 오인식이 그대로 드러나는
+   자리라 보조 크기로 낮춘다. (예전에는 원문 1em / 번역문 .78em 으로 뒤집혀 있었다.) */
+.caption { display: flex; flex-direction: column; padding: 3px 0 14px; }
+.caption .translated { order: 1; display: block; font-size: 1em; font-weight: 600; color: #fff; line-height: 1.35; }
+.caption .source { order: 2; display: block; margin-top: 6px; font-size: .5em; font-weight: 400; color: #cfd8dc; opacity: .75; line-height: 1.3; }
+.caption .fallback-note { order: 3; display: block; margin-top: 6px; font-size: .4em; color: #ffd9a0; }
+.caption.fallback .translated { color: #ffd9a0; }
 .caption time { display: none; }
+/* 태블릿/모바일 autoplay 차단 시 뜨는 소리 켜기 버튼 — 놓칠 수 없게 크고 고정 */
+.audio-unlock {
+  position: fixed; z-index: 60; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 18px 30px; border: 0; border-radius: 16px; cursor: pointer;
+  background: #24af75; color: #fff; font-size: 20px; font-weight: 700;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35); animation: unlock-pulse 1.6s infinite;
+}
+.audio-unlock small { font-size: 12px; font-weight: 400; opacity: .85; }
+@keyframes unlock-pulse { 50% { transform: translate(-50%, -50%) scale(1.05); } }
 .caption-empty { color: #d8dddd; }
+/* 교수 화면: 확정 텍스트와 인식 중(partial)을 시각적으로 구분한다. */
+#professor-transcript .partial { color: #8a9a9a; font-style: italic; }
+#professor-transcript .partial:not(:empty)::before { content: " "; }
 .toast {
   position: fixed; z-index: 100; right: 24px; bottom: 24px; max-width: min(400px, calc(100% - 48px));
   padding: 13px 17px; border-radius: 11px; color: white; background: #132c2c; box-shadow: 0 10px 35px rgba(0,0,0,.22);
@@ -244,3 +261,62 @@ legend { margin-bottom: 10px; }
   .translation-status { left: 12px; right: 12px; bottom: 130px; }
   .translation-status span:nth-of-type(2) { display: none; }
 }
+
+/* ── 강의 자료 업로드/목록 (교수 준비 화면) ─────────────────────────── */
+.materials-card { margin-top: 18px; }
+.materials-head { display: flex; align-items: baseline; justify-content: space-between; }
+.materials-head h2 { margin: 0 0 12px; font-size: 18px; }
+.materials-head span { color: var(--muted); font-size: 12px; }
+.material-list { margin: 0 0 14px; padding: 0; list-style: none; }
+.material-list li { display: flex; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.material-list li.material-empty { color: var(--muted); border-bottom: 0; }
+.material-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.material-status { flex-shrink: 0; padding: 3px 8px; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: 11px; font-weight: 700; }
+.material-status.done { background: var(--aqua); color: #0c5f60; }
+.material-status.processing { background: #fdf3d7; color: #8a6d1a; }
+.material-status.failed { background: #fbdfdb; color: #a74339; }
+.material-remove { flex-shrink: 0; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; background: transparent; color: var(--muted); font-size: 11px; }
+.material-form { display: flex; flex-direction: column; gap: 10px; }
+.material-form input[type="file"] { font-size: 12px; }
+.material-options { display: flex; gap: 10px; }
+.material-options select, .material-options input { flex: 1; min-width: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+
+/* ── 자막 기록(스크롤백) 다이얼로그 ─────────────────────────────────── */
+.history-dialog {
+  width: min(680px, calc(100% - 36px)); max-height: 80vh; padding: 30px; border: 0; border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+}
+.history-dialog::backdrop { background: rgba(4,34,35,.5); backdrop-filter: blur(5px); }
+.history-dialog h2 { margin: 0 0 4px; }
+.history-caption { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.history-session-select {
+  width: 100%; margin: 0 0 12px; padding: 8px 10px;
+  border: 1px solid var(--line); border-radius: 8px; font-size: 14px; background: #fff;
+}
+.history-list { max-height: 55vh; overflow-y: auto; padding-right: 6px; }
+.history-empty { color: var(--muted); font-size: 14px; }
+.history-item { display: flex; flex-direction: column; padding: 10px 2px; border-bottom: 1px solid var(--line); }
+.history-item .translated { font-size: 16px; font-weight: 600; line-height: 1.45; }
+.history-item .source { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.history-item time { margin-top: 3px; color: #9fb0b1; font-size: 11px; }
+.history-item.fallback .translated { color: #9a6a12; }
+.history-item.fallback::after { content: "번역 실패 — 원문 표시"; margin-top: 2px; color: #b98a2c; font-size: 11px; }
+
+/* ── 학생 로그인 ────────────────────────────────────────────────────── */
+.student-auth-button { margin-top: 10px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px; background: var(--paper); font-size: 12px; font-weight: 700; }
+.student-login-dialog {
+  width: min(400px, calc(100% - 36px)); padding: 30px; border: 0; border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+}
+.student-login-dialog::backdrop { background: rgba(4,34,35,.5); backdrop-filter: blur(5px); }
+.student-login-form { display: flex; flex-direction: column; gap: 13px; }
+.student-login-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 700; }
+.student-login-form input { padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; }
+
+/* ── 교수 자막 기록 버튼 / 학생 최근 기록 ───────────────────────────── */
+.transcript-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.transcript-head h2 { margin: 0; }
+#prof-history { border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; background: var(--paper); color: var(--muted); font-size: 12px; font-weight: 700; }
+.recent-item { margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.45; }
+.recent-item:last-of-type { border-bottom: 0; }
+#recent-history small { color: var(--muted); }

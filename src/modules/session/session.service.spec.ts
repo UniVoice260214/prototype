@@ -91,8 +91,10 @@ function makeService(options: {
     findSessionForUser: jest.fn(async () => session),
   };
 
+  const attendances = { upsert: jest.fn(async () => undefined) };
   const service = new SessionService(
     sessions as any,
+    attendances as any,
     { find: jest.fn() } as any,
     redis as any,
     liveKit as any,
@@ -104,6 +106,7 @@ function makeService(options: {
 
   return {
     service,
+    attendances,
     session,
     sessions,
     redis,

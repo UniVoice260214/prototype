@@ -682,6 +682,12 @@ class RagRouter:
                 {"pattern": k, "canonical": v[0], "reason": v[1]}
                 for k, v in sorted(self._lexicon.items())
             ],
+            # ai-worker 는 router.py 를 import 하지 않으므로 예외/필러 규칙도 함께 실어 보낸다.
+            # 이게 빠지면 워커에서 '음소' ⊂ '음소거' 류 오탐을 막을 방법이 없다.
+            "pattern_exclusions": {
+                k: v.pattern for k, v in sorted(self._exclusions.items())
+            },
+            "filler_patterns": [p.pattern for p in FILLER_PATTERNS],
         }
         path.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"

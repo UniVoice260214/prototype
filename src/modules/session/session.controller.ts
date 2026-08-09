@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -72,6 +73,21 @@ export class SessionController {
     return this.service.issueStudentToken(id, dto, studentId);
   }
 
+  @Roles('professor', 'admin')
+  @Get('active')
+  @ApiOperation({ summary: 'List active sessions (professor recovery)' })
+  @ApiQuery({
+    name: 'courseId',
+    required: false,
+    description: 'Optional course UUID filter',
+  })
+  findActive(
+    @Query('courseId') courseId: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findActive(courseId, user);
+  }
+
   @Roles('admin', 'professor')
   @Get()
   @ApiOperation({ summary: 'List sessions visible to the current user' })
@@ -80,11 +96,21 @@ export class SessionController {
     required: false,
     description: 'Optional course UUID filter',
   })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['active', 'ended'],
+    description: 'Optional status filter (e.g. ended for past-class list)',
+  })
   findAll(
     @Query('courseId') courseId: string | undefined,
+    @Query('status') status: string | undefined,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.service.findAll(courseId, user);
+    if (status !== undefined && status !== 'active' && status !== 'ended') {
+      throw new BadRequestException(`Invalid status: ${status}`);
+    }
+    return this.service.findAll(courseId, status, user);
   }
 
   @Roles('admin', 'professor')

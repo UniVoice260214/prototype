@@ -12,6 +12,7 @@ dist/
 
 # dev tools (PC-specific portable binaries: Redis Windows port, Azurite emulator data)
 .tools/
+.omc/
 
 # logs
 *.log

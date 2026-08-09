@@ -10,7 +10,10 @@ import { Course } from '../../modules/course/entities/course.entity';
 import { Glossary } from '../../modules/glossary/entities/glossary.entity';
 import { Material } from '../../modules/material/entities/material.entity';
 import { Professor } from '../../modules/professor/entities/professor.entity';
-import { Session } from '../../modules/session/entities/session.entity';
+import {
+  Session,
+  SessionStatus,
+} from '../../modules/session/entities/session.entity';
 
 @Injectable()
 export class CourseAccessService {
@@ -60,16 +63,23 @@ export class CourseAccessService {
   }
 
   async findSessionsForUser(
-    filters: { courseId?: string },
+    filters: { courseId?: string; status?: SessionStatus },
     user: AuthUser,
   ): Promise<Session[]> {
     const qb = this.sessions
       .createQueryBuilder('session')
-      .innerJoin('session.course', 'course');
+      // 목록 화면이 과목명을 함께 쓰므로 응답에 course 를 싣는다
+      // (예전에는 프론트가 GET /courses 를 따로 받아 클라이언트에서 조인했다).
+      .leftJoinAndSelect('session.course', 'course');
 
     if (filters.courseId) {
       qb.andWhere('session.courseId = :courseId', {
         courseId: filters.courseId,
+      });
+    }
+    if (filters.status) {
+      qb.andWhere('session.status = :status', {
+        status: filters.status,
       });
     }
 
@@ -80,7 +90,7 @@ export class CourseAccessService {
       });
     }
 
-    return qb.getMany();
+    return qb.orderBy('session.startedAt', 'DESC').getMany();
   }
 
   async findSessionForUser(
