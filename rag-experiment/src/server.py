@@ -31,14 +31,22 @@ async def lifespan(app: FastAPI):
     model = os.getenv("RAG_MODEL", "kure")
     top_k = int(os.getenv("RAG_TOP_K", "3"))
     context_max_chars = int(os.getenv("RAG_CONTEXT_MAX_CHARS", "4000"))
+    course_index_map_raw = os.getenv("RAG_COURSE_INDEX_MAP", "")
     logger.info("RAG runtime loading model=%s topK=%d", model, top_k)
+    # RAG_COURSE_INDEX_MAP이 잘못돼 있으면 여기서 예외가 그대로 전파돼 기동이 실패한다
+    # (오검색이 프로덕션에 새어나가지 않도록 무음 폴백 대신 fail-fast).
     app.state.runtime = await asyncio.to_thread(
         RagRuntime.load,
         model,
         top_k=top_k,
         context_max_chars=context_max_chars,
+        course_index_map_raw=course_index_map_raw,
     )
-    logger.info("RAG runtime ready majors=%s", sorted(app.state.runtime.routers))
+    logger.info(
+        "RAG runtime ready majors=%s courses=%s",
+        sorted(app.state.runtime.routers),
+        sorted(app.state.runtime.course_index_map),
+    )
     yield
 
 
@@ -60,6 +68,7 @@ def health_ready(request: Request) -> dict[str, object]:
         "model": runtime.model_key,
         "majors": sorted(runtime.routers),
         "indexes": sorted(runtime.indexes),
+        "courses": sorted(runtime.course_index_map),
     }
 
 
@@ -74,17 +83,19 @@ async def retrieve(payload: RetrieveRequest, request: Request) -> dict[str, obje
             payload.sentence,
             major=payload.major,
             glossary_hits=payload.glossaryHits,
+            course_id=payload.courseId,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     logger.info(
-        "RAG %s course=%s major=%s query=%r matched=%s score=%s latencyMs=%s",
+        "RAG %s course=%s major=%s query=%r matched=%s score=%s indexes=%s latencyMs=%s",
         "ON" if result["useRag"] else "OFF",
         payload.courseId,
         result["major"],
         result["query"],
         result["matchedTerms"],
         result["topScore"],
+        result["indexes"],
         result["latencyMs"],
     )
     return result

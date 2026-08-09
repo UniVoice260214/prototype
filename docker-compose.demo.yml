@@ -173,6 +173,7 @@ services:
       RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
       RAG_TOP_K: ${RAG_TOP_K:-3}
       RAG_CONTEXT_MAX_CHARS: ${RAG_CONTEXT_MAX_CHARS:-4000}
+      RAG_COURSE_INDEX_MAP: ${RAG_COURSE_INDEX_MAP:-}
       TOKENIZERS_PARALLELISM: "false"
     volumes:
       - demo-rag-indexes:/app/indexes:ro

@@ -14,11 +14,14 @@
              → 다국어 자막 → Azure TTS → 학생 LiveKit track
 ```
 
-RAG 서비스는 전공 자료와 해당 전공의 강의자료 인덱스를 함께 검색한다.
+RAG 서비스는 courseId 기준으로 인덱스를 좁힌다. `RAG_COURSE_INDEX_MAP`에 등록된
+과목만 전공 인덱스 + 그 과목의 강의자료 인덱스를 함께 검색하고, 등록되지 않은
+과목은 전공 인덱스만 검색한다(다른 과목 강의자료가 섞이지 않는다). 사용 가능한
+조합:
 
-- `ai`: `major_ai` + `lecture_kim_i2a`
-- `hss`: `major_humanities_social_sciences` + 국어학개론/종교사회학 강의
-- `bme`: `major_biomedical_bioengineering` + 분자생물학 강의
+- `ai`: `major_ai` (+ 등록 시 `lecture_kim_i2a`)
+- `hss`: `major_humanities_social_sciences` (+ 등록 시 국어학개론/종교사회학 강의 중 그 과목 것만)
+- `bme`: `major_biomedical_bioengineering` (+ 등록 시 분자생물학 강의)
 
 ## 처음 실행
 
@@ -96,6 +99,29 @@ RAG_DEFAULT_MAJOR=ai
 ```dotenv
 RAG_COURSE_MAJOR_MAP={"course-uuid-1":"ai","course-uuid-2":"bme"}
 ```
+
+`RAG_COURSE_MAJOR_MAP`은 ai-worker가 RAG 서비스로 보낼 `major`(auto 회피용)를
+정할 뿐, 어떤 인덱스를 검색할지는 정하지 않는다. 인덱스 자체는 RAG 서비스의
+`RAG_COURSE_INDEX_MAP`이 정하고, 이 값이 있으면 요청의 `major`를 덮어쓴다.
+
+## 과목별 인덱스 격리 (RAG_COURSE_INDEX_MAP)
+
+`rag-service`는 `courseId`가 `RAG_COURSE_INDEX_MAP`에 등록돼 있으면 그 과목의
+전공+강의 인덱스만 검색하고, 등록돼 있지 않으면 전공 인덱스만 검색한다(다른
+과목 강의자료가 섞이지 않도록 하는 안전한 기본값). 값은 `.env.demo`에 JSON으로
+설정한다.
+
+```dotenv
+RAG_COURSE_INDEX_MAP={"course-uuid-1":{"major":"bme","indexes":["major_biomedical_bioengineering","lecture_lee_molbio"]}}
+```
+
+- `major`는 `ai` | `hss` | `bme` 중 하나여야 한다.
+- `indexes`는 `rag-experiment/src/config.py`의 `INDEX_SUBSETS` 키 중에서 골라야
+  하며, 잘못된 값은 `rag-service` 기동 시 즉시 실패한다(무음 오검색 방지).
+- 데모 UI로 만든 과목의 실제 `courseId`는 사전에 알 수 없다. 강의자료 인덱스
+  증강까지 확인하려면 `GET /courses`(또는 관리자 UI)로 방금 만든 과목의 id를
+  확인한 뒤 `.env.demo`에 추가하고 `rag-service`를 재시작한다. 추가하지 않아도
+  전공 인덱스만으로 데모는 정상 동작한다.
 
 ## 인덱스 재생성
 
