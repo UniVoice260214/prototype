@@ -1184,9 +1184,18 @@
     panel.innerHTML = "";
     const recent = items.slice(-5).reverse();
     recent.forEach((row) => {
-      const line = document.createElement("p");
+      const line = document.createElement("div");
       line.className = "recent-item";
-      line.textContent = row.text;
+      const text = document.createElement("p");
+      text.textContent = row.text;
+      const meta = document.createElement("small");
+      meta.textContent = new Date(row.at).toLocaleString("ko-KR", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      line.append(text, meta);
       panel.appendChild(line);
     });
     const note = document.createElement("small");
@@ -1229,6 +1238,7 @@
   function updateStudentProfileUi() {
     const logged = Boolean(state.studentProfile);
     $("student-name").textContent = logged ? state.studentProfile.name : "UniVoice 학생";
+    $("student-greeting-name").textContent = logged ? state.studentProfile.name : "학생";
     $("student-login-status").textContent = logged
       ? state.studentProfile.email
       : "게스트 입장";
@@ -1385,6 +1395,10 @@
       toast(state.materials.map((material) => material.originalFilename).join(", "));
     });
     $("show-history").addEventListener("click", () => {
+      openHistory().catch(() => undefined);
+    });
+    // 대시보드 "전체 보기" — 기존 자막 기록 다이얼로그(openHistory)를 그대로 연다.
+    $("recent-history-all").addEventListener("click", () => {
       openHistory().catch(() => undefined);
     });
     $("prof-history").addEventListener("click", () => {

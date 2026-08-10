@@ -121,11 +121,10 @@ img { max-width: 100%; }
 
 /* 시각 크기가 44px 미만인 컨트롤은 보이지 않는 히트 영역을 넓혀
    최소 터치 타깃(44x44)을 보장한다 */
-.btn-sm, .material-remove, .student-auth-button, .language-route button, .dialog-close {
+.btn-sm, .material-remove, .dialog-close {
   position: relative;
 }
-.btn-sm::after, .material-remove::after, .student-auth-button::after,
-.language-route button::after, .dialog-close::after {
+.btn-sm::after, .material-remove::after, .dialog-close::after {
   content: "";
   position: absolute;
   inset: -6px;
@@ -623,120 +622,210 @@ legend { margin-bottom: var(--sp-2); }
    학생 화면
    ============================================================ */
 .student-app { min-height: 100vh; }
+
+/* ── 태블릿 홈 대시보드: sidebar + content 그리드 ─────────── */
 .student-dashboard {
-  display: flex;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
   min-height: 100vh;
-  max-width: 1180px;
-  margin: 0 auto;
-  gap: var(--sp-5);
-  padding: var(--sp-5);
+  min-height: 100dvh;
+  background: var(--color-bg);
 }
 .student-sidebar {
-  width: 220px;
-  flex: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-3);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--sp-5);
+  border-right: 1px solid var(--color-border);
 }
-.sidebar-logo { width: 96px; align-self: flex-start; }
-.student-sidebar nav { display: grid; gap: var(--sp-1); }
-.student-sidebar nav button {
+.sidebar-logo { width: 104px; padding: 0 var(--sp-2); align-self: flex-start; }
+.sidebar-nav { display: grid; gap: var(--sp-1); }
+.sidebar-nav button {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   min-height: var(--touch-target);
-  text-align: left;
   padding: 0 var(--sp-3);
   border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
+  text-align: left;
 }
-.student-sidebar nav button:hover { background: var(--color-surface-sunken); }
-.student-sidebar nav button.active { background: var(--color-primary-soft); color: var(--color-primary); }
-.student-profile {
-  margin-top: auto;
-  display: grid;
-  gap: 4px;
-  justify-items: start;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--sp-4);
+.sidebar-nav button svg { width: 20px; height: 20px; flex: none; }
+.sidebar-nav button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-nav button:hover { background: var(--color-surface-sunken); color: var(--color-text); }
+.sidebar-nav button.active { background: var(--color-primary-soft); color: var(--color-primary); }
+
+/* compact profile — 메뉴(로그인/로그아웃, 개인정보 수정)는 위로 펼쳐진다 */
+.profile-menu { margin-top: auto; position: relative; }
+.profile-menu summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--touch-target);
+  padding: var(--sp-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+.profile-menu summary::-webkit-details-marker { display: none; }
+.profile-menu summary:hover { background: var(--color-surface-sunken); }
+.profile-menu[open] summary { border-color: var(--color-border); }
+.profile-summary-text { flex: 1; min-width: 0; display: grid; }
+.profile-summary-text strong {
   font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.student-profile small { color: var(--color-text-tertiary); }
-.student-auth-button {
-  margin-top: var(--sp-2);
-  min-height: 36px;
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border-strong);
+.profile-summary-text small {
+  color: var(--color-text-tertiary);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-chevron { width: 16px; height: 16px; color: var(--color-text-tertiary); flex: none; transition: transform 0.15s; }
+.profile-menu[open] .profile-chevron { transform: rotate(180deg); }
+.profile-menu-items {
+  position: absolute;
+  bottom: calc(100% + var(--sp-2));
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 2px;
+  padding: var(--sp-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 15;
+}
+.profile-menu-items button {
+  min-height: 40px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--radius-sm);
+  text-align: left;
   font-size: var(--fs-sm);
   font-weight: 600;
+  color: var(--color-text);
 }
+.profile-menu-items button:hover:not(:disabled) { background: var(--color-surface-sunken); }
+.profile-menu-items button:disabled { color: var(--color-text-tertiary); cursor: not-allowed; }
 .profile-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--color-surface-sunken);
   border: 1px solid var(--color-border);
   color: var(--color-text-tertiary);
   overflow: hidden;
+  flex: none;
 }
-.profile-icon span::before { content: "👤"; font-size: 18px; }
+.profile-icon span::before { content: "\1F464"; font-size: 16px; }
 
-.dashboard-content { flex: 1; min-width: 0; display: grid; gap: var(--sp-5); align-content: start; }
-.dashboard-top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
-.dashboard-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: var(--sp-5);
+/* ── 메인 영역 ────────────────────────────────────────────── */
+.dashboard-content {
+  min-width: 0;
+  width: 100%;
+  max-width: 960px;
+  padding: var(--sp-8) var(--sp-6);
   display: grid;
-  gap: var(--sp-3);
+  gap: var(--sp-5);
   align-content: start;
 }
-.dashboard-card h2 { margin: 0; font-size: var(--fs-md); }
-.soft-panel {
-  background: var(--color-surface-sunken);
-  border: 1px solid var(--color-border);
+.dashboard-greeting h1 { margin: 0; font-size: var(--fs-2xl); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.dashboard-greeting p { margin: var(--sp-1) 0 0; color: var(--color-text-secondary); font-size: var(--fs-sm); }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; }
+.section-head h2 { margin: 0; font-size: var(--fs-md); }
+
+/* 오늘의 강의 (최우선 섹션) */
+.lecture-hero { padding: var(--sp-5); display: grid; gap: var(--sp-4); }
+.lecture-row { display: flex; align-items: center; gap: var(--sp-3); }
+.lecture-row-icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-sm);
-  padding: var(--sp-4);
-  display: grid;
-  gap: var(--sp-2);
-  font-size: var(--fs-sm);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
 }
-.soft-panel p { margin: 0; }
-.soft-panel small { color: var(--color-text-tertiary); }
+.lecture-row-icon svg { width: 24px; height: 24px; }
+.lecture-row-body { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.lecture-row-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lecture-row-meta {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.token-field { font-size: var(--fs-xs); }
+.token-field textarea { font-size: var(--fs-sm); }
+
+/* 2-column 콘텐츠 */
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-5);
+  align-items: start;
+}
+.recent-card, .settings-summary { padding: var(--sp-5); display: grid; gap: var(--sp-3); align-content: start; }
+.recent-list { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
+.recent-list > p { margin: 0; }
+.recent-list > small, .recent-item small { color: var(--color-text-tertiary); font-size: var(--fs-xs); }
 .recent-item {
+  display: grid;
+  gap: 2px;
   margin: 0;
   padding-bottom: var(--sp-2);
   border-bottom: 1px dashed var(--color-border);
   overflow-wrap: anywhere;
 }
-.language-route {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  flex-wrap: wrap;
-  font-size: var(--fs-sm);
-}
-.language-route > div { display: grid; gap: 2px; }
+.recent-item:last-of-type { border-bottom: 0; padding-bottom: 0; }
+.recent-item p { margin: 0; }
+
+/* 통역/보기 설정 compact summary */
+.language-route { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; font-size: var(--fs-sm); }
+.language-route > div { display: grid; gap: 2px; min-width: 0; }
+.language-route strong { overflow-wrap: anywhere; }
 .language-route small { color: var(--color-text-tertiary); }
-.language-route span { color: var(--color-text-tertiary); }
-.language-route button {
-  margin-left: auto;
-  min-height: 36px;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--color-border);
-  font-size: var(--fs-xs);
-  color: var(--color-text-secondary);
+.language-route .arrow { color: var(--color-text-tertiary); }
+.locale-details summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-primary);
 }
-.join-controls { display: grid; gap: var(--sp-4); }
+.locale-details summary::-webkit-details-marker { display: none; }
+.locale-details summary::after { content: "\25BE"; margin-left: 6px; }
+.locale-details[open] summary::after { content: "\25B4"; }
+.locale-details fieldset { margin-top: var(--sp-2); }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .student-locale-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -754,24 +843,46 @@ legend { margin-bottom: var(--sp-2); }
   background: var(--color-surface-sunken);
   font-size: var(--fs-xs);
 }
-.caption-preview { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
-.caption-preview div {
-  background: var(--color-text);
-  color: #f8fafc;
-  border-radius: var(--radius-sm);
-  padding: var(--sp-3) var(--sp-4);
-  display: grid;
-  gap: 2px;
-}
-.caption-preview p { margin: 0; }
-.caption-preview p + p { color: #94a3b8; font-size: var(--fs-xs); }
 
-@media (max-width: 860px) {
-  .student-dashboard { flex-direction: column; padding: var(--sp-4); }
-  .student-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; }
-  .student-sidebar nav { display: flex; flex-wrap: wrap; }
-  .student-profile { margin: 0 0 0 auto; border: 0; padding: 0; }
-  .dashboard-top { grid-template-columns: 1fr; }
+/* 좁은 태블릿: 아이콘 rail + 1-column */
+@media (max-width: 1023px) {
+  .student-dashboard { grid-template-columns: 72px minmax(0, 1fr); }
+  .student-sidebar { padding: var(--sp-4) var(--sp-2); align-items: center; }
+  .sidebar-logo { width: 40px; padding: 0; align-self: center; }
+  .sidebar-nav { width: 100%; }
+  .sidebar-nav button { justify-content: center; padding: 0; }
+  .sidebar-nav button span { display: none; }
+  .profile-menu { width: 100%; }
+  .profile-menu summary { justify-content: center; padding: var(--sp-1); }
+  .profile-summary-text, .profile-chevron { display: none; }
+  .profile-menu-items { left: 0; right: auto; min-width: 200px; }
+  .dashboard-columns { grid-template-columns: 1fr; }
+  .dashboard-content { padding: var(--sp-5) var(--sp-4); }
+}
+
+/* 모바일 폭: 상단 바 형태 */
+@media (max-width: 640px) {
+  .student-dashboard { grid-template-columns: 1fr; }
+  .student-sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .sidebar-logo { width: 36px; align-self: center; }
+  .sidebar-nav { display: flex; flex: 1; width: auto; }
+  .profile-menu { margin: 0 0 0 auto; width: auto; }
+  .profile-menu-items {
+    left: auto;
+    right: 0;
+    bottom: auto;
+    top: calc(100% + var(--sp-2));
+    min-width: 200px;
+  }
 }
 
 /* ── 학생 라이브 (번역 화면) ──────────────────────────────── */
