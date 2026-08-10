@@ -53,10 +53,15 @@
   const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const NEAR_BOTTOM_PX = 48;
 
-  function createCaptionScroller(containerId, jumpButtonId) {
+  function createCaptionScroller(containerId, jumpButtonId, onPinChange) {
     const container = $(containerId);
     const jump = $(jumpButtonId);
     const scroller = { pinned: true };
+    const setPinned = (value) => {
+      if (scroller.pinned === value) return;
+      scroller.pinned = value;
+      if (onPinChange) onPinChange(value);
+    };
     const nearBottom = () =>
       container.scrollHeight - container.scrollTop - container.clientHeight < NEAR_BOTTOM_PX;
     const toLatest = () => {
@@ -64,15 +69,15 @@
         top: container.scrollHeight,
         behavior: REDUCED_MOTION ? "auto" : "smooth",
       });
-      scroller.pinned = true;
+      setPinned(true);
       jump.classList.add("hidden");
     };
     container.addEventListener("scroll", () => {
       if (nearBottom()) {
-        scroller.pinned = true;
+        setPinned(true);
         jump.classList.add("hidden");
       } else {
-        scroller.pinned = false;
+        setPinned(false);
       }
     });
     jump.addEventListener("click", toLatest);
@@ -81,9 +86,12 @@
       else jump.classList.remove("hidden");
     };
     scroller.reset = () => {
-      scroller.pinned = true;
+      setPinned(true);
       jump.classList.add("hidden");
     };
+    // 명시적 자동 스크롤 toggle 용 외부 제어 (표시 전용)
+    scroller.toLatest = toLatest;
+    scroller.unpin = () => setPinned(false);
     return scroller;
   }
 
@@ -107,6 +115,28 @@
     setMicBadge(enabled ? "실시간 번역 중" : "일시정지됨", enabled ? "is-live" : "is-warn");
     $("mic-pause").classList.toggle("hidden", !enabled);
     $("mic-resume").classList.toggle("hidden", enabled);
+  }
+
+  // ── 학생 자막 패널 표시 상태 (표시 전용) ────────────────────────────
+  // open: 목록 표시 / minimized: 최신 1건만(좁은 화면 overlay) / closed: 숨김.
+  // closed 는 display:none 이라 aria-live 도 침묵한다 — 스크린리더 중복 없음.
+  let transcriptViewState = "open";
+
+  function setTranscriptState(next) {
+    transcriptViewState = next;
+    const live = $("student-live");
+    live.classList.toggle("transcript-closed", next === "closed");
+    live.classList.toggle("transcript-minimized", next === "minimized");
+    $("transcript-toggle").setAttribute("aria-expanded", String(next !== "closed"));
+    $("transcript-expand").setAttribute("aria-expanded", String(next === "open"));
+    $("transcript-reopen").classList.toggle("hidden", next !== "closed");
+  }
+
+  function syncAutoscrollButton(pinned) {
+    const button = $("autoscroll-toggle");
+    button.setAttribute("aria-pressed", String(pinned));
+    // 상태를 색이 아닌 텍스트로 구분한다 (접근성).
+    button.textContent = pinned ? "자동 스크롤 켬" : "자동 스크롤 끔";
   }
 
   async function api(path, options = {}) {
@@ -976,6 +1006,9 @@
     $("student-join").classList.remove("hidden");
     $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
     if (studentScroller) studentScroller.reset();
+    // 다음 입장을 위해 자막 패널 표시 상태를 초기화한다 (표시 전용).
+    setTranscriptState("open");
+    syncAutoscrollButton(true);
   }
 
   // ── 자막 기록(스크롤백) ──────────────────────────────────────────────
@@ -1363,8 +1396,22 @@
 
   function initialize() {
     renderLocales();
-    studentScroller = createCaptionScroller("captions", "captions-jump-latest");
+    studentScroller = createCaptionScroller("captions", "captions-jump-latest", syncAutoscrollButton);
     profScroller = createCaptionScroller("professor-transcript", "prof-jump-latest");
+
+    // 자막 패널 접기/펼치기/최소화/닫기 (표시 전용 상태 전환)
+    $("transcript-toggle").addEventListener("click", () => {
+      setTranscriptState(transcriptViewState === "closed" ? "open" : "closed");
+    });
+    $("transcript-close").addEventListener("click", () => setTranscriptState("closed"));
+    $("transcript-reopen").addEventListener("click", () => setTranscriptState("open"));
+    $("transcript-minimize").addEventListener("click", () => setTranscriptState("minimized"));
+    $("transcript-expand").addEventListener("click", () => setTranscriptState("open"));
+    // 명시적 자동 스크롤 toggle — 기존 scroller.pinned 상태를 그대로 재사용한다.
+    $("autoscroll-toggle").addEventListener("click", () => {
+      if (studentScroller.pinned) studentScroller.unpin();
+      else studentScroller.toLatest();
+    });
     const query = new URLSearchParams(location.search);
     const token = query.get("token") || "";
     if (token) {

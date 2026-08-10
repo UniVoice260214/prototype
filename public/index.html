@@ -280,37 +280,82 @@
       </section>
 
       <section id="student-live" class="student-translation hidden">
-        <header class="student-live-bar">
+        <!-- 상단 toolbar: 뒤로가기 · 강의명 · 연결 상태 · 언어(읽기 전용) · 자막 toggle · 더보기 -->
+        <header class="viewer-toolbar">
+          <button id="leave-session" class="icon-btn" type="button" aria-label="강의에서 나가기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          </button>
           <div class="slide-header">
             <strong id="slide-course-title">실시간 강의</strong>
             <span id="slide-section-title">UniVoice 번역 모드</span>
           </div>
-          <button id="leave-session" class="btn btn-secondary btn-sm" type="button">나가기</button>
+          <span class="status-badge is-info toolbar-status"><i></i><span id="audio-status">번역 음성 연결 대기 중</span></span>
+          <span class="chip toolbar-lang" title="번역 언어는 입장 시 선택됩니다 — 변경하려면 나간 뒤 다시 입장하세요">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+            <span id="student-locale-label">번역 음성</span>
+            <small>재입장 시 변경</small>
+          </span>
+          <button id="transcript-toggle" class="icon-btn" type="button" aria-label="자막 패널 접기/펼치기" aria-expanded="true" aria-controls="transcript-panel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h6"/><path d="M7 11h10"/></svg>
+          </button>
+          <details id="viewer-more" class="more-menu">
+            <summary class="icon-btn" aria-label="더보기 메뉴">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+            </summary>
+            <div class="more-menu-items">
+              <button id="show-history" type="button">자막 기록</button>
+            </div>
+          </details>
         </header>
 
-        <!-- 언어 방향 (입장 시 선택한 언어 — 라이브 중 변경은 재입장) -->
-        <div class="card lang-route">
-          <span class="lang-pill">한국어 <small>원문</small></span>
-          <span class="arrow" aria-hidden="true">→</span>
-          <span class="lang-pill accent" id="student-locale-label">번역 음성</span>
-          <p class="lang-route-note">번역 언어는 입장 시 선택됩니다 · 변경하려면 나간 뒤 다시 입장하세요</p>
+        <div class="viewer-main">
+          <!-- 슬라이드/PDF 영역 -->
+          <section class="card viewer-stage" aria-label="강의 자료 영역">
+            <!--
+              [PDF viewer adapter 연결 지점]
+              추후 학생용 자료 조회 경로가 생기면, 자료 URL이 실제로 존재할 때에만
+              #slide-viewer 안에 뷰어(iframe 또는 pdf.js 캔버스)를 렌더한다.
+              - 지금은 학생용 자료 API가 없으므로 empty state만 표시한다.
+              - 미리 iframe을 렌더하거나 빈/가짜 src를 넣지 말 것.
+              - 뷰어가 마운트되면 #slide-viewer 의 hidden 을 풀고 #slide-empty 를 숨긴다.
+            -->
+            <div id="slide-viewer" class="slide-viewer" hidden></div>
+            <div id="slide-empty" class="slide-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+              <strong>표시할 강의 자료가 없습니다</strong>
+              <p>강의 자료가 공유되면 이 영역에서 확인할 수 있습니다.</p>
+            </div>
+          </section>
+
+          <!-- 자막 패널: ≥1024px 사이드 split, 미만은 bottom overlay -->
+          <section id="transcript-panel" class="card caption-panel transcript-panel">
+            <div class="caption-panel-head">
+              <h2>실시간 자막</h2>
+              <div class="caption-panel-actions">
+                <button id="autoscroll-toggle" class="btn btn-ghost btn-sm" type="button" aria-pressed="true">자동 스크롤 켬</button>
+                <button id="transcript-expand" class="icon-btn overlay-only" type="button" aria-label="자막 목록 펼치기" aria-expanded="true" aria-controls="captions">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+                </button>
+                <button id="transcript-minimize" class="icon-btn overlay-only" type="button" aria-label="자막을 최신 한 건만 보이게 최소화">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <button id="transcript-close" class="icon-btn" type="button" aria-label="자막 패널 닫기 (오른쪽 아래 버튼으로 다시 열 수 있습니다)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="captions" class="caption-scroll" aria-live="polite">
+              <div class="caption-empty">교수님의 발화를 기다리고 있습니다.</div>
+            </div>
+            <button id="captions-jump-latest" class="jump-latest hidden" type="button">↓ 최신 자막으로</button>
+          </section>
         </div>
 
-        <div class="card translation-status">
-          <span class="status-badge is-info"><i></i><span id="audio-status">번역 음성 연결 대기 중</span></span>
-          <span class="spacer"></span>
-        </div>
-
-        <section class="card caption-panel">
-          <div class="caption-panel-head">
-            <h2>실시간 자막</h2>
-            <button id="show-history" class="btn btn-ghost btn-sm" type="button">자막 기록</button>
-          </div>
-          <div id="captions" class="caption-scroll" aria-live="polite">
-            <div class="caption-empty">교수님의 발화를 기다리고 있습니다.</div>
-          </div>
-          <button id="captions-jump-latest" class="jump-latest hidden" type="button">↓ 최신 자막으로</button>
-        </section>
+        <!-- 자막 패널을 닫았을 때 다시 여는 고정 버튼 -->
+        <button id="transcript-reopen" class="transcript-reopen hidden" type="button" aria-label="자막 패널 다시 열기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          자막 열기
+        </button>
 
         <audio id="translation-audio" autoplay playsinline></audio>
         <!-- 태블릿/모바일은 사용자 탭 전까지 자동재생을 차단한다. 차단 감지 시 표시. -->
