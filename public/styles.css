@@ -150,8 +150,7 @@ img { max-width: 100%; }
 .icon-btn svg { width: 20px; height: 20px; }
 
 /* ── Card ─────────────────────────────────────────────────── */
-.card,
-.white-card {
+.card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -336,7 +335,6 @@ legend { margin-bottom: var(--sp-2); }
 .login-card { display: grid; gap: var(--sp-4); padding: var(--sp-6); }
 
 /* ── 수업 준비 ────────────────────────────────────────────── */
-.page-title { margin: var(--sp-2) 0 0; font-size: var(--fs-2xl); letter-spacing: -0.02em; }
 .setup-card { display: grid; gap: var(--sp-4); padding: var(--sp-5); }
 .locale-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--sp-2); }
 .locale-option { position: relative; display: block; }
@@ -525,6 +523,7 @@ legend { margin-bottom: var(--sp-2); }
    자막 목록 (교수 원문 / 학생 번역 공용)
    ============================================================ */
 .caption-panel {
+  position: relative; /* .jump-latest 의 하단 고정 기준 */
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -620,10 +619,6 @@ legend { margin-bottom: var(--sp-2); }
   box-shadow: var(--shadow-lg);
   z-index: 5;
 }
-/* sticky 하단 고정을 위해 부모(.caption-panel)를 기준으로 배치 */
-.caption-panel { position: relative; }
-.caption-panel .jump-latest { position: absolute; }
-
 /* ============================================================
    학생 화면
    ============================================================ */
