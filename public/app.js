@@ -46,6 +46,69 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // ── 자막 자동 스크롤 제어 (표시 전용) ────────────────────────────────
+  // 새 발화가 오면 최신으로 자동 스크롤하되, 사용자가 위로 스크롤해 이전
+  // 발화를 읽는 동안에는 멈추고 "최신 자막으로" 버튼만 띄운다. 하단 근처로
+  // 직접 돌아오면 자동 스크롤이 다시 활성화된다.
+  const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const NEAR_BOTTOM_PX = 48;
+
+  function createCaptionScroller(containerId, jumpButtonId) {
+    const container = $(containerId);
+    const jump = $(jumpButtonId);
+    const scroller = { pinned: true };
+    const nearBottom = () =>
+      container.scrollHeight - container.scrollTop - container.clientHeight < NEAR_BOTTOM_PX;
+    const toLatest = () => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: REDUCED_MOTION ? "auto" : "smooth",
+      });
+      scroller.pinned = true;
+      jump.classList.add("hidden");
+    };
+    container.addEventListener("scroll", () => {
+      if (nearBottom()) {
+        scroller.pinned = true;
+        jump.classList.add("hidden");
+      } else {
+        scroller.pinned = false;
+      }
+    });
+    jump.addEventListener("click", toLatest);
+    scroller.onAppend = () => {
+      if (scroller.pinned) toLatest();
+      else jump.classList.remove("hidden");
+    };
+    scroller.reset = () => {
+      scroller.pinned = true;
+      jump.classList.add("hidden");
+    };
+    return scroller;
+  }
+
+  let studentScroller = null;
+  let profScroller = null;
+
+  // ── 상태 배지 (표시 전용 헬퍼) ──────────────────────────────────────
+  function setSessionStatus(label, tone) {
+    const badge = $("session-status");
+    badge.className = `status-badge ${tone}`;
+    badge.innerHTML = `<i></i> ${escapeHtml(label)}`;
+  }
+
+  function setMicBadge(label, tone) {
+    const badge = $("mic-message");
+    badge.className = `status-badge ${tone}`;
+    badge.innerHTML = `<i></i> ${escapeHtml(label)}`;
+  }
+
+  function updateMicUi(enabled) {
+    setMicBadge(enabled ? "실시간 번역 중" : "일시정지됨", enabled ? "is-live" : "is-warn");
+    $("mic-pause").classList.toggle("hidden", !enabled);
+    $("mic-resume").classList.toggle("hidden", enabled);
+  }
+
   async function api(path, options = {}) {
     const headers = { ...(options.headers || {}) };
     if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
@@ -99,7 +162,7 @@
       input.addEventListener("change", () => {
         const locale = LOCALES.find((item) => item.code === input.value);
         state.selectedStudentLocale = input.value;
-        $("selected-language").textContent = `${locale.flag} ${locale.name}`;
+        $("selected-language").textContent = `${locale.name} · ${locale.native}`;
         savePreferredLocale(input.value);
       });
     });
@@ -179,6 +242,7 @@
       remove.className = "material-remove";
       remove.textContent = "삭제";
       remove.addEventListener("click", async () => {
+        // TODO: 공통 modal 컴포넌트 도입 시 브라우저 confirm() 을 교체한다.
         if (!confirm(`'${material.originalFilename}' 자료를 삭제할까요?`)) return;
         try {
           await api(`/materials/${material.id}`, { method: "DELETE" });
@@ -419,7 +483,7 @@
     if (room.localParticipant.isMicrophoneEnabled !== shouldEnable) {
       await room.localParticipant.setMicrophoneEnabled(shouldEnable);
     }
-    $("mic-message").textContent = shouldEnable ? "ON" : "PAUSED";
+    updateMicUi(shouldEnable);
   }
 
   async function connectProfessor(liveKit) {
@@ -463,8 +527,12 @@
           if (data.sequence <= state.lastProfSequence) return;
           state.lastProfSequence = data.sequence;
         }
+        // 표시 전용: 직전 확정 발화를 목록으로 내리고 최신 칸을 비운다.
+        archiveProfUtterance();
         $("prof-final").textContent = data.text || "";
         $("prof-partial").textContent = "";
+        if (profScroller) profScroller.onAppend();
+        startCaptionExpiry();
       } else if (data.type === "stt.partial") {
         $("prof-partial").textContent = data.text || "";
       }
@@ -472,11 +540,11 @@
     room.on(LivekitClient.RoomEvent.Reconnecting, () => {
       if (state.room !== room) return;
       clearTimeout(state.connectionStatusTimer);
-      $("session-status").innerHTML = "<i></i> 재연결 중";
+      setSessionStatus("재연결 중", "is-warn");
     });
     room.on(LivekitClient.RoomEvent.Reconnected, async () => {
       if (state.room !== room) return;
-      $("session-status").innerHTML = "<i></i> 다시 연결됨";
+      setSessionStatus("다시 연결됨", "is-info");
       try {
         await syncProfessorMicrophone(room);
       } catch (error) {
@@ -484,14 +552,14 @@
       }
       state.connectionStatusTimer = setTimeout(() => {
         if (state.room === room) {
-          $("session-status").innerHTML = "<i></i> 수업 진행 중";
+          setSessionStatus("수업 진행 중", "is-live");
         }
       }, 2000);
     });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
       if (state.room !== room) return;
-      $("session-status").innerHTML = "<i></i> 연결 끊김";
-      $("mic-message").textContent = "LiveKit 연결이 끊겼습니다.";
+      setSessionStatus("연결 끊김", "is-error");
+      setMicBadge("연결 끊김", "is-error");
     });
     await room.connect(liveKit.liveKitUrl, liveKit.token);
     try {
@@ -522,12 +590,25 @@
     $("professor-setup").classList.add("hidden");
     $("professor-live").classList.remove("hidden");
     $("live-course-name").textContent = state.session.courseName;
-    $("session-status").innerHTML = "<i></i> 수업 진행 중";
-    $("mic-message").textContent = state.micPausedByUser ? "PAUSED" : "ON";
+    $("live-session-code").textContent = state.session.id.slice(0, 3).toUpperCase();
+    setSessionStatus("수업 진행 중", "is-live");
+    updateMicUi(!state.micPausedByUser);
+    resetProfTranscript();
     $("locale-count").textContent = `${state.session.targetLocales.length}개 언어`;
-    $("material-link").textContent = state.materials.length
-      ? `등록된 강의 자료 ${state.materials.length}개`
+    $("lang-targets").textContent = state.session.targetLocales
+      .map((code) => LOCALES.find((locale) => locale.code === code)?.name || code)
+      .join(" · ");
+    const firstMaterial = state.materials[0];
+    $("material-row-name").textContent = firstMaterial
+      ? firstMaterial.originalFilename
       : "등록된 강의 자료 없음";
+    $("material-row-meta").textContent = state.materials.length
+      ? [
+          firstMaterial.sourceType === "major" ? "전공 자료" : "강의안",
+          firstMaterial.week ? `${firstMaterial.week}주차` : null,
+          `총 ${state.materials.length}개`,
+        ].filter(Boolean).join(" · ")
+      : "수업 준비 화면에서 자료를 업로드하세요";
     const startedAt = new Date(state.session.startedAt).getTime();
     const updateElapsed = () => {
       const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
@@ -572,6 +653,7 @@
   }
 
   async function endSession() {
+    // TODO: 공통 modal 컴포넌트 도입 시 브라우저 confirm() 을 교체한다.
     if (state.endingSession || !state.session || !confirm("현재 수업을 종료할까요? 학생의 자막과 음성도 함께 종료됩니다.")) return;
     const button = $("end-session");
     const endingSessionId = state.session.id;
@@ -757,8 +839,10 @@
     }
   }
 
-  const CAPTION_TTL_MS = 12000;
-  const CAPTION_MAX_ITEMS = 2;
+  // 발화 단위 목록 UX: 최근 30개 발화를 5분 동안 유지한다 (무제한 누적 금지 —
+  // 초과분은 오래된 것부터 제거, TTL 경과분은 기존 방식대로 주기 정리).
+  const CAPTION_TTL_MS = 5 * 60 * 1000;
+  const CAPTION_MAX_ITEMS = 30;
 
   function addCaption(text, sourceKo, options) {
     if (!text) return;
@@ -774,6 +858,17 @@
     const item = document.createElement("div");
     item.className = isFallback ? "caption fallback" : "caption";
     item.dataset.expiresAt = String(Date.now() + CAPTION_TTL_MS);
+
+    // 발화 메타: 화자(현재는 교수 단일 화자) + 타임스탬프
+    const meta = document.createElement("div");
+    meta.className = "caption-meta";
+    const speaker = document.createElement("span");
+    speaker.className = "speaker";
+    speaker.textContent = "교수";
+    const time = document.createElement("time");
+    time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    meta.append(speaker, time);
+    item.appendChild(meta);
 
     // 번역문이 주 자막이다. 한국어 원문은 STT 오인식이 그대로 노출되는 자리라
     // 보조 크기로 낮춘다(styles.css 의 .translated / .source 참조).
@@ -794,30 +889,34 @@
       item.appendChild(source);
     }
 
-    const time = document.createElement("time");
-    time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-    item.appendChild(time);
-
     captions.appendChild(item);
     while (captions.children.length > CAPTION_MAX_ITEMS) captions.firstElementChild.remove();
-    captions.scrollTop = captions.scrollHeight;
+    if (studentScroller) studentScroller.onAppend();
     startCaptionExpiry();
+  }
+
+  // 학생 자막(#captions)과 교수 원문 목록(#professor-transcript)을 함께 정리한다.
+  // 교수 목록의 최신 발화(.latest)는 expiresAt 이 없어 정리 대상에서 자연히 빠진다.
+  function sweepExpiredCaptions(container, now) {
+    if (!container) return 0;
+    // 마지막 한 줄은 남긴다 — 발화 사이에 화면이 통째로 비면 장애로 오인된다.
+    while (container.children.length > 1) {
+      const first = container.firstElementChild;
+      const expiresAt = Number(first.dataset.expiresAt || 0);
+      if (!expiresAt || expiresAt > now) break;
+      first.remove();
+    }
+    return [...container.children].filter((el) => el.dataset.expiresAt).length;
   }
 
   function startCaptionExpiry() {
     if (state.captionExpiryTimer) return;
     state.captionExpiryTimer = setInterval(() => {
-      const captions = $("captions");
-      if (!captions) return;
       const now = Date.now();
-      // 마지막 한 줄은 남긴다 — 발화 사이에 화면이 통째로 비면 장애로 오인된다.
-      while (captions.children.length > 1) {
-        const first = captions.firstElementChild;
-        const expiresAt = Number(first.dataset.expiresAt || 0);
-        if (!expiresAt || expiresAt > now) break;
-        first.remove();
-      }
-      if (captions.children.length === 0) stopCaptionExpiry();
+      const remaining =
+        sweepExpiredCaptions($("captions"), now) +
+        sweepExpiredCaptions($("professor-transcript"), now);
+      if (remaining === 0) stopCaptionExpiry();
     }, 1000);
   }
 
@@ -825,6 +924,43 @@
     if (!state.captionExpiryTimer) return;
     clearInterval(state.captionExpiryTimer);
     state.captionExpiryTimer = null;
+  }
+
+  const PROF_PLACEHOLDER = "교수님의 음성을 기다리고 있습니다.";
+
+  // 교수 화면 원문 발화 목록 (표시 전용) — 이 화면에는 번역문 데이터가 없으므로
+  // stt.final 원문만 발화 단위로 쌓는다. 최신 발화는 .latest 칸(prof-final)이 담당하고,
+  // 확정 발화가 새로 오면 직전 발화를 시각적으로 낮은 명도의 목록 항목으로 내린다.
+  function archiveProfUtterance() {
+    const list = $("professor-transcript");
+    const latest = list.querySelector(".prof-utterance.latest");
+    const text = $("prof-final").textContent.trim();
+    if (!latest || !text || text === PROF_PLACEHOLDER) return;
+    const item = document.createElement("div");
+    item.className = "prof-utterance";
+    item.dataset.expiresAt = String(Date.now() + CAPTION_TTL_MS);
+    const meta = document.createElement("div");
+    meta.className = "caption-meta";
+    const speaker = document.createElement("span");
+    speaker.className = "speaker";
+    speaker.textContent = "교수";
+    const time = document.createElement("time");
+    time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    meta.append(speaker, time);
+    const content = document.createElement("span");
+    content.textContent = text;
+    item.append(meta, content);
+    list.insertBefore(item, latest);
+    // .latest 는 항상 마지막 요소라 오래된 것부터 지우는 아래 루프에 걸리지 않는다.
+    while (list.children.length > CAPTION_MAX_ITEMS) list.firstElementChild.remove();
+  }
+
+  function resetProfTranscript() {
+    const list = $("professor-transcript");
+    [...list.querySelectorAll(".prof-utterance:not(.latest)")].forEach((el) => el.remove());
+    $("prof-final").textContent = PROF_PLACEHOLDER;
+    $("prof-partial").textContent = "";
+    if (profScroller) profScroller.reset();
   }
 
   async function leaveStudentSession() {
@@ -839,6 +975,7 @@
     $("student-live").classList.add("hidden");
     $("student-join").classList.remove("hidden");
     $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
+    if (studentScroller) studentScroller.reset();
   }
 
   // ── 자막 기록(스크롤백) ──────────────────────────────────────────────
@@ -1216,6 +1353,8 @@
 
   function initialize() {
     renderLocales();
+    studentScroller = createCaptionScroller("captions", "captions-jump-latest");
+    profScroller = createCaptionScroller("professor-transcript", "prof-jump-latest");
     const query = new URLSearchParams(location.search);
     const token = query.get("token") || "";
     if (token) {
@@ -1343,5 +1482,14 @@
     }
   }
 
+  // 표시 전용 개발 훅: ?uvdev 쿼리로 열면 자막 UI(개수 제한·TTL·자동 스크롤)를
+  // 실제 세션 없이 수동 주입해 검증할 수 있다. 프로덕션 동작에는 관여하지 않는다.
+  // initialize() 안의 showMode() 가 replaceState 로 쿼리를 지우므로 먼저 읽는다.
+  const devMode = new URLSearchParams(location.search).has("uvdev");
+
   initialize();
+
+  if (devMode) {
+    window.__uvdev = { addCaption };
+  }
 })();
