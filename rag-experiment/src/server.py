@@ -26,6 +26,12 @@ class RetrieveRequest(BaseModel):
     courseId: str = ""
 
 
+class ReloadRequest(BaseModel):
+    """indexer_daemon 이 인덱스 갱신 직후 호출한다."""
+
+    courseId: str = Field(min_length=1, max_length=64)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     model = os.getenv("RAG_MODEL", "kure")
@@ -65,6 +71,21 @@ app = FastAPI(title="UniVoice Demo RAG", version="1.0", lifespan=lifespan)
 @app.get("/health/live")
 def health_live() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/admin/reload")
+async def admin_reload(payload: ReloadRequest, request: Request) -> dict[str, object]:
+    """과목별 lecture 인덱스를 디스크에서 다시 읽는다.
+
+    자료 업로드→인덱싱 완료 시 indexer_daemon 이 호출하며, 서비스 재시작 없이
+    새 자료가 즉시 검색에 반영된다. (미로드 과목은 /retrieve 가 lazy load 도 한다.)
+    """
+    runtime = getattr(request.app.state, "runtime", None)
+    if runtime is None:
+        raise HTTPException(status_code=503, detail="RAG runtime is loading")
+    name = await asyncio.to_thread(runtime.reload_course_index, payload.courseId)
+    logger.info("admin reload course=%s -> %s", payload.courseId, name or "not-found")
+    return {"reloaded": bool(name), "index": name}
 
 
 @app.get("/health/ready")

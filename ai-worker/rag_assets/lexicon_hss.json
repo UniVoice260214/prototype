@@ -1,0 +1,2517 @@
+{
+  "major": "hss",
+  "label": "인문사회",
+  "index": "major_humanities_social_sciences",
+  "score_threshold": 0.45,
+  "transliterations": {
+    "지디피": "GDP",
+    "지엔피": "GNP",
+    "씨피아이": "CPI",
+    "에이치디아이": "HDI",
+    "케이디씨": "KDC",
+    "디디씨": "DDC",
+    "에프지아이": "FGI",
+    "아이알비": "IRB",
+    "알씨티": "RCT",
+    "에스이에스": "SES",
+    "피 값": "p값",
+    "피값": "p값",
+    "제트 점수": "z점수",
+    "제트점수": "z점수",
+    "엔아이피티": "NIPT",
+    "비씨아이": "BCI",
+    "에이치엘에이": "HLA"
+  },
+  "lexicon": [
+    {
+      "pattern": "1차 사료",
+      "canonical": "1차 사료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "1차/2차 사료",
+      "canonical": "1차/2차 사료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "2차 사료",
+      "canonical": "2차 사료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ddc",
+      "canonical": "KDC/DDC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "e. h. carr",
+      "canonical": "카",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "erklären",
+      "canonical": "설명",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gdp",
+      "canonical": "GDP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "irb",
+      "canonical": "IRB",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kdc",
+      "canonical": "KDC/DDC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kdc/ddc",
+      "canonical": "KDC/DDC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "p값",
+      "canonical": "p값",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rct",
+      "canonical": "무작위 통제 실험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "verstehen",
+      "canonical": "이해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "z점수",
+      "canonical": "z점수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "情恨",
+      "canonical": "정한",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가격상한제",
+      "canonical": "가격상한제/하한제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가격상한제/하한제",
+      "canonical": "가격상한제/하한제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가격탄력성",
+      "canonical": "가격탄력성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가사",
+      "canonical": "가사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "갈등이론",
+      "canonical": "갈등이론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "거시경제학",
+      "canonical": "거시경제학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "거울 자아",
+      "canonical": "거울 자아",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "격음",
+      "canonical": "평음/격음/경음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "격조사",
+      "canonical": "격조사/보조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "격조사/보조사",
+      "canonical": "격조사/보조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "결과주의",
+      "canonical": "결과주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "겹문장",
+      "canonical": "겹문장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경기적 실업",
+      "canonical": "마찰적/구조적/경기적 실업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경음",
+      "canonical": "평음/격음/경음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경제학적 사고",
+      "canonical": "경제학적 사고",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경험론",
+      "canonical": "경험론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계급",
+      "canonical": "계급",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계급과 계층",
+      "canonical": "계급과 계층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계통",
+      "canonical": "고립어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고대국어",
+      "canonical": "고대국어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고립어",
+      "canonical": "고립어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고전시가",
+      "canonical": "고전시가",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고전적 조건형성",
+      "canonical": "고전적 조건형성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고프먼",
+      "canonical": "고프먼",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공공재",
+      "canonical": "공공재",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공급",
+      "canonical": "공급",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공리주의",
+      "canonical": "공리주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공법",
+      "canonical": "공법/사법/사회법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공법/사법/사회법",
+      "canonical": "공법/사법/사회법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공시적",
+      "canonical": "공시적/통시적",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공시적/통시적",
+      "canonical": "공시적/통시적",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과점",
+      "canonical": "과점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과학으로서의 심리학과 다섯 관점",
+      "canonical": "과학으로서의 심리학과 다섯 관점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과학철학",
+      "canonical": "과학철학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과학혁명",
+      "canonical": "과학혁명",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "관료제",
+      "canonical": "관료제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "관형어",
+      "canonical": "관형어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교란변수",
+      "canonical": "교란변수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교착어",
+      "canonical": "교착어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구개음화",
+      "canonical": "구개음화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구결",
+      "canonical": "구결",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구비문학",
+      "canonical": "구비문학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구술사",
+      "canonical": "구술사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구조적",
+      "canonical": "마찰적/구조적/경기적 실업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "국가",
+      "canonical": "국가",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "국어사",
+      "canonical": "국어사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "국어학",
+      "canonical": "국어학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "굴절접사",
+      "canonical": "굴절접사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "권력",
+      "canonical": "권력/권위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "권력, 권위, 국가",
+      "canonical": "권력, 권위, 국가",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "권력/권위",
+      "canonical": "권력/권위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "권력분립",
+      "canonical": "권력분립",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "권위",
+      "canonical": "권력/권위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "귀납",
+      "canonical": "연역/귀납",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "귀속 지위",
+      "canonical": "귀속 지위/성취 지위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "귀속 지위/성취 지위",
+      "canonical": "귀속 지위/성취 지위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "규칙 공리주의",
+      "canonical": "규칙 공리주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "균형가격",
+      "canonical": "균형가격",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "근거이론",
+      "canonical": "근거이론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "근대국어",
+      "canonical": "근대국어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "근접발달영역",
+      "canonical": "근접발달영역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "근현대문학",
+      "canonical": "근현대문학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기능주의",
+      "canonical": "기능주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기본적 귀인 오류",
+      "canonical": "기본적 귀인 오류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기술통계",
+      "canonical": "기술통계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기억과 역사",
+      "canonical": "기억과 역사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기억의 구조",
+      "canonical": "기억의 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기의",
+      "canonical": "기표/기의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기표",
+      "canonical": "기표/기의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기표/기의",
+      "canonical": "기표/기의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기회비용",
+      "canonical": "기회비용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "낙인 이론",
+      "canonical": "낙인 이론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "납본 제도",
+      "canonical": "납본 제도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "내적",
+      "canonical": "내적/외적 타당도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "내적 비판",
+      "canonical": "내적 비판",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "내적/외적 타당도",
+      "canonical": "내적/외적 타당도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "넛지",
+      "canonical": "넛지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "높임법",
+      "canonical": "높임법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다수의 폭정",
+      "canonical": "다수의 폭정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다의어",
+      "canonical": "다의어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단모음",
+      "canonical": "단모음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단일어",
+      "canonical": "단일어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대륙법계",
+      "canonical": "대륙법계/영미법계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대륙법계/영미법계",
+      "canonical": "대륙법계/영미법계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대상영속성",
+      "canonical": "대상영속성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대의 민주주의",
+      "canonical": "대의 민주주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대체재",
+      "canonical": "대체재/보완재",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대체재/보완재",
+      "canonical": "대체재/보완재",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대통령제",
+      "canonical": "대통령제/의원내각제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대통령제/의원내각제",
+      "canonical": "대통령제/의원내각제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "덕 윤리",
+      "canonical": "덕 윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "도서관",
+      "canonical": "도서관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "도서관과 문헌정보학의 원리",
+      "canonical": "도서관과 문헌정보학의 원리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "독립변수",
+      "canonical": "독립변수/종속변수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "독립변수/종속변수",
+      "canonical": "독립변수/종속변수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "독점",
+      "canonical": "독점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동음이의어",
+      "canonical": "동음이의어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동조",
+      "canonical": "동조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "된소리되기",
+      "canonical": "된소리되기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "두음법칙",
+      "canonical": "두음법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "뒤르켐",
+      "canonical": "뒤르켐",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "뒤베르제의 법칙",
+      "canonical": "뒤베르제의 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "디플레이션",
+      "canonical": "디플레이션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "띄어쓰기",
+      "canonical": "띄어쓰기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "랑가나단",
+      "canonical": "랑가나단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "랑가나단 5법칙",
+      "canonical": "랑가나단 5법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "랑그",
+      "canonical": "랑그/파롤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "랑그/파롤",
+      "canonical": "랑그/파롤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "랑케",
+      "canonical": "랑케",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "로마자 표기법",
+      "canonical": "로마자 표기법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "롤스",
+      "canonical": "롤스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "마르크스",
+      "canonical": "마르크스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "마찰적",
+      "canonical": "마찰적/구조적/경기적 실업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "마찰적/구조적/경기적 실업",
+      "canonical": "마찰적/구조적/경기적 실업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "막스 베버",
+      "canonical": "막스 베버",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "말리노프스키",
+      "canonical": "말리노프스키",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "말소리",
+      "canonical": "말소리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "맞춤법",
+      "canonical": "맞춤법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "매몰비용",
+      "canonical": "매몰비용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "메타데이터",
+      "canonical": "메타데이터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "명목 gdp",
+      "canonical": "실질/명목 GDP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "명시적",
+      "canonical": "명시적/잠재적 기능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "명시적/잠재적 기능",
+      "canonical": "명시적/잠재적 기능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모음",
+      "canonical": "모음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모음조화",
+      "canonical": "모음조화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모집단",
+      "canonical": "모집단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모집단과 표본",
+      "canonical": "모집단과 표본",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "목록",
+      "canonical": "목록",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "목적 전치",
+      "canonical": "목적 전치",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "목적격조사",
+      "canonical": "목적격조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "목적어",
+      "canonical": "목적어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무작위 배정",
+      "canonical": "무작위 배정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무작위 통제 실험",
+      "canonical": "무작위 통제 실험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무지의 베일",
+      "canonical": "무지의 베일",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문법 범주",
+      "canonical": "문법 범주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문법범주",
+      "canonical": "문법범주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문장 성분",
+      "canonical": "문장 성분",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문장성분",
+      "canonical": "문장성분",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문형",
+      "canonical": "문형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문화",
+      "canonical": "문화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문화상대주의",
+      "canonical": "문화상대주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문화자본",
+      "canonical": "문화자본",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "물가와 인플레이션",
+      "canonical": "물가와 인플레이션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "물자체와 현상",
+      "canonical": "물자체와 현상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미시경제학",
+      "canonical": "미시경제학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미시사",
+      "canonical": "미시사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "민사",
+      "canonical": "민사/형사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "민사/형사",
+      "canonical": "민사/형사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "민족지",
+      "canonical": "민족지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "민주주의",
+      "canonical": "민주주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "민주주의와 입헌주의",
+      "canonical": "민주주의와 입헌주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "밀그램",
+      "canonical": "밀그램",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "반의어",
+      "canonical": "반의어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "반증 가능성",
+      "canonical": "반증 가능성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "발달",
+      "canonical": "발달",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "방관자 효과",
+      "canonical": "방관자 효과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "방언",
+      "canonical": "방언",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법과 도덕, 법의 이념",
+      "canonical": "법과 도덕, 법의 이념",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법실증주의",
+      "canonical": "법실증주의/자연법론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법실증주의/자연법론",
+      "canonical": "법실증주의/자연법론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법의 분류",
+      "canonical": "법의 분류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법의 위계",
+      "canonical": "법의 위계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법의 이념",
+      "canonical": "법의 이념",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "법의 지배",
+      "canonical": "법의 지배",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "베버",
+      "canonical": "베버",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "베버의 3차원",
+      "canonical": "베버의 3차원",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "베버의 권위 3유형",
+      "canonical": "베버의 권위 3유형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변동비율 강화",
+      "canonical": "변동비율 강화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변이음",
+      "canonical": "변이음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변이형태",
+      "canonical": "변이형태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보아스",
+      "canonical": "보아스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보완재",
+      "canonical": "대체재/보완재",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보조사",
+      "canonical": "격조사/보조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보존 개념",
+      "canonical": "보존 개념",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보편문법",
+      "canonical": "보편문법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복종",
+      "canonical": "복종",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부르디외",
+      "canonical": "부르디외",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부사어",
+      "canonical": "부사어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부적 강화",
+      "canonical": "부적 강화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부정론",
+      "canonical": "부정론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부정법",
+      "canonical": "부정법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분과의 지도와 학제적 연구",
+      "canonical": "분과의 지도와 학제적 연구",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분류",
+      "canonical": "분류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분절성",
+      "canonical": "분절성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "불리언 검색",
+      "canonical": "불리언 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비고츠키",
+      "canonical": "비고츠키",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비음화",
+      "canonical": "비음화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사동",
+      "canonical": "사동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사동법",
+      "canonical": "사동법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사료",
+      "canonical": "사료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사료 비판",
+      "canonical": "사료 비판",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사법",
+      "canonical": "공법/사법/사회법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사분법 갈래론",
+      "canonical": "사분법 갈래론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사전 동의",
+      "canonical": "사전 동의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사피어-워프 가설",
+      "canonical": "사피어-워프 가설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회계약론",
+      "canonical": "사회계약론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회과학",
+      "canonical": "사회과학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회과학의 성립",
+      "canonical": "사회과학의 성립",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회법",
+      "canonical": "공법/사법/사회법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회심리학 i",
+      "canonical": "사회심리학 I",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회심리학 ii",
+      "canonical": "사회심리학 II",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회이동",
+      "canonical": "사회이동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회적 바람직성 편향",
+      "canonical": "사회적 바람직성 편향",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회적 사실",
+      "canonical": "사회적 사실",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회학의 탄생과 사회학적 상상력",
+      "canonical": "사회학의 탄생과 사회학적 상상력",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회학적 상상력",
+      "canonical": "사회학적 상상력",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사회화",
+      "canonical": "사회화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "삼각검증",
+      "canonical": "삼각검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상관과 인과",
+      "canonical": "상관과 인과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상관관계",
+      "canonical": "상관관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상징적 상호작용론",
+      "canonical": "상징적 상호작용론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상하위어",
+      "canonical": "상하위어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상형과 가획",
+      "canonical": "상형과 가획",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생성문법",
+      "canonical": "생성문법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생존자 편향",
+      "canonical": "생존자 편향",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서법",
+      "canonical": "서법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서사의 전통",
+      "canonical": "서사의 전통",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서술어",
+      "canonical": "서술어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선거제도",
+      "canonical": "선거제도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선례 구속의 원칙",
+      "canonical": "선례 구속의 원칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선어말",
+      "canonical": "선어말/종결 어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선어말/종결 어미",
+      "canonical": "선어말/종결 어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선어말어미",
+      "canonical": "선어말어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "설명",
+      "canonical": "설명",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "설문조사",
+      "canonical": "설문조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "성조",
+      "canonical": "성조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "성취 지위",
+      "canonical": "귀속 지위/성취 지위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세계 언어 속의 한국어",
+      "canonical": "세계 언어 속의 한국어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소쉬르",
+      "canonical": "소쉬르",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "손실 회피",
+      "canonical": "손실 회피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "수요",
+      "canonical": "수요",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "수요와 공급",
+      "canonical": "수요와 공급",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스태그플레이션",
+      "canonical": "스태그플레이션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시장",
+      "canonical": "호혜/재분배/시장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시장 구조",
+      "canonical": "시장 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시장실패",
+      "canonical": "시장실패",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시제",
+      "canonical": "시제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시조",
+      "canonical": "시조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신뢰도",
+      "canonical": "신뢰도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신뢰도와 타당도",
+      "canonical": "신뢰도와 타당도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신소설",
+      "canonical": "신소설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실업",
+      "canonical": "실업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실증주의",
+      "canonical": "실증주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실질",
+      "canonical": "실질/명목 GDP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실질/명목 gdp",
+      "canonical": "실질/명목 GDP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실천적 지혜",
+      "canonical": "실천적 지혜",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실험",
+      "canonical": "실험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "심슨의 역설",
+      "canonical": "심슨의 역설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "십진분류법",
+      "canonical": "십진분류법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "아날학파",
+      "canonical": "아날학파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "아노미",
+      "canonical": "아노미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "안은문장",
+      "canonical": "안은문장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "애쉬",
+      "canonical": "애쉬",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "애착",
+      "canonical": "애착",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "양적 연구",
+      "canonical": "양적 연구",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "양적 연구의 논리",
+      "canonical": "양적 연구의 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "양적 자료 수집",
+      "canonical": "양적 자료 수집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "어간",
+      "canonical": "어간",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "어근",
+      "canonical": "어근",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "억양",
+      "canonical": "억양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언어 분석의 다섯 층위",
+      "canonical": "언어 분석의 다섯 층위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언어 유형론",
+      "canonical": "언어 유형론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언어와 사회, 언어와 사고",
+      "canonical": "언어와 사회, 언어와 사고",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언어의 특성",
+      "canonical": "언어의 특성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언어학",
+      "canonical": "언어학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에믹",
+      "canonical": "에믹/에틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에믹/에틱",
+      "canonical": "에믹/에틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에틱",
+      "canonical": "에믹/에틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역색인",
+      "canonical": "역색인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역인과",
+      "canonical": "역인과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역할 갈등",
+      "canonical": "역할 갈등",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연결어미",
+      "canonical": "연결어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연구윤리",
+      "canonical": "연구윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연역",
+      "canonical": "연역/귀납",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연역/귀납",
+      "canonical": "연역/귀납",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연역과 귀납",
+      "canonical": "연역과 귀납",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "영가설",
+      "canonical": "영가설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "영미법계",
+      "canonical": "대륙법계/영미법계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오정보 효과",
+      "canonical": "오정보 효과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오픈 액세스",
+      "canonical": "오픈 액세스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "외래어 표기법",
+      "canonical": "외래어 표기법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "외부효과",
+      "canonical": "외부효과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "외적 비판",
+      "canonical": "외적 비판",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "외적 타당도",
+      "canonical": "내적/외적 타당도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "용언",
+      "canonical": "용언",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "운소",
+      "canonical": "운소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유음화",
+      "canonical": "유음화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유의수준",
+      "canonical": "유의수준",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유의어",
+      "canonical": "유의어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유추 해석 금지",
+      "canonical": "유추 해석 금지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유형론",
+      "canonical": "유형론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "윤리학의 지형",
+      "canonical": "윤리학의 지형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음성학",
+      "canonical": "음성학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음소",
+      "canonical": "음소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운 변동",
+      "canonical": "음운 변동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운 체계와 음운 변동",
+      "canonical": "음운 체계와 음운 변동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운 현상",
+      "canonical": "음운 현상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운론",
+      "canonical": "음운론/형태론/통사론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운론/형태론/통사론",
+      "canonical": "음운론/형태론/통사론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음운현상",
+      "canonical": "음운현상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음절",
+      "canonical": "음절",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음절 구조",
+      "canonical": "음절 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의무론",
+      "canonical": "의무론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미 관계",
+      "canonical": "의미 관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미 변화",
+      "canonical": "의미 변화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미관계",
+      "canonical": "의미관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미기억",
+      "canonical": "일화기억/의미기억",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미론",
+      "canonical": "의미론/화용론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미론/화용론",
+      "canonical": "의미론/화용론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의원내각제",
+      "canonical": "대통령제/의원내각제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이데아",
+      "canonical": "이데아",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이데올로기",
+      "canonical": "이데올로기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이두",
+      "canonical": "이두",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이본",
+      "canonical": "이본",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이어진문장",
+      "canonical": "이어진문장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이중모음",
+      "canonical": "이중모음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이차적 사회화",
+      "canonical": "일차적/이차적 사회화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이해",
+      "canonical": "이해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이해와 설명",
+      "canonical": "이해와 설명",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이형태",
+      "canonical": "이형태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인과관계",
+      "canonical": "인과관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인과에 다가서는 설계",
+      "canonical": "인과에 다가서는 설계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인문학",
+      "canonical": "인문학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인상 관리",
+      "canonical": "인상 관리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인식론",
+      "canonical": "인식론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인지부조화",
+      "canonical": "인지부조화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인지주의",
+      "canonical": "인지주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인플레이션",
+      "canonical": "인플레이션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일차적",
+      "canonical": "일차적/이차적 사회화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일차적/이차적 사회화",
+      "canonical": "일차적/이차적 사회화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일탈의 사회학",
+      "canonical": "일탈의 사회학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일화기억",
+      "canonical": "일화기억/의미기억",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일화기억/의미기억",
+      "canonical": "일화기억/의미기억",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "입헌주의",
+      "canonical": "입헌주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자극의 빈곤",
+      "canonical": "자극의 빈곤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자기충족적 예언",
+      "canonical": "자기충족적 예언",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자민족중심주의",
+      "canonical": "자민족중심주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자민족중심주의와 문화상대주의",
+      "canonical": "자민족중심주의와 문화상대주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자연법론",
+      "canonical": "법실증주의/자연법론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자연실업률",
+      "canonical": "자연실업률",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자연실험",
+      "canonical": "자연실험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자연언어",
+      "canonical": "자연언어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자음",
+      "canonical": "자음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자의성",
+      "canonical": "자의성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "작업기억",
+      "canonical": "작업기억",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "잠재적 기능",
+      "canonical": "명시적/잠재적 기능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재분배",
+      "canonical": "호혜/재분배/시장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재정정책",
+      "canonical": "재정정책",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재정정책과 통화정책",
+      "canonical": "재정정책과 통화정책",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재현율",
+      "canonical": "재현율/정밀도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재현율/정밀도",
+      "canonical": "재현율/정밀도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "적법절차",
+      "canonical": "적법절차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전거 통제",
+      "canonical": "전거 통제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "접두사",
+      "canonical": "접두사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "접미사",
+      "canonical": "접미사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "접사",
+      "canonical": "접사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정규분포",
+      "canonical": "정규분포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정규분포와 표준화",
+      "canonical": "정규분포와 표준화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정당",
+      "canonical": "정당",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정밀도",
+      "canonical": "재현율/정밀도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정보 리터러시",
+      "canonical": "정보 리터러시",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정보 리터러시와 정보 윤리",
+      "canonical": "정보 리터러시와 정보 윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정보검색",
+      "canonical": "정보검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정부 형태",
+      "canonical": "정부 형태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정언명령",
+      "canonical": "정언명령",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정한",
+      "canonical": "정한",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조음",
+      "canonical": "조음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조음 방법",
+      "canonical": "조음 방법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조음 위치",
+      "canonical": "조음 위치",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조음방법",
+      "canonical": "조음방법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조음위치",
+      "canonical": "조음위치",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조작적 정의",
+      "canonical": "조작적 정의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조작적 조건형성",
+      "canonical": "조작적 조건형성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "존재론",
+      "canonical": "존재론/형이상학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "존재론/형이상학",
+      "canonical": "존재론/형이상학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종결 어미",
+      "canonical": "선어말/종결 어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종결어미",
+      "canonical": "종결어미",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종속변수",
+      "canonical": "독립변수/종속변수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "죄수의 딜레마",
+      "canonical": "죄수의 딜레마",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "죄형법정주의",
+      "canonical": "죄형법정주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "죄형법정주의와 법의 지배",
+      "canonical": "죄형법정주의와 법의 지배",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "주격조사",
+      "canonical": "주격조사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "준거집단",
+      "canonical": "준거집단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중세국어",
+      "canonical": "중세국어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중앙값",
+      "canonical": "평균/중앙값",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중앙은행",
+      "canonical": "중앙은행",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중앙은행 독립성",
+      "canonical": "중앙은행 독립성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중용",
+      "canonical": "중용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "증여론",
+      "canonical": "증여론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지니계수",
+      "canonical": "지니계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지식의 조직",
+      "canonical": "지식의 조직",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "질적 연구",
+      "canonical": "질적 연구",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "짐바르도",
+      "canonical": "짐바르도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "집단 기억",
+      "canonical": "집단 기억",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "집단, 조직, 관료제",
+      "canonical": "집단, 조직, 관료제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "차등 원칙",
+      "canonical": "차등 원칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "차별접촉 이론",
+      "canonical": "차별접촉 이론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "참여관찰",
+      "canonical": "참여관찰",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "천지인",
+      "canonical": "천지인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "철학의 세 기둥",
+      "canonical": "철학의 세 기둥",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "청구기호",
+      "canonical": "청구기호",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "체언",
+      "canonical": "체언",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "초분절음",
+      "canonical": "초분절음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "촘스키",
+      "canonical": "촘스키",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "촘스키와 언어 습득 논쟁",
+      "canonical": "촘스키와 언어 습득 논쟁",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "추론통계",
+      "canonical": "추론통계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "친족",
+      "canonical": "친족",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "친족과 교환",
+      "canonical": "친족과 교환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "칸트",
+      "canonical": "칸트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "콩트",
+      "canonical": "콩트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "쿨라 교환",
+      "canonical": "쿨라 교환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "타당도",
+      "canonical": "타당도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탄력성",
+      "canonical": "탄력성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탄력성과 가격 통제",
+      "canonical": "탄력성과 가격 통제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "통계 리터러시",
+      "canonical": "통계 리터러시",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "통계적 유의성",
+      "canonical": "통계적 유의성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "통사론",
+      "canonical": "음운론/형태론/통사론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "통시적",
+      "canonical": "공시적/통시적",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "통화정책",
+      "canonical": "통화정책",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "트롤리 문제",
+      "canonical": "트롤리 문제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파롤",
+      "canonical": "랑그/파롤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파생어",
+      "canonical": "파생어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파생접사",
+      "canonical": "파생접사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "판단과 결정",
+      "canonical": "판단과 결정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "판소리",
+      "canonical": "판소리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "판소리계 소설",
+      "canonical": "판소리계 소설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "패러다임",
+      "canonical": "패러다임",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균",
+      "canonical": "평균/중앙값",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균/중앙값",
+      "canonical": "평균/중앙값",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균으로의 회귀",
+      "canonical": "평균으로의 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평음",
+      "canonical": "평음/격음/경음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평음/격음/경음",
+      "canonical": "평음/격음/경음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표본",
+      "canonical": "표본",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표준 발음법",
+      "canonical": "표준 발음법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표준어",
+      "canonical": "표준어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표준어 규정",
+      "canonical": "표준어 규정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표준편차",
+      "canonical": "표준편차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표집 편향",
+      "canonical": "표집 편향",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표집오차",
+      "canonical": "표집오차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "품사",
+      "canonical": "품사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프로이트",
+      "canonical": "프로이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "피동",
+      "canonical": "피동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "피동법",
+      "canonical": "피동법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "피아제",
+      "canonical": "피아제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "하한제",
+      "canonical": "가격상한제/하한제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "학제적 연구",
+      "canonical": "학제적 연구",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "한계효용",
+      "canonical": "한계효용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "한국문학의 범위와 갈래",
+      "canonical": "한국문학의 범위와 갈래",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "한글 맞춤법",
+      "canonical": "한글 맞춤법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "합리론",
+      "canonical": "합리론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "합리론과 경험론, 그리고 칸트의 종합",
+      "canonical": "합리론과 경험론, 그리고 칸트의 종합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "합성어",
+      "canonical": "합성어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "행동주의",
+      "canonical": "행동주의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "향가",
+      "canonical": "향가",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "향가와 향찰",
+      "canonical": "향가와 향찰",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "향찰",
+      "canonical": "향찰",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "허위관계",
+      "canonical": "허위관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "헤게모니",
+      "canonical": "헤게모니",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "현대의 확장",
+      "canonical": "현대의 확장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "현지조사",
+      "canonical": "현지조사/참여관찰",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "현지조사/참여관찰",
+      "canonical": "현지조사/참여관찰",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "현지조사와 민족지",
+      "canonical": "현지조사와 민족지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형사",
+      "canonical": "민사/형사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형이상학",
+      "canonical": "존재론/형이상학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형태론",
+      "canonical": "음운론/형태론/통사론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형태소",
+      "canonical": "형태소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "호혜",
+      "canonical": "호혜/재분배/시장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "호혜/재분배/시장",
+      "canonical": "호혜/재분배/시장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼합연구",
+      "canonical": "혼합연구",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼합연구와 삼각검증",
+      "canonical": "혼합연구와 삼각검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "홑문장",
+      "canonical": "홑문장",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "화용론",
+      "canonical": "의미론/화용론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "화이트칼라 범죄",
+      "canonical": "화이트칼라 범죄",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "화행",
+      "canonical": "화행",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "확률표집",
+      "canonical": "확률표집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "확증 편향",
+      "canonical": "확증 편향",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "훈민정음",
+      "canonical": "훈민정음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "훈민정음 해례본",
+      "canonical": "훈민정음 해례본",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "휴리스틱",
+      "canonical": "휴리스틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "희소성",
+      "canonical": "희소성",
+      "reason": "LECTURE_CONCEPT"
+    }
+  ],
+  "pattern_exclusions": {
+    "모음": "(사진|자료|영상|링크)\\s*모음|모음집|모음전",
+    "성조": "성조기",
+    "수요": "수요일",
+    "음소": "음소거",
+    "이두": "이두박근"
+  },
+  "filler_patterns": [
+    "^(어|음|자|그|저)\\s+",
+    "그러니까\\s*",
+    "뭐시기\\s*",
+    "인가\\s+그\\s+",
+    "\\s+그거\\s+",
+    "\\s+그게\\s+"
+  ]
+}

@@ -22,10 +22,11 @@ class SpeechSegment:
     session_id: str
     segment_id: str
     sequence: int
-    text: str
+    text: str                      # lexicon 교정이 적용된 텍스트. 자막·번역의 단일 출처.
     stt_confidence: float | None
     started_at: float | None
     ended_at: float
+    raw_text: str | None = None    # 교정 전 STT 원문 (회귀 분석·QA용)
 
 
 @dataclass(frozen=True)

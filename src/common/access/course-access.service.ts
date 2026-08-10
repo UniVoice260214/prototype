@@ -68,7 +68,9 @@ export class CourseAccessService {
   ): Promise<Session[]> {
     const qb = this.sessions
       .createQueryBuilder('session')
-      .innerJoin('session.course', 'course');
+      // 목록 화면이 과목명을 함께 쓰므로 응답에 course 를 싣는다
+      // (예전에는 프론트가 GET /courses 를 따로 받아 클라이언트에서 조인했다).
+      .leftJoinAndSelect('session.course', 'course');
 
     if (filters.courseId) {
       qb.andWhere('session.courseId = :courseId', {
@@ -88,7 +90,7 @@ export class CourseAccessService {
       });
     }
 
-    return qb.getMany();
+    return qb.orderBy('session.startedAt', 'DESC').getMany();
   }
 
   async findSessionForUser(

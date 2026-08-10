@@ -161,6 +161,34 @@ services:
       - demo-rag-chunks:/app/data/chunks
       - demo-hf-cache:/cache/huggingface
 
+  # 업로드된 강의자료를 과목별 lecture 인덱스에 누적 인덱싱하는 상주 데몬.
+  # (rag-indexer 는 데모 코퍼스 1회 빌드용 — 별개다.)
+  rag-indexer-daemon:
+    image: univoice-demo-rag
+    build:
+      context: ./rag-experiment
+    restart: unless-stopped
+    command: ["python", "src/indexer_daemon.py"]
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RAG_INDEX_QUEUE: ${RAG_INDEX_QUEUE:-rag:index:queue}
+      RAG_SERVICE_URL: http://rag-service:8000
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      TOKENIZERS_PARALLELISM: "false"
+      # NestJS 가 저장하는 blobUrl 은 Tailscale 공개 주소라 컨테이너 내부에서
+      # 닿지 않는다 — azurite 내부 주소로 치환해 내려받는다.
+      BLOB_URL_REWRITE: 'https://${TAILSCALE_HOSTNAME}:8443=>http://azurite:10000'
+    volumes:
+      - demo-rag-indexes:/app/indexes
+      - demo-rag-chunks:/app/data/chunks
+      - demo-hf-cache:/cache/huggingface
+    depends_on:
+      redis:
+        condition: service_healthy
+      azurite:
+        condition: service_started
+
   rag-service:
     image: univoice-demo-rag
     build:

@@ -158,3 +158,29 @@ docker compose --env-file .env.demo -f docker-compose.demo.yml down
 docker volume rm univoice-demo_demo-rag-indexes univoice-demo_demo-rag-chunks
 npm.cmd run demo:up
 ```
+
+## 업로드 자료 자동 인덱싱 (indexer_daemon)
+
+교수가 자료(PDF)를 업로드하면 NestJS 가 `rag:index:queue`(Redis)에 잡을 넣고,
+상주 데몬 `rag-experiment/src/indexer_daemon.py` 가 소비해 **과목별 lecture 인덱스**
+(`lecture_{courseId}`)에 누적 인덱싱한다. major 인덱스(ai/hss/bme)는 고정 자산이라
+손대지 않는다. 인덱싱 완료 시 `materials.indexing.completed` 로 Material 의
+`indexingStatus` 가 `pending → processing → done|failed` 로 전이되고,
+rag-service `/admin/reload` 호출로 재시작 없이 검색에 반영된다.
+
+- PPT 는 아직 미지원 — 업로드는 되지만 `failed` + 사유("PDF로 변환 후 업로드")로 표시된다.
+- 데모 compose 에는 `rag-indexer-daemon` 서비스가 포함되어 자동으로 뜬다.
+
+### 로컬(도커 없이) 실행
+
+```powershell
+cd rag-experiment
+# 최초 1회: python -m venv .venv; .venv\Scripts\pip install -r requirements-runtime.txt
+$env:REDIS_URL = "redis://localhost:6379"
+$env:RAG_SERVICE_URL = "http://127.0.0.1:8000"   # rag-service 를 띄웠을 때만
+.venv\Scripts\python.exe src\indexer_daemon.py
+```
+
+로컬 azurite 는 blobUrl 이 localhost 라 `BLOB_URL_REWRITE` 가 필요 없다.
+운영(Azure Blob) 전환 시에는 SAS 토큰이 달린 URL 을 저장하거나 계정 키 기반
+다운로드로 교체해야 한다 (indexer_daemon.py 상단 주석 참조).

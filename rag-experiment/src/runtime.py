@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from config import INDEX_SUBSETS, MAJOR_PRIMARY_INDEX
+from config import CHUNKS_PATH, INDEX_SUBSETS, MAJOR_PRIMARY_INDEX
 from embed import get_embedder, load_chunks
 from router import RagRouter, RouteDecision, load_routers
 from search import load_index
@@ -82,6 +82,11 @@ def parse_course_index_map(raw: str | None) -> dict[str, CourseIndexEntry]:
     return result
 
 
+def course_index_name(course_id: str) -> str:
+    """업로드 자료로 누적되는 과목별 인덱스 이름 (indexer_daemon 과 계약)."""
+    return f"lecture_{course_id}"
+
+
 @dataclass(frozen=True)
 class SearchHit:
     chunk_id: str
@@ -137,6 +142,10 @@ class _SearchCache:
             while len(self._entries) > self._max_size:
                 self._entries.popitem(last=False)
 
+    def clear(self) -> None:
+        with self._lock:
+            self._entries.clear()
+
 
 @dataclass
 class Candidate:
@@ -182,6 +191,52 @@ class RagRuntime:
         # 막으면서도, 여러 세션의 검색이 어느 정도는 겹쳐 돌 수 있게 한다.
         self._search_semaphore = threading.Semaphore(self.search_concurrency)
         self._search_cache = _SearchCache(max_size=cache_max_size, ttl_sec=cache_ttl_sec)
+        # 업로드 자료 인덱스(lecture_{courseId})의 디스크 로드/갱신만 직렬화한다.
+        self._reload_lock = threading.Lock()
+        # 디스크에 없다고 확인된 과목 인덱스 — 요청마다 디스크를 두드리지 않기 위한
+        # 네거티브 캐시. /admin/reload 가 지운다.
+        self._missing_course_indexes: set[str] = set()
+
+    # ── 과목별 lecture 인덱스 (업로드 자료 누적분) ────────────────────
+
+    def ensure_course_index(self, course_id: str) -> str | None:
+        """lecture_{courseId} 인덱스를 (필요 시 디스크에서) 로드해 이름을 돌려준다.
+
+        인덱서 데몬이 os.replace 로 원자적으로 갱신하므로 파일이 있으면 항상
+        완전한 상태다. 없으면 None — 아직 업로드된 자료가 없는 과목.
+        """
+        if not course_id:
+            return None
+        name = course_index_name(course_id)
+        if name in self.indexes:
+            return name
+        if name in self._missing_course_indexes:
+            return None
+        return self.reload_course_index(course_id)
+
+    def reload_course_index(self, course_id: str) -> str | None:
+        """디스크에서 과목 인덱스+청크를 (다시) 읽는다. indexer 가 갱신 후 호출."""
+        name = course_index_name(course_id)
+        chunks_path = CHUNKS_PATH.parent / f"{name}.jsonl"
+        with self._reload_lock:
+            try:
+                loaded = load_index(self.model_key, name)
+            except FileNotFoundError:
+                self._missing_course_indexes.add(name)
+                self.indexes.pop(name, None)
+                return None
+            self.indexes[name] = loaded
+            if chunks_path.exists():
+                with chunks_path.open(encoding="utf-8") as handle:
+                    for line in handle:
+                        if line.strip():
+                            chunk = json.loads(line)
+                            self.chunks[chunk["chunk_id"]] = chunk
+            self._missing_course_indexes.discard(name)
+        # 검색 캐시 키에 인덱스 이름이 들어가지만 내용 버전은 안 들어간다 — 새로
+        # 인덱싱된 자료가 TTL 동안 가려지지 않도록 갱신 시점에 통째로 비운다(드문 이벤트).
+        self._search_cache.clear()
+        return name
 
     @classmethod
     def load(
@@ -231,6 +286,11 @@ class RagRuntime:
         if effective_major != "auto" and effective_major not in self.routers:
             raise ValueError(f"unsupported major: {effective_major}")
 
+        # 업로드 자료로 누적된 과목 인덱스(lecture_{courseId})가 있으면 함께 검색한다.
+        # 그 과목 자신의 자료라 courseId 격리 원칙을 깨지 않는다.
+        # (세마포어 안에서 디스크 로드가 겹치지 않도록 여기서 미리 해석한다.)
+        course_index = self.ensure_course_index(course_id)
+
         selected_routers = (
             self.routers.values() if effective_major == "auto" else (self.routers[effective_major],)
         )
@@ -253,7 +313,7 @@ class RagRuntime:
         candidates: list[Candidate] = []
         for decision in triggered:
             router = self.routers[decision.major]
-            index_names = self._indexes_for(decision.major, course_entry)
+            index_names = self._indexes_for(decision.major, course_entry, course_index)
             hits = self._search(decision, index_names)
             if not hits:
                 continue
@@ -295,12 +355,23 @@ class RagRuntime:
         }
 
     def _indexes_for(
-        self, decision_major: str, course_entry: CourseIndexEntry | None
+        self,
+        decision_major: str,
+        course_entry: CourseIndexEntry | None,
+        course_index: str | None = None,
     ) -> tuple[str, ...]:
-        """courseId가 등록돼 있으면 그 과목의 인덱스 목록을, 아니면 전공 인덱스만 검색한다."""
+        """courseId가 등록돼 있으면 그 과목의 인덱스 목록을, 아니면 전공 인덱스만 검색한다.
+
+        어느 쪽이든 그 과목의 업로드 자료 인덱스(lecture_{courseId})가 로드돼 있으면
+        검색 대상에 추가한다.
+        """
         if course_entry is not None:
-            return course_entry.indexes
-        return (MAJOR_PRIMARY_INDEX[decision_major],)
+            base = course_entry.indexes
+        else:
+            base = (MAJOR_PRIMARY_INDEX[decision_major],)
+        if course_index and course_index not in base:
+            return base + (course_index,)
+        return base
 
     def _search(self, decision: RouteDecision, index_names: tuple[str, ...]) -> list[SearchHit]:
         # 같은 용어가 강의 중 반복될 때(예: "PCR", "PCR"...) 매번 재임베딩+재검색하지
@@ -321,7 +392,11 @@ class RagRuntime:
 
             by_chunk: dict[str, SearchHit] = {}
             for index_name in index_names:
-                index, chunk_ids = self.indexes[index_name]
+                # reload_course_index 가 동시에 인덱스를 빼는 드문 경합을 방어한다.
+                entry = self.indexes.get(index_name)
+                if entry is None:
+                    continue
+                index, chunk_ids = entry
                 scores, positions = index.search(vector, self.top_k)
                 for score, position in zip(scores[0], positions[0]):
                     if position == -1:

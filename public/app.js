@@ -26,7 +26,23 @@
     activeSessions: [],
     micPausedByUser: false,
     endingSession: false,
+    // 서버가 보내는 sequence 로 시간 역행(늦게 도착한 패킷)을 막는다.
+    lastCaptionSequence: 0,
+    lastProfSequence: 0,
+    captionExpiryTimer: null,
+    // 과목별 강의 자료 목록 (교수 화면)
+    materials: [],
+    // 학생 회원 로그인 (게스트 QR 입장과 별개)
+    studentToken: sessionStorage.getItem("univoice.studentToken") || "",
+    studentProfile: null,
+    // 자막 스크롤백: 화면에서 사라진 자막도 세션 동안 보관한다.
+    studentSessionId: "",
+    captionHistory: [],
+    // 자막 기록 다이얼로그가 교수/학생 어느 모드로 열렸는지 (세션 셀렉트 공유).
+    historyRole: "student",
   };
+
+  const CAPTION_HISTORY_MAX = 500;
 
   const $ = (id) => document.getElementById(id);
 
@@ -84,6 +100,7 @@
         const locale = LOCALES.find((item) => item.code === input.value);
         state.selectedStudentLocale = input.value;
         $("selected-language").textContent = `${locale.flag} ${locale.name}`;
+        savePreferredLocale(input.value);
       });
     });
   }
@@ -114,7 +131,92 @@
       : '<option value="">등록된 과목이 없습니다</option>';
     $("professor-login").classList.add("hidden");
     $("professor-setup").classList.remove("hidden");
+    await loadMaterials(select.value);
     return courses;
+  }
+
+  const INDEXING_LABELS = {
+    pending: "인덱싱 대기",
+    processing: "인덱싱 중",
+    done: "인덱싱 완료",
+    failed: "인덱싱 실패",
+  };
+
+  async function loadMaterials(courseId) {
+    if (!courseId) {
+      state.materials = [];
+      renderMaterials();
+      return;
+    }
+    try {
+      state.materials = await api(`/materials?courseId=${encodeURIComponent(courseId)}`);
+    } catch {
+      state.materials = [];
+    }
+    renderMaterials();
+  }
+
+  function renderMaterials() {
+    const list = $("material-list");
+    $("material-count").textContent = state.materials.length ? `${state.materials.length}개` : "";
+    list.innerHTML = "";
+    if (!state.materials.length) {
+      list.innerHTML = '<li class="material-empty">등록된 자료가 없습니다.</li>';
+      return;
+    }
+    state.materials.forEach((material) => {
+      const item = document.createElement("li");
+      const name = document.createElement("span");
+      name.className = "material-name";
+      name.textContent = material.week
+        ? `${material.week}주차 · ${material.originalFilename}`
+        : material.originalFilename;
+      const status = document.createElement("b");
+      status.className = `material-status ${material.indexingStatus}`;
+      status.textContent = INDEXING_LABELS[material.indexingStatus] || material.indexingStatus;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "material-remove";
+      remove.textContent = "삭제";
+      remove.addEventListener("click", async () => {
+        if (!confirm(`'${material.originalFilename}' 자료를 삭제할까요?`)) return;
+        try {
+          await api(`/materials/${material.id}`, { method: "DELETE" });
+          toast("자료를 삭제했습니다.");
+          await loadMaterials($("course-select").value);
+        } catch (error) {
+          toast(error.message, "error");
+        }
+      });
+      item.append(name, status, remove);
+      list.appendChild(item);
+    });
+  }
+
+  async function uploadMaterial() {
+    const button = $("material-upload");
+    const courseId = $("course-select").value;
+    const file = $("material-file").files[0];
+    if (!courseId) return toast("자료를 등록할 과목을 먼저 선택해주세요.", "error");
+    if (!file) return toast("업로드할 파일(PDF/PPT)을 선택해주세요.", "error");
+    const body = new FormData();
+    body.append("file", file);
+    body.append("courseId", courseId);
+    body.append("sourceType", $("material-source").value);
+    const week = $("material-week").value;
+    if (week) body.append("week", week);
+    setBusy(button, true, "업로드 중...");
+    try {
+      await api("/materials/upload", { method: "POST", body });
+      $("material-file").value = "";
+      $("material-week").value = "";
+      toast("자료를 업로드했습니다. 인덱싱이 완료되면 번역 품질에 반영됩니다.");
+      await loadMaterials(courseId);
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
   }
 
   function readSavedSession() {
@@ -325,8 +427,27 @@
     const room = new LivekitClient.Room({
       adaptiveStream: true,
       dynacast: true,
+      // 교수 마이크는 사람이 듣는 통화가 아니라 STT 입력이다.
+      // livekit-client 기본값(AGC/노이즈억제/voiceIsolation 전부 on)은 대화용이라
+      // 자음의 고주파를 깎고 게인을 흔들어 전공 용어 인식률을 떨어뜨린다.
+      audioCaptureDefaults: {
+        autoGainControl: false,
+        echoCancellation: false,
+        noiseSuppression: false,
+        voiceIsolation: false,
+        channelCount: 1,
+      },
+      publishDefaults: {
+        audioPreset: LivekitClient.AudioPresets.musicHighQuality,
+        // DTX 는 무음 구간 전송을 멈춰 문장 첫 음절을 잘라먹고,
+        // 워커 오디오 스트림의 시간축을 깨 segmentation 을 오작동시킨다.
+        dtx: false,
+        red: true,
+        forceStereo: false,
+      },
     });
     state.room = room;
+    state.lastProfSequence = 0;
     room.on(LivekitClient.RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
       let data;
       try {
@@ -334,10 +455,18 @@
       } catch {
         return;
       }
-      if (topic === "stt" && data.text) {
-        $("professor-transcript").textContent = data.text;
-      } else if (topic === "caption" && data.sourceKo) {
-        $("professor-transcript").textContent = data.sourceKo;
+      // stt.partial(비신뢰 채널)과 stt.final(신뢰 채널)은 서로 순서가 보장되지 않는다.
+      // 같은 노드에 덮어쓰면 텍스트가 과거로 되돌아가므로 확정/중간을 분리해 그린다.
+      if (topic !== "stt") return;
+      if (data.type === "stt.final") {
+        if (typeof data.sequence === "number") {
+          if (data.sequence <= state.lastProfSequence) return;
+          state.lastProfSequence = data.sequence;
+        }
+        $("prof-final").textContent = data.text || "";
+        $("prof-partial").textContent = "";
+      } else if (data.type === "stt.partial") {
+        $("prof-partial").textContent = data.text || "";
       }
     });
     room.on(LivekitClient.RoomEvent.Reconnecting, () => {
@@ -396,7 +525,9 @@
     $("session-status").innerHTML = "<i></i> 수업 진행 중";
     $("mic-message").textContent = state.micPausedByUser ? "PAUSED" : "ON";
     $("locale-count").textContent = `${state.session.targetLocales.length}개 언어`;
-    $("material-link").textContent = `${state.session.courseName.replace(/\s+/g, "_")}_강의자료`;
+    $("material-link").textContent = state.materials.length
+      ? `등록된 강의 자료 ${state.materials.length}개`
+      : "등록된 강의 자료 없음";
     const startedAt = new Date(state.session.startedAt).getTime();
     const updateElapsed = () => {
       const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
@@ -420,7 +551,21 @@
         stopped: "종료됨",
         failed: "오류",
       };
-      $("worker-status").textContent = worker ? labels[worker.status] || worker.status : "응답 대기";
+      const base = worker ? labels[worker.status] || worker.status : "응답 대기";
+      // 전공 용어집/lexicon/RAG 가 실제로 걸려 있는지 화면에서 바로 보이게 한다.
+      // 이게 없으면 "자막이 이상하다"의 원인이 설정 누락인지 알 방법이 없다.
+      const d = worker && worker.diagnostics;
+      let suffix = "";
+      if (d) {
+        const warnings = [];
+        if (!d.phraseList) warnings.push("전공용어 미적용");
+        else if (!d.lexicon) warnings.push("lexicon 없음");
+        if (d.rag === "off") warnings.push("RAG off");
+        suffix = warnings.length
+          ? ` · ⚠ ${warnings.join(", ")}`
+          : ` · 용어 ${d.phraseList}개(${d.lexicon})`;
+      }
+      $("worker-status").textContent = base + suffix;
     } catch {
       $("worker-status").textContent = "확인 불가";
     }
@@ -471,8 +616,12 @@
       const liveKit = await api(`/sessions/${payload.sessionId}/token`, {
         method: "POST",
         auth: false,
+        // 회원 로그인 상태면 Student JWT 로 본인 식별. 게스트는 joinToken 만으로 입장.
+        headers: state.studentToken ? { Authorization: `Bearer ${state.studentToken}` } : {},
         body: JSON.stringify({ joinToken, locale: state.selectedStudentLocale }),
       });
+      state.studentSessionId = payload.sessionId;
+      state.captionHistory = [];
       await connectStudent(liveKit);
       $("student-join").classList.add("hidden");
       $("student-live").classList.remove("hidden");
@@ -488,16 +637,74 @@
     }
   }
 
+  // 학생은 자기 언어의 TTS 트랙 하나만 구독한다.
+  // autoSubscribe 기본값(true)으로 두면 교수 마이크 원음까지 구독되고, LiveKit SDK 가
+  // 구독된 오디오를 자동 재생하기 때문에 한국어 원음이 번역 음성과 겹쳐 들린다.
+  // TrackSubscribed 의 trackName 필터는 수동 attach 만 막을 뿐 자동 재생을 막지 못한다.
+  function studentTtsTrackName() {
+    return `tts.${state.selectedStudentLocale}`;
+  }
+
+  function syncStudentSubscription(publication) {
+    if (!publication || publication.kind !== LivekitClient.Track.Kind.Audio) return;
+    const wanted = publication.trackName === studentTtsTrackName();
+    if (Boolean(publication.isSubscribed) === wanted) return;
+    publication.setSubscribed(wanted);
+  }
+
+  // 입장 전에 이미 올라와 있던 트랙은 TrackPublished 가 오지 않으므로 직접 훑는다.
+  function syncStudentSubscriptions(room) {
+    room.remoteParticipants.forEach((participant) => {
+      participant.trackPublications.forEach(syncStudentSubscription);
+    });
+  }
+
+  // ── 오디오 재생 잠금 해제 (태블릿/모바일 autoplay 차단 대응) ────────
+  // 모바일 브라우저는 사용자 제스처 전까지 audio.play() 를 조용히 거부한다.
+  // 예전에는 "화면을 눌러 허용해주세요" 토스트만 있고 그 탭을 받는 코드가 없어
+  // 학생이 영구 무음에 갇혔다 — 실제 태블릿에서 관측된 장애.
+  function showAudioUnlock() {
+    $("audio-unlock").classList.remove("hidden");
+    $("audio-status").textContent = "소리가 꺼져 있습니다 — 화면의 버튼을 탭하세요";
+  }
+
+  function hideAudioUnlock() {
+    $("audio-unlock").classList.add("hidden");
+  }
+
+  async function unlockStudentAudio() {
+    try {
+      // startAudio() 가 브라우저 재생 권한을 얻고, iOS 의 백그라운드 복귀
+      // 자동복구 훅(SDK 내장)도 이 호출로 등록된다.
+      if (state.room) await state.room.startAudio();
+      await $("translation-audio").play();
+      hideAudioUnlock();
+      $("audio-status").textContent = "번역 음성 재생 중";
+    } catch {
+      // 아직 제스처로 인정 안 된 경우 — 버튼을 유지해 다음 탭을 기다린다.
+      showAudioUnlock();
+    }
+  }
+
   async function connectStudent(liveKit) {
     ensureLiveKit();
     const room = new LivekitClient.Room({ adaptiveStream: true });
     state.room = room;
+    room.on(LivekitClient.RoomEvent.TrackPublished, syncStudentSubscription);
     room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication) => {
       if (track.kind !== LivekitClient.Track.Kind.Audio || publication.trackName !== `tts.${state.selectedStudentLocale}`) return;
       const audio = $("translation-audio");
       track.attach(audio);
-      audio.play().catch(() => toast("화면을 한 번 눌러 음성 재생을 허용해주세요."));
-      $("audio-status").textContent = "번역 음성 재생 중";
+      audio.play().then(() => {
+        hideAudioUnlock();
+        $("audio-status").textContent = "번역 음성 재생 중";
+      }).catch(() => showAudioUnlock());
+    });
+    // SDK 가 재생 차단을 감지하면 알려준다 (탭 전환·백그라운드 복귀 포함).
+    room.on(LivekitClient.RoomEvent.AudioPlaybackStatusChanged, () => {
+      if (state.room !== room) return;
+      if (room.canPlaybackAudio) hideAudioUnlock();
+      else showAudioUnlock();
     });
     room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
       track.detach();
@@ -507,10 +714,13 @@
       handleStudentData(payload, topic);
     });
     room.on(LivekitClient.RoomEvent.Disconnected, () => {
+      stopCaptionExpiry();
       $("audio-status").textContent = "연결이 종료되었습니다";
       toast("강의실 연결이 종료되었습니다.");
     });
-    await room.connect(liveKit.liveKitUrl, liveKit.token);
+    state.lastCaptionSequence = 0;
+    await room.connect(liveKit.liveKitUrl, liveKit.token, { autoSubscribe: false });
+    syncStudentSubscriptions(room);
   }
 
   function handleStudentData(payload, topic) {
@@ -520,50 +730,442 @@
     } catch {
       return;
     }
-    if (data.locale !== state.selectedStudentLocale) return;
-    if (topic === "caption" && data.type !== "caption.partial") {
-      addCaption(data.text, data.sourceKo);
+    // locale 필터는 자막에만 적용한다. audio-status 등 세션 단위 이벤트에는
+    // locale 이 없거나 의미가 달라, 토픽별로 분기해야 한다.
+    if (topic === "caption") {
+      if (data.locale !== state.selectedStudentLocale) return;
+      if (data.type === "caption.partial") return;
+      // 서버가 sequence 를 보내는데 예전엔 클라이언트가 한 번도 읽지 않았다.
+      // 늦게 도착한 패킷이 최신 자막을 덮어쓰지 않도록 막는다.
+      if (typeof data.sequence === "number") {
+        if (data.sequence <= state.lastCaptionSequence) return;
+        state.lastCaptionSequence = data.sequence;
+      }
+      addCaption(data.text, data.sourceKo, { isFallback: Boolean(data.isFallback) });
+      return;
     }
     if (topic === "audio-status") {
+      if (data.locale && data.locale !== state.selectedStudentLocale) return;
+      // 서버 페이로드의 키는 status 가 아니라 type 이다(models.audio_status_payload).
+      // 예전 코드는 data.status 를 읽어 항상 기본 문구만 표시했다.
       const labels = {
-        queued: "번역 음성 준비 중",
-        playing: "번역 음성 재생 중",
-        completed: "다음 발화를 기다리는 중",
-        failed: "음성 생성에 실패했습니다",
+        "audio.started": "번역 음성 준비 중",
+        "audio.completed": "다음 발화를 기다리는 중",
+        "audio.failed": "이 문장은 음성 없이 자막만 제공됩니다",
       };
-      $("audio-status").textContent = labels[data.status] || "번역 음성 처리 중";
+      $("audio-status").textContent = labels[data.type] || "번역 음성 처리 중";
     }
   }
 
-  function addCaption(text, sourceKo) {
+  const CAPTION_TTL_MS = 12000;
+  const CAPTION_MAX_ITEMS = 2;
+
+  function addCaption(text, sourceKo, options) {
     if (!text) return;
+    const isFallback = Boolean(options && options.isFallback);
+    // 화면에서는 곧 사라지지만 기록 패널에서 스크롤백할 수 있게 보관한다.
+    state.captionHistory.push({ text, sourceKo, isFallback, at: Date.now() });
+    if (state.captionHistory.length > CAPTION_HISTORY_MAX) state.captionHistory.shift();
+    if ($("history-dialog").open) renderHistoryItems(state.captionHistory);
     const captions = $("captions");
     const empty = captions.querySelector(".caption-empty");
     if (empty) empty.remove();
+
     const item = document.createElement("div");
-    item.className = "caption";
-    if (sourceKo) {
+    item.className = isFallback ? "caption fallback" : "caption";
+    item.dataset.expiresAt = String(Date.now() + CAPTION_TTL_MS);
+
+    // 번역문이 주 자막이다. 한국어 원문은 STT 오인식이 그대로 노출되는 자리라
+    // 보조 크기로 낮춘다(styles.css 의 .translated / .source 참조).
+    const content = document.createElement("span");
+    content.className = "translated";
+    content.textContent = text;
+    item.appendChild(content);
+
+    if (isFallback) {
+      const notice = document.createElement("span");
+      notice.className = "fallback-note";
+      notice.textContent = "번역 실패 — 원문 표시";
+      item.appendChild(notice);
+    } else if (sourceKo) {
       const source = document.createElement("span");
       source.className = "source";
       source.textContent = sourceKo;
       item.appendChild(source);
     }
-    const content = document.createElement("span");
-    content.className = "translated";
-    content.textContent = text;
+
     const time = document.createElement("time");
     time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-    item.append(content, time);
+    item.appendChild(time);
+
     captions.appendChild(item);
-    while (captions.children.length > 3) captions.firstElementChild.remove();
+    while (captions.children.length > CAPTION_MAX_ITEMS) captions.firstElementChild.remove();
     captions.scrollTop = captions.scrollHeight;
+    startCaptionExpiry();
+  }
+
+  function startCaptionExpiry() {
+    if (state.captionExpiryTimer) return;
+    state.captionExpiryTimer = setInterval(() => {
+      const captions = $("captions");
+      if (!captions) return;
+      const now = Date.now();
+      // 마지막 한 줄은 남긴다 — 발화 사이에 화면이 통째로 비면 장애로 오인된다.
+      while (captions.children.length > 1) {
+        const first = captions.firstElementChild;
+        const expiresAt = Number(first.dataset.expiresAt || 0);
+        if (!expiresAt || expiresAt > now) break;
+        first.remove();
+      }
+      if (captions.children.length === 0) stopCaptionExpiry();
+    }, 1000);
+  }
+
+  function stopCaptionExpiry() {
+    if (!state.captionExpiryTimer) return;
+    clearInterval(state.captionExpiryTimer);
+    state.captionExpiryTimer = null;
   }
 
   async function leaveStudentSession() {
     await disconnectRoom();
+    stopCaptionExpiry();
+    renderRecentHistory(state.captionHistory);
+    state.lastCaptionSequence = 0;
+    state.studentSessionId = "";
+    state.captionHistory = [];
+    if ($("history-dialog").open) $("history-dialog").close();
+    hideAudioUnlock();
     $("student-live").classList.add("hidden");
     $("student-join").classList.remove("hidden");
     $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
+  }
+
+  // ── 자막 기록(스크롤백) ──────────────────────────────────────────────
+  // 수업(세션) 단위 열람: 다이얼로그 상단의 셀렉트에서 지난 수업을 고르면
+  // 그 수업의 전체 자막을 DB 에서 페이지 단위로 끝까지 읽어온다.
+  // 교수는 한국어 확정 자막, 학생은 (한국어 + 본인 선택 언어)를 본다.
+  const TRANSCRIPT_PAGE_LIMIT = 500;
+
+  function showHistoryDialog() {
+    const dialog = $("history-dialog");
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  function setHistoryLoading() {
+    $("history-list").innerHTML = '<p class="history-empty">자막을 불러오는 중...</p>';
+  }
+
+  /** afterSequence 커서로 전체 세그먼트를 읽는다 — 한 수업이 500개를 넘어도 잘리지 않게. */
+  async function fetchAllTranscriptPages(fetchPage) {
+    const all = [];
+    let afterSequence;
+    for (;;) {
+      const batch = await fetchPage(afterSequence);
+      all.push(...batch);
+      if (batch.length < TRANSCRIPT_PAGE_LIMIT) return all;
+      afterSequence = batch[batch.length - 1].sequence;
+    }
+  }
+
+  function formatSessionOption(row) {
+    const started = row.startedAt ? new Date(row.startedAt) : null;
+    const when = started
+      ? `${started.toLocaleDateString("ko-KR")} ${started.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`
+      : "";
+    const name = row.courseName || "수업";
+    const suffix = row.status === "active" ? " · 진행 중" : "";
+    return `${name} · ${when}${suffix}`;
+  }
+
+  function populateHistorySelect(options, selectedId) {
+    const select = $("history-session-select");
+    select.innerHTML = "";
+    if (!options.length) {
+      select.classList.add("hidden");
+      return null;
+    }
+    options.forEach((opt) => {
+      const el = document.createElement("option");
+      el.value = opt.sessionId;
+      el.textContent = opt.label;
+      if (opt.locale) el.dataset.locale = opt.locale;
+      select.appendChild(el);
+    });
+    select.classList.remove("hidden");
+    const chosen = selectedId && options.some((o) => o.sessionId === selectedId)
+      ? selectedId
+      : options[0].sessionId;
+    select.value = chosen;
+    return chosen;
+  }
+
+  // ── 학생 ──
+  async function openHistory() {
+    state.historyRole = "student";
+    showHistoryDialog();
+    setHistoryLoading();
+
+    const options = [];
+    if (state.studentToken) {
+      // 로그인 학생: 참여했던 수업 목록 (서버가 최신순으로 준다).
+      try {
+        const mine = await api("/students/me/sessions", {
+          auth: false,
+          headers: { Authorization: `Bearer ${state.studentToken}` },
+        });
+        mine.forEach((row) => options.push({
+          sessionId: row.sessionId,
+          label: formatSessionOption(row),
+          locale: row.locale,
+        }));
+      } catch {
+        // 목록 실패 시 아래의 현재 세션 폴백만 남는다.
+      }
+    }
+    if (state.studentSessionId && !options.some((o) => o.sessionId === state.studentSessionId)) {
+      // 게스트(QR) 또는 목록 조회 실패: 현재 접속 중인 수업만.
+      options.unshift({
+        sessionId: state.studentSessionId,
+        label: "현재 수업",
+        locale: state.selectedStudentLocale,
+      });
+    }
+
+    const chosen = populateHistorySelect(options, state.studentSessionId);
+    if (!chosen) {
+      renderHistoryItems(state.captionHistory);
+      return;
+    }
+    await loadStudentHistory(chosen);
+  }
+
+  async function loadStudentHistory(sessionId) {
+    setHistoryLoading();
+    const select = $("history-session-select");
+    const optionLocale =
+      select.selectedOptions[0] && select.selectedOptions[0].dataset.locale;
+    const locale = optionLocale || state.selectedStudentLocale;
+    const joinToken = $("join-token").value.trim();
+    try {
+      const rows = await fetchAllTranscriptPages((afterSequence) =>
+        api(`/sessions/${sessionId}/transcripts/query`, {
+          method: "POST",
+          auth: false,
+          headers: state.studentToken
+            ? { Authorization: `Bearer ${state.studentToken}` }
+            : {},
+          body: JSON.stringify({
+            limit: TRANSCRIPT_PAGE_LIMIT,
+            ...(afterSequence !== undefined ? { afterSequence } : {}),
+            ...(state.studentToken ? {} : { joinToken }),
+          }),
+        }),
+      );
+      renderHistoryItems(rows.map((row) => {
+        const entry = (row.translations || {})[locale] || null;
+        return {
+          text: entry ? entry.text : row.textKo,
+          sourceKo: row.textKo,
+          isFallback: entry ? Boolean(entry.isFallback) : true,
+          at: new Date(row.createdAt).getTime(),
+        };
+      }));
+    } catch (error) {
+      // 서버 조회 실패: 현재 세션이면 이 기기에서 수신한 로컬 기록으로 폴백.
+      if (sessionId === state.studentSessionId && state.captionHistory.length) {
+        renderHistoryItems(state.captionHistory);
+        return;
+      }
+      renderHistoryItems([]);
+      toast(`자막 기록을 불러오지 못했습니다: ${error.message}`, "error");
+    }
+  }
+
+  // ── 교수 ──
+  // 진행 중 수업이 없어도 지난 수업 목록에서 골라 전체 자막을 볼 수 있다.
+  async function openProfessorHistory() {
+    state.historyRole = "professor";
+    showHistoryDialog();
+    setHistoryLoading();
+
+    let options = [];
+    try {
+      const rows = await api("/sessions");
+      options = rows.map((row) => ({
+        sessionId: row.id,
+        label: formatSessionOption({
+          // 서버가 course relation 을 함께 실어 준다 (leftJoinAndSelect).
+          courseName: row.course ? row.course.name : "수업",
+          startedAt: row.startedAt,
+          status: row.status,
+        }),
+      }));
+    } catch (error) {
+      renderHistoryItems([]);
+      toast(`수업 목록을 불러오지 못했습니다: ${error.message}`, "error");
+      return;
+    }
+
+    const chosen = populateHistorySelect(
+      options,
+      state.session ? state.session.id : null,
+    );
+    if (!chosen) {
+      renderHistoryItems([]);
+      return;
+    }
+    await loadProfessorHistory(chosen);
+  }
+
+  async function loadProfessorHistory(sessionId) {
+    setHistoryLoading();
+    try {
+      const rows = await fetchAllTranscriptPages((afterSequence) =>
+        api(
+          `/sessions/${sessionId}/transcripts?limit=${TRANSCRIPT_PAGE_LIMIT}` +
+            (afterSequence !== undefined ? `&afterSequence=${afterSequence}` : ""),
+        ),
+      );
+      renderHistoryItems(rows.map((row) => ({
+        text: row.textKo,
+        sourceKo: row.rawTextKo && row.rawTextKo !== row.textKo ? row.rawTextKo : null,
+        isFallback: false,
+        at: new Date(row.createdAt).getTime(),
+      })));
+    } catch (error) {
+      renderHistoryItems([]);
+      toast(`자막 기록을 불러오지 못했습니다: ${error.message}`, "error");
+    }
+  }
+
+  // 학생 대시보드 "최근 번역 기록" — 방금 나온 수업의 자막을 남겨 복습을 돕는다.
+  function renderRecentHistory(items) {
+    const panel = $("recent-history");
+    if (!panel || !items.length) return;
+    panel.innerHTML = "";
+    const recent = items.slice(-5).reverse();
+    recent.forEach((row) => {
+      const line = document.createElement("p");
+      line.className = "recent-item";
+      line.textContent = row.text;
+      panel.appendChild(line);
+    });
+    const note = document.createElement("small");
+    note.textContent = `최근 수업 자막 ${items.length}건 중 ${recent.length}건 표시`;
+    panel.appendChild(note);
+  }
+
+  function renderHistoryItems(items) {
+    const list = $("history-list");
+    list.innerHTML = "";
+    if (!items.length) {
+      list.innerHTML = '<p class="history-empty">아직 저장된 자막이 없습니다.</p>';
+      return;
+    }
+    items.forEach((row) => {
+      const item = document.createElement("div");
+      item.className = row.isFallback ? "history-item fallback" : "history-item";
+      const content = document.createElement("span");
+      content.className = "translated";
+      content.textContent = row.text;
+      item.appendChild(content);
+      if (!row.isFallback && row.sourceKo && row.sourceKo !== row.text) {
+        const source = document.createElement("span");
+        source.className = "source";
+        source.textContent = row.sourceKo;
+        item.appendChild(source);
+      }
+      const time = document.createElement("time");
+      time.textContent = new Date(row.at).toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      item.appendChild(time);
+      list.appendChild(item);
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+
+  // ── 학생 프로필(DB) 연동 ─────────────────────────────────────────────
+  function updateStudentProfileUi() {
+    const logged = Boolean(state.studentProfile);
+    $("student-name").textContent = logged ? state.studentProfile.name : "UniVoice 학생";
+    $("student-login-status").textContent = logged
+      ? state.studentProfile.email
+      : "게스트 입장";
+    $("student-auth").textContent = logged ? "로그아웃" : "로그인";
+  }
+
+  function selectStudentLocale(code) {
+    const input = document.querySelector(`input[name="student-locale"][value="${code}"]`);
+    if (!input || input.checked) return;
+    input.checked = true;
+    input.dispatchEvent(new Event("change"));
+  }
+
+  async function loadStudentProfile() {
+    if (!state.studentToken) return updateStudentProfileUi();
+    const payload = getJoinData(state.studentToken);
+    if (!payload?.sub) return studentLogout();
+    try {
+      state.studentProfile = await api(`/students/${payload.sub}`, {
+        auth: false,
+        headers: { Authorization: `Bearer ${state.studentToken}` },
+      });
+    } catch {
+      // 토큰 만료 등 — 게스트 상태로 되돌린다.
+      return studentLogout();
+    }
+    if (state.studentProfile.preferredLocale) {
+      selectStudentLocale(state.studentProfile.preferredLocale);
+    }
+    updateStudentProfileUi();
+  }
+
+  function studentLogout() {
+    state.studentToken = "";
+    state.studentProfile = null;
+    sessionStorage.removeItem("univoice.studentToken");
+    updateStudentProfileUi();
+  }
+
+  async function studentLogin(event) {
+    event.preventDefault();
+    const button = event.currentTarget.querySelector("button");
+    setBusy(button, true, "로그인 중...");
+    try {
+      const result = await api("/auth/student/login", {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({
+          email: $("student-email").value.trim(),
+          password: $("student-password").value,
+        }),
+      });
+      state.studentToken = result.accessToken;
+      sessionStorage.setItem("univoice.studentToken", result.accessToken);
+      await loadStudentProfile();
+      $("student-login-dialog").close();
+      toast("로그인되었습니다. 프로필과 선호 언어가 연동됩니다.");
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
+  }
+
+  function savePreferredLocale(locale) {
+    if (!state.studentToken || !state.studentProfile) return;
+    if (state.studentProfile.preferredLocale === locale) return;
+    state.studentProfile.preferredLocale = locale;
+    api(`/students/${state.studentProfile.id}`, {
+      method: "PATCH",
+      auth: false,
+      headers: { Authorization: `Bearer ${state.studentToken}` },
+      body: JSON.stringify({ preferredLocale: locale }),
+    }).catch(() => undefined);
   }
 
   async function disconnectRoom() {
@@ -632,7 +1234,51 @@
     $("recover-session").addEventListener("click", () => {
       recoverSelectedSession().catch((error) => toast(error.message, "error"));
     });
-    $("course-select").addEventListener("change", updateRecoveryControls);
+    $("course-select").addEventListener("change", () => {
+      updateRecoveryControls();
+      loadMaterials($("course-select").value).catch(() => undefined);
+    });
+    $("material-upload").addEventListener("click", () => {
+      uploadMaterial().catch((error) => toast(error.message, "error"));
+    });
+    $("material-link").addEventListener("click", () => {
+      if (!state.materials.length) return toast("이 과목에 등록된 자료가 없습니다.");
+      toast(state.materials.map((material) => material.originalFilename).join(", "));
+    });
+    $("show-history").addEventListener("click", () => {
+      openHistory().catch(() => undefined);
+    });
+    $("prof-history").addEventListener("click", () => {
+      openProfessorHistory().catch(() => undefined);
+    });
+    $("close-history").addEventListener("click", () => $("history-dialog").close());
+    $("audio-unlock").addEventListener("click", () => {
+      unlockStudentAudio().catch(() => undefined);
+    });
+    // 버튼 밖 아무 곳을 탭해도 그 제스처로 재생을 재시도한다 (안내 문구와 동작 일치).
+    document.addEventListener("pointerdown", () => {
+      if (!$("audio-unlock").classList.contains("hidden")) {
+        unlockStudentAudio().catch(() => undefined);
+      }
+    });
+    $("history-session-select").addEventListener("change", (event) => {
+      const sessionId = event.target.value;
+      if (!sessionId) return;
+      const load = state.historyRole === "professor" ? loadProfessorHistory : loadStudentHistory;
+      load(sessionId).catch(() => undefined);
+    });
+    $("student-auth").addEventListener("click", () => {
+      if (state.studentProfile) {
+        studentLogout();
+        toast("로그아웃되었습니다.");
+        return;
+      }
+      const dialog = $("student-login-dialog");
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    });
+    $("close-student-login").addEventListener("click", () => $("student-login-dialog").close());
+    $("student-login-form").addEventListener("submit", studentLogin);
     $("end-session").addEventListener("click", endSession);
     $("logout").addEventListener("click", logout);
     $("join-session").addEventListener("click", joinStudentSession);
@@ -688,6 +1334,10 @@
       }
     });
 
+    updateStudentProfileUi();
+    if (state.studentToken) {
+      loadStudentProfile().catch(() => undefined);
+    }
     if (state.accessToken && state.mode === "professor") {
       initializeProfessor().catch(() => logout());
     }
