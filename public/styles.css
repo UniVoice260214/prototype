@@ -19,12 +19,17 @@
   --color-text-tertiary: #94a3b8;
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
-  --color-danger: #dc2626;
+  --color-danger: #b91c1c;
   --color-danger-soft: #fef2f2;
-  --color-warning: #d97706;
+  --color-warning: #b45309;
   --color-warning-soft: #fffbeb;
-  --color-success: #16a34a;
+  --color-success: #15803d;
   --color-success-soft: #f0fdf4;
+  --color-danger-border: #fecaca;
+  --color-danger-hover: #fee2e2;
+  --color-warning-border: #fde68a;
+  --color-accent-strong: #0f766e;
+  --color-on-primary: #ffffff;
 
   /* typography */
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
@@ -103,7 +108,7 @@ img { max-width: 100%; }
   transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.btn-primary { background: var(--color-primary); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary { background: var(--color-primary); color: var(--color-on-primary); box-shadow: var(--shadow-sm); }
 .btn-primary:not(:disabled):hover { background: var(--color-primary-strong); }
 .btn-secondary {
   background: var(--color-surface);
@@ -111,8 +116,8 @@ img { max-width: 100%; }
   border-color: var(--color-border-strong);
 }
 .btn-secondary:not(:disabled):hover { background: var(--color-surface-sunken); }
-.btn-danger { background: var(--color-danger-soft); color: var(--color-danger); border-color: #fecaca; }
-.btn-danger:not(:disabled):hover { background: #fee2e2; }
+.btn-danger { background: var(--color-danger-soft); color: var(--color-danger); border-color: var(--color-danger-border); }
+.btn-danger:not(:disabled):hover { background: var(--color-danger-hover); }
 .btn-ghost { color: var(--color-text-secondary); }
 .btn-ghost:not(:disabled):hover { color: var(--color-text); background: var(--color-surface-sunken); }
 .btn-block { width: 100%; }
@@ -199,6 +204,12 @@ img { max-width: 100%; }
   font-size: var(--fs-sm);
   color: var(--color-text-secondary);
 }
+/* 번역 언어 표시는 화면 공통으로 accent(민트) 톤을 쓴다 */
+.chip.accent {
+  background: var(--color-accent-soft);
+  border-color: transparent;
+  color: var(--color-accent-strong);
+}
 
 /* ── Field ────────────────────────────────────────────────── */
 label, legend {
@@ -232,7 +243,8 @@ legend { margin-bottom: var(--sp-2); }
   position: fixed;
   z-index: 50;
   right: var(--sp-4);
-  top: var(--sp-4);
+  /* 앱바 우측 버튼(로그아웃/QR)과 겹치지 않도록 앱바 아래에 띄운다 */
+  top: calc(var(--app-bar-h) + var(--sp-3));
   min-height: 36px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
@@ -355,7 +367,7 @@ legend { margin-bottom: var(--sp-2); }
   font-weight: 600;
   color: var(--color-text);
 }
-.locale-option small { color: var(--color-text-tertiary); font-weight: 500; }
+.locale-option small { color: var(--color-text-secondary); font-weight: 500; }
 .locale-option b { font-size: var(--fs-md); }
 .locale-option input:checked + span {
   border-color: var(--color-primary);
@@ -369,7 +381,7 @@ legend { margin-bottom: var(--sp-2); }
 
 .materials-head { display: flex; align-items: baseline; justify-content: space-between; }
 .materials-head h2 { margin: 0; font-size: var(--fs-md); }
-.materials-head span { color: var(--color-text-tertiary); font-size: var(--fs-xs); }
+.materials-head span { color: var(--color-text-secondary); font-size: var(--fs-xs); }
 .material-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
 .material-list li {
   display: flex;
@@ -381,7 +393,7 @@ legend { margin-bottom: var(--sp-2); }
   background: var(--color-surface-sunken);
   font-size: var(--fs-sm);
 }
-.material-empty { color: var(--color-text-tertiary); justify-content: center; }
+.material-empty { color: var(--color-text-secondary); justify-content: center; }
 .material-name {
   flex: 1;
   min-width: 0;
@@ -390,7 +402,7 @@ legend { margin-bottom: var(--sp-2); }
   text-overflow: ellipsis;
 }
 .material-status { font-weight: 700; font-size: var(--fs-xs); white-space: nowrap; }
-.material-status.pending { color: var(--color-text-tertiary); }
+.material-status.pending { color: var(--color-text-secondary); }
 .material-status.processing { color: var(--color-warning); }
 .material-status.done { color: var(--color-success); }
 .material-status.failed { color: var(--color-danger); }
@@ -405,7 +417,7 @@ legend { margin-bottom: var(--sp-2); }
   background: var(--color-surface);
   flex: none;
 }
-.material-remove:hover { color: var(--color-danger); border-color: #fecaca; }
+.material-remove:hover { color: var(--color-danger); border-color: var(--color-danger-border); }
 .material-form { display: grid; gap: var(--sp-2); }
 .material-options { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 
@@ -499,7 +511,7 @@ legend { margin-bottom: var(--sp-2); }
   flex-basis: 100%;
   margin: 2px 0 0;
   font-size: var(--fs-xs);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 .lang-pill {
   display: inline-flex;
@@ -516,7 +528,7 @@ legend { margin-bottom: var(--sp-2); }
   text-overflow: ellipsis;
 }
 .lang-pill small { color: var(--color-text-secondary); font-weight: 500; }
-.lang-pill.accent { background: var(--color-accent-soft); color: #0f766e; }
+.lang-pill.accent { background: var(--color-accent-soft); color: var(--color-accent-strong); }
 
 /* ============================================================
    자막 목록 (교수 원문 / 학생 번역 공용)
@@ -570,13 +582,13 @@ legend { margin-bottom: var(--sp-2); }
   display: flex;
   gap: var(--sp-2);
   font-size: var(--fs-xs);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 .caption-meta .speaker { font-weight: 700; color: var(--color-text-secondary); }
 .caption .translated { font-size: var(--fs-lg); font-weight: 600; line-height: var(--lh-body); }
 .caption .source { font-size: var(--fs-sm); color: var(--color-text-secondary); }
-.caption time, .prof-utterance time { font-size: var(--fs-xs); color: var(--color-text-tertiary); }
-.caption.fallback { border-color: #fde68a; background: var(--color-warning-soft); }
+.caption time, .prof-utterance time { font-size: var(--fs-xs); color: var(--color-text-secondary); }
+.caption.fallback { border-color: var(--color-warning-border); background: var(--color-warning-soft); }
 .fallback-note { font-size: var(--fs-xs); color: var(--color-warning); font-weight: 600; }
 
 .caption-scroll > .caption:last-of-type,
@@ -588,13 +600,13 @@ legend { margin-bottom: var(--sp-2); }
 .caption-empty {
   margin: auto;
   text-align: center;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   font-size: var(--fs-sm);
   padding: var(--sp-6) 0;
 }
 .prof-utterance .partial {
   display: block;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 .prof-utterance .partial:empty { display: none; }
@@ -612,7 +624,7 @@ legend { margin-bottom: var(--sp-2); }
   padding: 6px 14px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: var(--fs-sm);
   font-weight: 700;
   box-shadow: var(--shadow-lg);
@@ -686,7 +698,7 @@ legend { margin-bottom: var(--sp-2); }
   text-overflow: ellipsis;
 }
 .profile-summary-text small {
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   font-size: var(--fs-xs);
   white-space: nowrap;
   overflow: hidden;
@@ -786,7 +798,7 @@ legend { margin-bottom: var(--sp-2); }
 .recent-card, .settings-summary { padding: var(--sp-5); display: grid; gap: var(--sp-3); align-content: start; }
 .recent-list { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
 .recent-list > p { margin: 0; }
-.recent-list > small, .recent-item small { color: var(--color-text-tertiary); font-size: var(--fs-xs); }
+.recent-list > small, .recent-item small { color: var(--color-text-secondary); font-size: var(--fs-xs); }
 .recent-item {
   display: grid;
   gap: 2px;
@@ -802,7 +814,7 @@ legend { margin-bottom: var(--sp-2); }
 .language-route { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; font-size: var(--fs-sm); }
 .language-route > div { display: grid; gap: 2px; min-width: 0; }
 .language-route strong { overflow-wrap: anywhere; }
-.language-route small { color: var(--color-text-tertiary); }
+.language-route small { color: var(--color-text-secondary); }
 .language-route .arrow { color: var(--color-text-tertiary); }
 .locale-details summary {
   list-style: none;
@@ -910,7 +922,9 @@ legend { margin-bottom: var(--sp-2); }
   flex: none;
 }
 .slide-header { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.slide-header strong {
+.slide-header h1 {
+  margin: 0;
+  font-weight: 700;
   font-size: var(--fs-lg);
   line-height: var(--lh-tight);
   white-space: nowrap;
@@ -929,7 +943,7 @@ legend { margin-bottom: var(--sp-2); }
 .toolbar-lang { flex: none; max-width: 240px; }
 .toolbar-lang svg { width: 15px; height: 15px; flex: none; }
 .toolbar-lang span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.toolbar-lang small { color: var(--color-text-tertiary); white-space: nowrap; }
+.toolbar-lang small { color: var(--color-text-secondary); white-space: nowrap; }
 
 /* 더보기 드롭다운 (아래로 펼쳐짐) */
 .more-menu { position: relative; flex: none; }
@@ -1010,7 +1024,7 @@ legend { margin-bottom: var(--sp-2); }
   padding: 10px var(--sp-4);
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: var(--fs-sm);
   font-weight: 700;
   box-shadow: var(--shadow-lg);
@@ -1066,7 +1080,7 @@ legend { margin-bottom: var(--sp-2); }
   padding: var(--sp-4);
   border-radius: var(--radius-md);
   background: var(--color-text);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: var(--fs-md);
   font-weight: 700;
   box-shadow: var(--shadow-lg);
@@ -1104,7 +1118,7 @@ dialog h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
 .qr-dialog img { width: 220px; height: 220px; margin: 0 auto; border-radius: var(--radius-sm); }
 .qr-dialog img:not([src]) { display: none; }
 .qr-dialog p { margin: 0; color: var(--color-text-secondary); font-size: var(--fs-sm); }
-#qr-loading { color: var(--color-text-tertiary); font-size: var(--fs-sm); padding: var(--sp-6) 0; }
+#qr-loading { color: var(--color-text-secondary); font-size: var(--fs-sm); padding: var(--sp-6) 0; }
 
 .history-dialog { width: min(94vw, 560px); }
 .history-caption { margin: 0 0 var(--sp-3); color: var(--color-text-secondary); font-size: var(--fs-sm); }
@@ -1127,9 +1141,9 @@ dialog h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
 }
 .history-item .translated { font-weight: 600; }
 .history-item .source { color: var(--color-text-secondary); font-size: var(--fs-xs); }
-.history-item time { color: var(--color-text-tertiary); font-size: var(--fs-xs); }
-.history-item.fallback { border-color: #fde68a; background: var(--color-warning-soft); }
-.history-empty { color: var(--color-text-tertiary); text-align: center; padding: var(--sp-6) 0; }
+.history-item time { color: var(--color-text-secondary); font-size: var(--fs-xs); }
+.history-item.fallback { border-color: var(--color-warning-border); background: var(--color-warning-soft); }
+.history-empty { color: var(--color-text-secondary); text-align: center; padding: var(--sp-6) 0; }
 
 .student-login-form { display: grid; gap: var(--sp-4); }
 
@@ -1142,7 +1156,7 @@ dialog h2 { margin: 0 0 var(--sp-2); font-size: var(--fs-lg); }
   padding: var(--sp-3) var(--sp-5);
   border-radius: var(--radius-md);
   background: var(--color-text);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: var(--fs-sm);
   font-weight: 600;
   opacity: 0;
