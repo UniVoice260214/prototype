@@ -108,6 +108,7 @@ src/
 
 ## Related Docs
 
+- [docs/병합_내역.md](docs/병합_내역.md) — Yumin × Sehui 프로토타입 통합 기록 (무엇을 어떻게 합쳤는지)
 - [AGENTS.md](/C:/UniVoice/prototype-Yumin/AGENTS.md)
 - [CLAUDE.md](/C:/UniVoice/prototype-Yumin/CLAUDE.md)
 - [docs/통합_결정.md](/C:/UniVoice/prototype-Yumin/docs/%ED%86%B5%ED%95%A9_%EA%B2%B0%EC%A0%95.md)
