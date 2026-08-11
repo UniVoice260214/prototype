@@ -1,16 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 116" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 530" role="img" aria-labelledby="title">
   <title id="title">UniVoice</title>
   <defs>
-    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#64d8f2"/>
-      <stop offset=".55" stop-color="#3986df"/>
-      <stop offset="1" stop-color="#3036a9"/>
+    <linearGradient id="uv-wave" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#79a7ee"/>
+      <stop offset=".5" stop-color="#4d78dd"/>
+      <stop offset="1" stop-color="#2f52c8"/>
     </linearGradient>
   </defs>
-  <g transform="translate(6 4)">
-    <circle cx="74" cy="42" r="39" fill="#fff" stroke="#111" stroke-width="1.5"/>
-    <path d="M33 42c7 0 8-25 17-25s10 48 20 48 12-58 23-58 13 56 23 56 10-38 16-38c4 0 5 12 9 17-4 5-5 17-9 17-6 0-6-31-16-31S104 79 93 79 80 24 70 24 59 67 50 67 40 42 33 42Z" fill="url(#wave)"/>
-    <path d="M21 36v12M15 39v6M9 41v2M127 36v12M133 39v6M139 41v2" stroke="#111" stroke-width="5" stroke-linecap="round"/>
-    <text x="74" y="105" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" font-weight="700">UniVoice</text>
-  </g>
+
+  <!-- 바깥 원 -->
+  <circle cx="300" cy="195" r="160" fill="#fff" stroke="#0b0b0b" stroke-width="7"/>
+
+  <!-- 원 안의 웨이브폼 (상하 대칭 로브, 마디에서 뾰족하게 조임)
+       2차 베지어의 실제 정점은 제어점 오프셋의 1/2 지점이므로 제어점을 2배로 둔다. -->
+  <path fill="url(#uv-wave)" d="
+    M148,195
+    Q179,95 210,195
+    Q247,-35 285,195
+    Q330,-95 375,195
+    Q413,55 452,195
+    Q413,335 375,195
+    Q330,485 285,195
+    Q247,425 210,195
+    Q179,295 148,195
+    Z"/>
+
+  <!-- 좌우 사운드 악센트 (렌즈 + 점) -->
+  <path fill="#0b0b0b" d="M68,195 Q98,105 126,195 Q98,285 68,195 Z"/>
+  <circle cx="40" cy="195" r="15" fill="#0b0b0b"/>
+  <path fill="#0b0b0b" d="M532,195 Q502,105 474,195 Q502,285 532,195 Z"/>
+  <circle cx="560" cy="195" r="15" fill="#0b0b0b"/>
+
+  <!-- 워드마크 -->
+  <text x="300" y="490" text-anchor="middle" fill="#0b0b0b"
+        font-family="'Pretendard Variable', Pretendard, 'Arial Rounded MT Bold', 'Segoe UI', Arial, sans-serif"
+        font-size="96" font-weight="800" letter-spacing="-2">UniVoice</text>
 </svg>
