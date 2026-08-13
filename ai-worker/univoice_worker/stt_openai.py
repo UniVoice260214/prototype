@@ -26,6 +26,7 @@ import asyncio
 import base64
 import logging
 import math
+import time
 from typing import Any, Callable, Iterable
 
 from .models import SttFinalResult, SttPartialResult
@@ -397,6 +398,9 @@ class OpenAiRealtimeStt:
                     confidence=confidence,
                     offset_ms=None,
                     duration_ms=None,
+                    # 턴 방식이라 오디오 오프셋이 없다 → speech_end_at 은 복원 불가.
+                    # 이 경로에서는 "STT final 수신 이후" 구간만 계측된다.
+                    received_at=time.monotonic(),
                 )
             )
         elif event_type == FAILED_EVENT:

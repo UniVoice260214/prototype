@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import threading
+import time
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
@@ -376,6 +377,9 @@ class AzureStreamingStt:
         self._on_error = on_error
         self._stop_lock = threading.Lock()
         self._stopped = False
+        # Azure 가 주는 offset 은 오디오 스트림 시작 기준이다. 이 앵커가 있어야
+        # "발화가 실제로 끝난 시각"을 monotonic 시간축으로 되돌릴 수 있다.
+        self._stream_started_at: float | None = None
         tuning = tuning or SttTuning()
 
         stream_format = speechsdk.audio.AudioStreamFormat(
@@ -408,6 +412,7 @@ class AzureStreamingStt:
         evt: Any,
         on_final: FinalCallback,
     ) -> None:
+        received_at = time.monotonic()
         result = evt.result
         if result.reason != speechsdk.ResultReason.RecognizedSpeech or not result.text:
             return
@@ -418,8 +423,17 @@ class AzureStreamingStt:
                 confidence=confidence,
                 offset_ms=offset_ms,
                 duration_ms=duration_ms,
+                received_at=received_at,
+                speech_end_at=self._speech_end_at(offset_ms, duration_ms),
             )
         )
+
+    def _speech_end_at(self, offset_ms: int | None, duration_ms: int | None) -> float | None:
+        """오디오 타임라인 기준 발화 종료 지점을 monotonic 시각으로 환산한다."""
+        anchor = self._stream_started_at
+        if anchor is None or offset_ms is None or duration_ms is None:
+            return None
+        return anchor + (offset_ms + duration_ms) / 1000
 
     def _handle_canceled(self, evt: Any) -> None:
         reason, details = extract_cancellation(evt)
@@ -429,12 +443,17 @@ class AzureStreamingStt:
             self._on_error(error)
 
     def start(self) -> None:
+        # 재기동 시 오디오 오프셋도 0부터 다시 세므로 앵커를 비워 첫 write 에서 다시 잡는다.
+        self._stream_started_at = None
         self._recognizer.start_continuous_recognition_async().get()
 
     def write(self, pcm: bytes) -> None:
         with self._stop_lock:
             if self._stopped:
                 return
+            # 오디오 오프셋 0 은 start() 가 아니라 "첫 오디오가 들어간 순간"이다.
+            if self._stream_started_at is None:
+                self._stream_started_at = time.monotonic()
         self._push_stream.write(pcm)
 
     def stop(self) -> None:
