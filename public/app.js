@@ -32,6 +32,10 @@
     captionExpiryTimer: null,
     // 과목별 강의 자료 목록 (교수 화면)
     materials: [],
+    // 학생 화면 자료 뷰어: 세션 과목의 자료 목록과 현재 보는 자료
+    studentMaterials: [],
+    activeMaterialId: "",
+    materialPollTimer: null,
     // 학생 회원 로그인 (게스트 QR 입장과 별개)
     studentToken: sessionStorage.getItem("univoice.studentToken") || "",
     studentProfile: null,
@@ -267,6 +271,13 @@
       const status = document.createElement("b");
       status.className = `material-status ${material.indexingStatus}`;
       status.textContent = INDEXING_LABELS[material.indexingStatus] || material.indexingStatus;
+      const extras = [];
+      if (material.previewStatus && material.previewStatus !== "ready") {
+        const preview = document.createElement("span");
+        preview.className = `material-preview-status ${material.previewStatus}`;
+        preview.textContent = material.previewStatus === "pending" ? "PDF 변환 중" : "미리보기 불가";
+        extras.push(preview);
+      }
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "material-remove";
@@ -282,7 +293,7 @@
           toast(error.message, "error");
         }
       });
-      item.append(name, status, remove);
+      item.append(name, status, ...extras, remove);
       list.appendChild(item);
     });
   }
@@ -628,17 +639,7 @@
     $("lang-targets").textContent = state.session.targetLocales
       .map((code) => LOCALES.find((locale) => locale.code === code)?.name || code)
       .join(" · ");
-    const firstMaterial = state.materials[0];
-    $("material-row-name").textContent = firstMaterial
-      ? firstMaterial.originalFilename
-      : "등록된 강의 자료 없음";
-    $("material-row-meta").textContent = state.materials.length
-      ? [
-          firstMaterial.sourceType === "major" ? "전공 자료" : "강의안",
-          firstMaterial.week ? `${firstMaterial.week}주차` : null,
-          `총 ${state.materials.length}개`,
-        ].filter(Boolean).join(" · ")
-      : "수업 준비 화면에서 자료를 업로드하세요";
+    renderLiveMaterialRow();
     const startedAt = new Date(state.session.startedAt).getTime();
     const updateElapsed = () => {
       const seconds = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
@@ -648,6 +649,50 @@
     state.elapsedTimer = setInterval(updateElapsed, 1000);
     pollSessionStatus();
     state.statusTimer = setInterval(pollSessionStatus, 3000);
+  }
+
+  function renderLiveMaterialRow() {
+    // 가장 최근에 올린 자료를 대표로 보여준다 (학생 화면 기본 선택과 동일).
+    const latest = state.materials[state.materials.length - 1];
+    $("material-row-name").textContent = latest
+      ? latest.originalFilename
+      : "등록된 강의 자료 없음";
+    $("material-row-meta").textContent = latest
+      ? [
+          latest.sourceType === "major" ? "전공 자료" : "강의안",
+          latest.week ? `${latest.week}주차` : null,
+          latest.previewStatus === "pending" ? "PDF 변환 중" : null,
+          latest.previewStatus === "failed" ? "미리보기 불가" : null,
+          `총 ${state.materials.length}개`,
+        ].filter(Boolean).join(" · ")
+      : "아래에서 자료를 올리면 학생 화면에 바로 표시됩니다";
+  }
+
+  // 수업 중 업로드: 이 세션에 묶여 저장되고, 서버가 학생 화면에 알림을 보낸다.
+  async function uploadLiveMaterial() {
+    const button = $("live-material-upload");
+    const file = $("live-material-file").files[0];
+    if (!state.session) return toast("진행 중인 수업이 없습니다.", "error");
+    if (!file) return toast("업로드할 파일(PDF/PPT)을 선택해주세요.", "error");
+    const body = new FormData();
+    body.append("file", file);
+    body.append("courseId", state.session.courseId);
+    body.append("sessionId", state.session.id);
+    body.append("sourceType", "lecture");
+    setBusy(button, true, "업로드 중...");
+    try {
+      const material = await api("/materials/upload", { method: "POST", body });
+      $("live-material-file").value = "";
+      toast(material.previewStatus === "ready"
+        ? "자료를 올렸습니다. 학생 화면에 바로 표시됩니다."
+        : "자료를 올렸습니다. PPT를 PDF로 변환한 뒤 학생 화면에 표시됩니다.");
+      await loadMaterials(state.session.courseId);
+      renderLiveMaterialRow();
+    } catch (error) {
+      toast(error.message, "error");
+    } finally {
+      setBusy(button, false);
+    }
   }
 
   async function pollSessionStatus() {
@@ -728,6 +773,7 @@
       await connectStudent(liveKit);
       $("student-join").classList.add("hidden");
       $("student-live").classList.remove("hidden");
+      startStudentMaterials();
       const locale = LOCALES.find((item) => item.code === state.selectedStudentLocale);
       $("student-locale-label").textContent = `${locale.name} · ${locale.native}`;
       $("slide-course-title").textContent = $("joined-session-label").textContent.replace(/^•\s*/, "") || "실시간 강의";
@@ -835,6 +881,10 @@
     }
     // locale 필터는 자막에만 적용한다. audio-status 등 세션 단위 이벤트에는
     // locale 이 없거나 의미가 달라, 토픽별로 분기해야 한다.
+    if (topic === "materials") {
+      handleMaterialEvent(data);
+      return;
+    }
     if (topic === "caption") {
       if (data.locale !== state.selectedStudentLocale) return;
       if (data.type === "caption.partial") return;
@@ -984,43 +1034,10 @@
     if (profScroller) profScroller.reset();
   }
 
-  /**
-   * 강의안 넘김 — #slide-viewer 안의 .slide-image 중 한 장만 보인다.
-   * 뷰어 adapter 가 붙기 전까지 쓰는 정적 슬라이드용 컨트롤.
-   */
-  function setupSlideNav() {
-    const slides = [...document.querySelectorAll("#slide-viewer .slide-image")];
-    const prev = $("slide-prev");
-    const next = $("slide-next");
-    if (slides.length < 2 || !prev || !next) return;
-
-    let index = 0;
-    const render = () => {
-      slides.forEach((slide, i) => { slide.hidden = i !== index; });
-      prev.disabled = index === 0;
-      next.disabled = index === slides.length - 1;
-    };
-    const move = (step) => {
-      const target = index + step;
-      if (target < 0 || target >= slides.length) return;
-      index = target;
-      render();
-    };
-
-    prev.addEventListener("click", () => move(-1));
-    next.addEventListener("click", () => move(1));
-    document.addEventListener("keydown", (event) => {
-      if ($("student-live").classList.contains("hidden")) return;
-      if (event.target.matches("input, textarea")) return;
-      if (event.key === "ArrowLeft") move(-1);
-      if (event.key === "ArrowRight") move(1);
-    });
-    render();
-  }
-
   async function leaveStudentSession() {
     await disconnectRoom();
     stopCaptionExpiry();
+    stopStudentMaterials();
     renderRecentHistory(state.captionHistory);
     state.lastCaptionSequence = 0;
     state.studentSessionId = "";
@@ -1419,6 +1436,289 @@
     return div.innerHTML;
   }
 
+  // ── 학생 강의 자료 뷰어 ────────────────────────────────────────────
+  // 교수가 올린 PDF/PPT(서버가 PDF 로 변환)를 pdf.js 로 canvas 에 그린다.
+  // 목록은 입장 시 조회하고, 이후 LiveKit data(topic: materials) 알림과
+  // 보조 폴링으로 갱신한다. 파일은 joinToken 이 URL 에 남지 않도록 POST 로
+  // 받아 메모리에서 연다 (transcripts/query 와 같은 규칙).
+  const MATERIAL_POLL_MS = 15000;
+  const PREVIEW_LABELS = { pending: "변환 중", failed: "미리보기 불가" };
+  const VIEWER_EMPTY = ["아직 등록된 강의 자료가 없습니다", "교수님이 PDF/PPT를 업로드하면 이곳에 바로 표시됩니다."];
+  const MATERIAL_DOC_CACHE = 3;
+  const viewer = { pdfjs: null, docs: new Map(), doc: null, page: 1, renderTask: null, loadSeq: 0, renderSeq: 0, refreshFailed: false, listSignature: "" };
+
+  function studentRequestOptions(extraBody = {}) {
+    const joinToken = $("join-token").value.trim();
+    return {
+      method: "POST",
+      auth: false,
+      headers: {
+        "Content-Type": "application/json",
+        ...(state.studentToken ? { Authorization: `Bearer ${state.studentToken}` } : {}),
+      },
+      body: JSON.stringify({ ...(joinToken ? { joinToken } : {}), ...extraBody }),
+    };
+  }
+
+  function loadPdfJs() {
+    if (!viewer.pdfjs) {
+      viewer.pdfjs = import("/vendor/pdfjs/pdf.min.mjs").then((lib) => {
+        lib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
+        return lib;
+      });
+      viewer.pdfjs.catch(() => { viewer.pdfjs = null; });
+    }
+    return viewer.pdfjs;
+  }
+
+  async function refreshStudentMaterials({ preferId } = {}) {
+    if (!state.studentSessionId) return;
+    let list;
+    try {
+      list = await api(`/sessions/${state.studentSessionId}/materials/query`, studentRequestOptions());
+      viewer.refreshFailed = false;
+    } catch (error) {
+      if (!viewer.refreshFailed) toast(`강의 자료 목록을 불러오지 못했습니다: ${error.message}`, "error");
+      viewer.refreshFailed = true;
+      return;
+    }
+    const before = state.studentMaterials.find((item) => item.id === state.activeMaterialId);
+    state.studentMaterials = list;
+    // 15초 폴링마다 탭 DOM 을 다시 만들면 포커스/탭 상태가 날아간다 — 목록이 실제로
+    // 바뀌었을 때만 다시 그린다.
+    const signature = list.map((item) => `${item.id}:${item.previewStatus}`).join("|");
+    const ids = new Set(list.map((item) => item.id));
+    let next = preferId && ids.has(preferId) ? preferId : state.activeMaterialId;
+    if (!next || !ids.has(next)) {
+      // 기본 선택: 가장 최근에 올라온 자료 (준비된 것 우선)
+      const ready = [...list].reverse().find((item) => item.previewStatus === "ready");
+      next = (ready || list[list.length - 1] || {}).id || "";
+    }
+    const after = list.find((item) => item.id === next);
+    const changed = next !== state.activeMaterialId
+      || (next && (!before || !after || before.previewStatus !== after.previewStatus));
+    if (changed) await showMaterial(next);
+    else if (signature !== viewer.listSignature) renderMaterialTabs();
+    viewer.listSignature = signature;
+  }
+
+  function renderMaterialTabs() {
+    const tabs = $("material-tabs");
+    tabs.innerHTML = "";
+    tabs.classList.toggle("hidden", state.studentMaterials.length === 0);
+    state.studentMaterials.forEach((material) => {
+      const active = material.id === state.activeMaterialId;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(active));
+      button.className = active ? "material-tab active" : "material-tab";
+      const name = document.createElement("span");
+      name.className = "material-tab-name";
+      name.textContent = (material.week ? `${material.week}주차 · ` : "") + material.originalFilename;
+      name.title = material.originalFilename;
+      button.appendChild(name);
+      if (material.previewStatus !== "ready") {
+        const status = document.createElement("small");
+        status.className = `material-tab-status ${material.previewStatus}`;
+        status.textContent = PREVIEW_LABELS[material.previewStatus] || material.previewStatus;
+        button.appendChild(status);
+      }
+      button.addEventListener("click", () => {
+        showMaterial(material.id).catch(() => undefined);
+      });
+      tabs.appendChild(button);
+    });
+  }
+
+  function showViewerEmpty(title, detail) {
+    $("slide-canvas").hidden = true;
+    $("slide-nav").classList.add("hidden");
+    $("slide-loading").classList.add("hidden");
+    const empty = $("slide-empty");
+    empty.classList.remove("hidden");
+    empty.querySelector("strong").textContent = title;
+    empty.querySelector("p").textContent = detail;
+  }
+
+  async function showMaterial(id) {
+    const material = state.studentMaterials.find((item) => item.id === id);
+    state.activeMaterialId = material ? id : "";
+    renderMaterialTabs();
+    const seq = ++viewer.loadSeq;
+    cancelRender();
+    viewer.doc = null;
+    if (!material) return showViewerEmpty(...VIEWER_EMPTY);
+    if (material.previewStatus === "pending") {
+      return showViewerEmpty("자료를 변환하고 있습니다", `${material.originalFilename} — PPT를 PDF로 바꾸는 중입니다. 완료되면 자동으로 표시됩니다.`);
+    }
+    if (material.previewStatus === "failed") {
+      return showViewerEmpty("미리보기를 만들 수 없는 파일입니다", `${material.originalFilename} — 교수님께 PDF로 다시 올려달라고 요청해주세요.`);
+    }
+    $("slide-empty").classList.add("hidden");
+    $("slide-loading").classList.remove("hidden");
+    try {
+      const doc = await openMaterialDocument(material);
+      if (seq !== viewer.loadSeq) return; // 그 사이 다른 자료로 바뀜
+      viewer.doc = doc;
+      viewer.page = 1;
+      $("slide-loading").classList.add("hidden");
+      $("slide-canvas").hidden = false;
+      $("slide-nav").classList.toggle("hidden", doc.numPages < 2);
+      await renderSlidePage();
+    } catch (error) {
+      if (seq !== viewer.loadSeq) return;
+      viewer.docs.delete(id);
+      showViewerEmpty("자료를 불러오지 못했습니다", error.message);
+    }
+  }
+
+  function openMaterialDocument(material) {
+    if (!viewer.docs.has(material.id)) {
+      const promise = (async () => {
+        const [pdfjs, response] = await Promise.all([
+          loadPdfJs(),
+          fetch(`/sessions/${state.studentSessionId}/materials/${material.id}/file`, studentRequestOptions()),
+        ]);
+        if (!response.ok) {
+          throw new Error(response.status === 409 ? "자료가 아직 준비되지 않았습니다." : "자료를 내려받지 못했습니다.");
+        }
+        const data = await response.arrayBuffer();
+        return pdfjs.getDocument({
+          data,
+          cMapUrl: "/vendor/pdfjs/cmaps/",
+          cMapPacked: true,
+          standardFontDataUrl: "/vendor/pdfjs/standard_fonts/",
+        }).promise;
+      })();
+      promise.catch(() => viewer.docs.delete(material.id));
+      viewer.docs.set(material.id, promise);
+      // 태블릿 메모리 보호: 오래된 문서부터 내린다 (Map 은 삽입 순서를 유지한다).
+      while (viewer.docs.size > MATERIAL_DOC_CACHE) {
+        const [oldestId, oldest] = viewer.docs.entries().next().value;
+        viewer.docs.delete(oldestId);
+        oldest.then((doc) => doc.destroy()).catch(() => undefined);
+      }
+    }
+    return viewer.docs.get(material.id);
+  }
+
+  function cancelRender() {
+    if (viewer.renderTask) {
+      viewer.renderTask.cancel();
+      viewer.renderTask = null;
+    }
+  }
+
+  // 무대 크기에 맞춰 페이지를 통째로 보이게(contain) 그린다. 태블릿 고해상도
+  // 화면에서 흐려지지 않도록 devicePixelRatio(최대 2배)만큼 크게 래스터화한다.
+  async function renderSlidePage() {
+    const doc = viewer.doc;
+    if (!doc) return;
+    // getPage 를 기다리는 사이 다른 렌더 요청(페이지 넘김·리사이즈)이 오면 이쪽이 물러난다.
+    // 한 canvas 에 두 render() 가 겹치면 pdf.js 가 예외를 던진다.
+    const seq = ++viewer.renderSeq;
+    const page = await doc.getPage(viewer.page);
+    if (seq !== viewer.renderSeq || viewer.doc !== doc) return;
+    cancelRender();
+    const canvas = $("slide-canvas");
+    const stage = $("slide-stage");
+    const base = page.getViewport({ scale: 1 });
+    const width = Math.max(stage.clientWidth, 1);
+    const height = stage.clientHeight;
+    const scale = height > 40 ? Math.min(width / base.width, height / base.height) : width / base.width;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const viewport = page.getViewport({ scale: scale * dpr });
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
+    canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+    const task = page.render({ canvasContext: canvas.getContext("2d"), viewport });
+    viewer.renderTask = task;
+    try {
+      await task.promise;
+    } catch (error) {
+      if (error && error.name === "RenderingCancelledException") return;
+      throw error;
+    } finally {
+      if (viewer.renderTask === task) viewer.renderTask = null;
+    }
+    $("slide-page-label").textContent = `${viewer.page} / ${doc.numPages}`;
+    $("slide-prev").disabled = viewer.page <= 1;
+    $("slide-next").disabled = viewer.page >= doc.numPages;
+  }
+
+  function moveSlide(step) {
+    if (!viewer.doc) return;
+    const target = viewer.page + step;
+    if (target < 1 || target > viewer.doc.numPages) return;
+    viewer.page = target;
+    renderSlidePage().catch(() => undefined);
+  }
+
+  function setupSlideNav() {
+    $("slide-prev").addEventListener("click", () => moveSlide(-1));
+    $("slide-next").addEventListener("click", () => moveSlide(1));
+    document.addEventListener("keydown", (event) => {
+      if ($("student-live").classList.contains("hidden")) return;
+      if (event.target.matches("input, textarea, select")) return;
+      if (event.key === "ArrowLeft") moveSlide(-1);
+      if (event.key === "ArrowRight") moveSlide(1);
+    });
+    // 자막 패널 접기/회전 등으로 무대 크기가 바뀌면 다시 맞춘다.
+    let resizeTimer = null;
+    const rerender = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => renderSlidePage().catch(() => undefined), 150);
+    };
+    if (typeof ResizeObserver === "function") new ResizeObserver(rerender).observe($("slide-stage"));
+    else window.addEventListener("resize", rerender);
+  }
+
+  function startStudentMaterials() {
+    stopStudentMaterials();
+    refreshStudentMaterials().catch(() => undefined);
+    state.materialPollTimer = setInterval(() => {
+      refreshStudentMaterials().catch(() => undefined);
+    }, MATERIAL_POLL_MS);
+  }
+
+  function stopStudentMaterials() {
+    clearInterval(state.materialPollTimer);
+    state.materialPollTimer = null;
+    viewer.loadSeq += 1;
+    cancelRender();
+    viewer.docs.forEach((promise) => {
+      promise.then((doc) => doc.destroy()).catch(() => undefined);
+    });
+    viewer.docs.clear();
+    viewer.doc = null;
+    viewer.page = 1;
+    state.studentMaterials = [];
+    state.activeMaterialId = "";
+    viewer.listSignature = "";
+    renderMaterialTabs();
+    showViewerEmpty(...VIEWER_EMPTY);
+  }
+
+  // 교수 업로드 / PPT 변환 완료 / 삭제 알림 (LiveKit data, topic: materials).
+  // 목록은 서버에서 다시 받는다 — 알림 페이로드만 믿고 상태를 만들지 않는다.
+  function handleMaterialEvent(data) {
+    const material = data.material || {};
+    if (data.type === "material.uploaded") {
+      toast(`새 강의 자료: ${material.originalFilename}`);
+      refreshStudentMaterials({ preferId: material.previewStatus === "ready" ? material.id : undefined }).catch(() => undefined);
+    } else if (data.type === "material.updated") {
+      // 방금 변환이 끝난 자료 = 교수가 방금 올린 자료. PDF 업로드가 즉시 화면에
+      // 뜨는 것과 같은 동작이 되도록 준비되는 즉시 그 자료로 넘어간다.
+      if (material.previewStatus === "ready") toast(`자료 준비 완료: ${material.originalFilename}`);
+      const prefer = material.previewStatus === "ready" ? material.id : undefined;
+      refreshStudentMaterials({ preferId: prefer }).catch(() => undefined);
+    } else if (data.type === "material.removed") {
+      refreshStudentMaterials().catch(() => undefined);
+    }
+  }
+
   function initialize() {
     renderLocales();
     studentScroller = createCaptionScroller("captions", "captions-jump-latest", syncAutoscrollButton);
@@ -1461,6 +1761,9 @@
     });
     $("material-upload").addEventListener("click", () => {
       uploadMaterial().catch((error) => toast(error.message, "error"));
+    });
+    $("live-material-upload").addEventListener("click", () => {
+      uploadLiveMaterial().catch((error) => toast(error.message, "error"));
     });
     $("material-link").addEventListener("click", () => {
       if (!state.materials.length) return toast("이 과목에 등록된 자료가 없습니다.");

@@ -113,6 +113,14 @@
           </span>
           <span class="material-row-open">열기</span>
         </a>
+        <!-- 수업 중 업로드: 이 세션에 묶여 저장되고, 학생 화면에 즉시 표시된다 -->
+        <section class="card live-material-card">
+          <div class="material-form">
+            <input id="live-material-file" type="file" accept=".pdf,.ppt,.pptx" aria-label="수업 중 올릴 강의 자료 파일 선택" />
+            <button id="live-material-upload" class="btn btn-secondary" type="button">이 수업에 자료 올리기</button>
+          </div>
+          <p class="live-material-hint">PDF는 바로, PPT는 PDF로 변환된 뒤 학생 화면에 표시됩니다.</p>
+        </section>
 
         <!-- 실시간 번역 상태 카드 -->
         <section class="card live-card">
@@ -312,22 +320,27 @@
           <!-- 슬라이드/PDF 영역 -->
           <section class="card viewer-stage" aria-label="강의 자료 영역">
             <!--
-              [PDF viewer adapter 연결 지점]
-              지금은 데모용 정적 슬라이드 이미지(.slide-image) 2장을 마운트해 둔 상태다.
-              추후 학생용 자료 조회 경로가 생기면, 자료 URL이 실제로 존재할 때에만
-              이 img 들을 뷰어(iframe 또는 pdf.js 캔버스)로 교체한다.
-              - 미리 iframe을 렌더하거나 빈/가짜 src를 넣지 말 것.
-              - empty state 는 제거했다. 되살릴 때는 CSS 에 [hidden] 가드를 함께 넣을 것 —
-                display 를 지정한 규칙은 hidden 속성을 이겨서 계속 자리를 차지한다.
+              교수가 올린 PDF/PPT 를 보여준다. PPT 는 서버가 PDF 로 변환한다.
+              목록(탭)은 입장 시 조회 + LiveKit data(topic: materials) 알림으로 갱신,
+              페이지는 좌/우 버튼(또는 ←/→ 키)으로 넘긴다. app.js 의 학생 자료 뷰어 참조.
             -->
             <div id="slide-viewer" class="slide-viewer">
-              <img class="slide-image" src="/lecture-slide-1.jpg" alt="강의안 1" />
-              <img class="slide-image" src="/lecture-slide-2.jpg" alt="강의안 2" hidden />
-              <div class="slide-nav">
-                <button id="slide-prev" class="icon-btn" type="button" aria-label="이전 강의안">
+              <div id="material-tabs" class="material-tabs hidden" role="tablist" aria-label="강의 자료 목록"></div>
+              <div id="slide-stage" class="slide-stage">
+                <canvas id="slide-canvas" class="slide-canvas" hidden aria-label="강의 자료 페이지"></canvas>
+                <div id="slide-empty" class="slide-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 15h6"/><path d="M9 11h2"/></svg>
+                  <strong>아직 등록된 강의 자료가 없습니다</strong>
+                  <p>교수님이 PDF/PPT를 업로드하면 이곳에 바로 표시됩니다.</p>
+                </div>
+                <div id="slide-loading" class="slide-loading hidden" role="status">자료를 불러오는 중…</div>
+              </div>
+              <div id="slide-nav" class="slide-nav hidden">
+                <button id="slide-prev" class="icon-btn" type="button" aria-label="이전 페이지">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
                 </button>
-                <button id="slide-next" class="icon-btn" type="button" aria-label="다음 강의안">
+                <span id="slide-page-label" class="slide-page-label" aria-live="polite">1 / 1</span>
+                <button id="slide-next" class="icon-btn" type="button" aria-label="다음 페이지">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
                 </button>
               </div>
