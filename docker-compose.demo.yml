@@ -229,6 +229,13 @@ services:
     build:
       context: ./ai-worker
     restart: unless-stopped
+    # Docker Desktop(Windows)의 내장 DNS 프록시가 컨테이너 (재)생성 직후 몇 분간
+    # koreacentral.tts.speech.microsoft.com 만 "주소 없음"으로 답해 TTS 가 통째로
+    # 빠지는 장애가 반복됐다(STT 호스트는 정상). 외부 이름은 공개 리졸버로 직접 풀고,
+    # 서비스명(redis, rag-service)은 여전히 compose 내장 DNS(127.0.0.11)가 처리한다.
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       LIVEKIT_URL: ${LIVEKIT_URL}
