@@ -22,6 +22,7 @@ import { EventsService } from '../events/events.service';
 import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
 import { Session } from './entities/session.entity';
+import { SessionAttendance } from './entities/session-attendance.entity';
 import {
   IssueStudentTokenDto,
   LiveKitTokenResponseDto,
@@ -35,6 +36,8 @@ export class SessionService {
 
   constructor(
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
+    @InjectRepository(SessionAttendance)
+    private readonly attendances: Repository<SessionAttendance>,
     @InjectRepository(Glossary)
     private readonly glossaries: Repository<Glossary>,
     @InjectRepository(Course) private readonly courses: Repository<Course>,
@@ -180,6 +183,28 @@ export class SessionService {
       );
     }
 
+    // 로그인 학생의 참여를 기록한다 — 지난 수업 자막 열람 권한과
+    // "내 수업 목록"의 근거. QR 게스트(authStudentId 없음)는 기록할 수 없어
+    // joinToken 유효기간(24h) 내 재열람만 가능하다.
+    if (authStudentId) {
+      try {
+        await this.attendances.upsert(
+          {
+            studentId: authStudentId,
+            sessionId,
+            locale: dto.locale,
+            joinedAt: new Date(),
+          },
+          ['studentId', 'sessionId'],
+        );
+      } catch (err) {
+        // 참여 기록 실패가 수업 입장 자체를 막아서는 안 된다.
+        this.logger.warn(
+          `Attendance upsert failed for student ${authStudentId} in ${sessionId}: ${this.errorMessage(err)}`,
+        );
+      }
+    }
+
     const identity = `student-${identitySub}-${uuid().slice(0, 8)}`;
     const token = await this.liveKit.createAccessToken({
       identity,
@@ -199,8 +224,18 @@ export class SessionService {
     };
   }
 
-  findAll(courseId: string | undefined, user: AuthUser): Promise<Session[]> {
-    return this.courseAccess.findSessionsForUser({ courseId }, user);
+  findAll(
+    courseId: string | undefined,
+    status: 'active' | 'ended' | string | undefined,
+    user: AuthUser,
+  ): Promise<Session[]> {
+    return this.courseAccess.findSessionsForUser(
+      {
+        courseId,
+        status: status === 'active' || status === 'ended' ? status : undefined,
+      },
+      user,
+    );
   }
 
   findActive(courseId: string | undefined, user: AuthUser): Promise<Session[]> {

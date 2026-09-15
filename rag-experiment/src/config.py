@@ -69,6 +69,14 @@ INDEX_SUBSETS: dict[str, list[str]] = {
     "lecture_lee_molbio": ["molbio_lecture_slide"],     # 이우일 · 분자생물학
 }
 
+# 전공별 기본(강의 인덱스 제외) 인덱스. courseId가 RAG_COURSE_INDEX_MAP에
+# 등록되지 않은 경우의 폴백이자, RAG_COURSE_INDEX_MAP 값 검증의 기준이 된다.
+MAJOR_PRIMARY_INDEX: dict[str, str] = {
+    "ai": "major_ai",
+    "hss": "major_humanities_social_sciences",
+    "bme": "major_biomedical_bioengineering",
+}
+
 # Azure OpenAI (.env에서 로드)
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")

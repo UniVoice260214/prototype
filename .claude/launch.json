@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "univoice-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "preview:web"
+      ],
+      "port": 4173
+    }
+  ]
+}

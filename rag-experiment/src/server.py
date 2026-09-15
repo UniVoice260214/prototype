@@ -26,19 +26,42 @@ class RetrieveRequest(BaseModel):
     courseId: str = ""
 
 
+class ReloadRequest(BaseModel):
+    """indexer_daemon 이 인덱스 갱신 직후 호출한다."""
+
+    courseId: str = Field(min_length=1, max_length=64)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     model = os.getenv("RAG_MODEL", "kure")
     top_k = int(os.getenv("RAG_TOP_K", "3"))
     context_max_chars = int(os.getenv("RAG_CONTEXT_MAX_CHARS", "4000"))
+    course_index_map_raw = os.getenv("RAG_COURSE_INDEX_MAP", "")
+    search_concurrency = int(os.getenv("RAG_SEARCH_CONCURRENCY", "2"))
+    cache_max_size = int(os.getenv("RAG_SEARCH_CACHE_SIZE", "256"))
+    cache_ttl_sec = float(os.getenv("RAG_SEARCH_CACHE_TTL_SEC", "300"))
     logger.info("RAG runtime loading model=%s topK=%d", model, top_k)
+    # RAG_COURSE_INDEX_MAP이 잘못돼 있으면 여기서 예외가 그대로 전파돼 기동이 실패한다
+    # (오검색이 프로덕션에 새어나가지 않도록 무음 폴백 대신 fail-fast).
     app.state.runtime = await asyncio.to_thread(
         RagRuntime.load,
         model,
         top_k=top_k,
         context_max_chars=context_max_chars,
+        course_index_map_raw=course_index_map_raw,
+        search_concurrency=search_concurrency,
+        cache_max_size=cache_max_size,
+        cache_ttl_sec=cache_ttl_sec,
     )
-    logger.info("RAG runtime ready majors=%s", sorted(app.state.runtime.routers))
+    logger.info(
+        "RAG runtime ready majors=%s courses=%s searchConcurrency=%d cacheSize=%d cacheTtlSec=%s",
+        sorted(app.state.runtime.routers),
+        sorted(app.state.runtime.course_index_map),
+        search_concurrency,
+        cache_max_size,
+        cache_ttl_sec,
+    )
     yield
 
 
@@ -48,6 +71,21 @@ app = FastAPI(title="UniVoice Demo RAG", version="1.0", lifespan=lifespan)
 @app.get("/health/live")
 def health_live() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/admin/reload")
+async def admin_reload(payload: ReloadRequest, request: Request) -> dict[str, object]:
+    """과목별 lecture 인덱스를 디스크에서 다시 읽는다.
+
+    자료 업로드→인덱싱 완료 시 indexer_daemon 이 호출하며, 서비스 재시작 없이
+    새 자료가 즉시 검색에 반영된다. (미로드 과목은 /retrieve 가 lazy load 도 한다.)
+    """
+    runtime = getattr(request.app.state, "runtime", None)
+    if runtime is None:
+        raise HTTPException(status_code=503, detail="RAG runtime is loading")
+    name = await asyncio.to_thread(runtime.reload_course_index, payload.courseId)
+    logger.info("admin reload course=%s -> %s", payload.courseId, name or "not-found")
+    return {"reloaded": bool(name), "index": name}
 
 
 @app.get("/health/ready")
@@ -60,6 +98,8 @@ def health_ready(request: Request) -> dict[str, object]:
         "model": runtime.model_key,
         "majors": sorted(runtime.routers),
         "indexes": sorted(runtime.indexes),
+        "courses": sorted(runtime.course_index_map),
+        "searchConcurrency": runtime.search_concurrency,
     }
 
 
@@ -74,17 +114,19 @@ async def retrieve(payload: RetrieveRequest, request: Request) -> dict[str, obje
             payload.sentence,
             major=payload.major,
             glossary_hits=payload.glossaryHits,
+            course_id=payload.courseId,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     logger.info(
-        "RAG %s course=%s major=%s query=%r matched=%s score=%s latencyMs=%s",
+        "RAG %s course=%s major=%s query=%r matched=%s score=%s indexes=%s latencyMs=%s",
         "ON" if result["useRag"] else "OFF",
         payload.courseId,
         result["major"],
         result["query"],
         result["matchedTerms"],
         result["topScore"],
+        result["indexes"],
         result["latencyMs"],
     )
     return result

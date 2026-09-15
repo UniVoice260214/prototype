@@ -348,7 +348,11 @@ def write_meta(chapters: list[dict]) -> None:
     """장별 분야 메타데이터를 PDF 옆에 JSON으로 내보낸다.
 
     PDF 본문에는 분야 태그가 인쇄되지 않으므로, ingest 단계에서 장 번호로
-    조인해 chunk metadata(field)를 채우는 용도로 쓴다.
+    조인해 chunk metadata(field)를 채우는 용도로 쓴다. key_terms도 함께 내보내는데,
+    핵심 용어 표가 PDF 렌더링에서는 term 텍스트 자체가 줄바꿈될 수 있어(예:
+    "인지질 이중층(phospholipid" / "bilayer)") PDF 텍스트만으로는 용어 경계를
+    안정적으로 복원할 수 없다 — ingest 단계가 여기(원본 데이터)에서 직접 읽어
+    장당 1 chunk였던 "핵심 용어" 블록을 용어당 1 chunk로 쪼갤 수 있게 한다.
     """
     import json
 
@@ -361,6 +365,7 @@ def write_meta(chapters: list[dict]) -> None:
                 "part": ch.get("part", ""),
                 "field": ch.get("field", ""),
                 "field_en": ch.get("field_en", ""),
+                "key_terms": ch.get("key_terms", []),
             }
             for ch in chapters
         },

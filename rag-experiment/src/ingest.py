@@ -714,6 +714,7 @@ def ingest_bme_major() -> list[Chunk]:
             )
         )
         _attach_field_metadata(chunks, textbook_path)
+        chunks = _split_key_terms_into_chunks(chunks, textbook_path)
 
     # 강의자료: bio_lecture9.pdf — 분자생물학(이우일) 9차시 'Molecular Cloning'.
     # 교재 chunk에만 분야 태그를 붙이도록 _attach_field_metadata 뒤에서 합친다.
@@ -733,6 +734,7 @@ def ingest_bme_major() -> list[Chunk]:
 
 
 CH_NO_RE = re.compile(r"_ch(\d+)")
+TERMS_CHUNK_RE = re.compile(r"^(.+)_ch(\d+)_terms(?:_\d+)?$")
 
 
 def _attach_field_metadata(chunks: list[Chunk], textbook_path: Path) -> None:
@@ -754,6 +756,73 @@ def _attach_field_metadata(chunks: list[Chunk], textbook_path: Path) -> None:
         chunk.metadata["field_en"] = info.get("field_en", "")
         tagged += 1
     print(f"[ingest] 분야 태그 부착: {tagged}/{len(chunks)}개 chunk")
+
+
+def _split_key_terms_into_chunks(chunks: list[Chunk], textbook_path: Path) -> list[Chunk]:
+    """장별 "핵심 용어" 통짜 chunk를 용어당 1 chunk로 쪼갠다.
+
+    ingest_textbook_pdf()는 PDF에서 추출한 텍스트만으로 "핵심 용어" 절 전체를
+    통짜 chunk 1~3개로 만든다 — 장별 정의형 질의(예: "PCR이 뭐예요?")에서 상관없는
+    용어 11개가 함께 딸려 들어와 노이즈가 된다. PDF 렌더링에서는 용어 텍스트 자체가
+    줄바꿈될 수 있어(예: 표 셀에서 "인지질 이중층(phospholipid" / "bilayer)"로 잘림)
+    추출된 PDF 텍스트만으로는 용어 경계를 안정적으로 복원할 수 없으므로, 대신 교재를
+    만든 원본 데이터(장별 key_terms 리스트, term/desc 필드 — 새로 짓지 않고 이미 있는
+    내용을 그대로 씀)를 사이드카 JSON(_attach_field_metadata와 같은 파일)에서 읽어
+    정확한 용어/정의로 대체한다.
+
+    사이드카가 없거나 특정 장에 key_terms가 없으면 그 장은 기존 통짜 chunk를 그대로
+    둔다 — 사이드카 없이 업로드되는 임의의 교재 PDF에서도 안전하게 동작한다.
+    """
+    meta_path = textbook_path.with_name(textbook_path.stem + "_메타.json")
+    if not meta_path.exists():
+        return chunks
+    by_chapter = json.loads(meta_path.read_text(encoding="utf-8"))["chapters"]
+
+    result: list[Chunk] = []
+    already_split: set[str] = set()
+    split_chapters = 0
+    split_terms = 0
+    for chunk in chunks:
+        match = TERMS_CHUNK_RE.match(chunk.chunk_id)
+        if not match:
+            result.append(chunk)
+            continue
+        base, ch_no_str = match.group(1), match.group(2)
+        info = by_chapter.get(str(int(ch_no_str)))
+        key_terms = info.get("key_terms") if info else None
+        if not key_terms:
+            result.append(chunk)  # 사이드카에 이 장의 key_terms가 없으면 그대로 유지
+            continue
+        if ch_no_str in already_split:
+            continue  # 같은 장의 overlap 연속 조각(_terms_1, _terms_2, ...) — 이미 대체함
+        already_split.add(ch_no_str)
+        split_chapters += 1
+
+        title = info.get("title", "")
+        header = f"[제{int(ch_no_str)}장 {title}]"
+        meta_base = {
+            "chapter": f"제{int(ch_no_str)}장 {title}",
+            "section_title": TB_TERMS_HEADER,
+            "field": chunk.metadata.get("field", ""),
+            "field_en": chunk.metadata.get("field_en", ""),
+        }
+        for term_no, term in enumerate(key_terms, start=1):
+            term_text = term.get("term", "")
+            if not term_text:
+                continue
+            desc_text = term.get("desc", "")
+            result.append(
+                Chunk(
+                    chunk_id=f"{base}_ch{ch_no_str}_term{term_no:02d}",
+                    source=chunk.source,
+                    doc_type=chunk.doc_type,
+                    text=f"{header} 핵심 용어: {term_text}\n정의: {desc_text}".rstrip(),
+                    metadata={**meta_base, "term": term_text},
+                )
+            )
+            split_terms += 1
+    print(f"[ingest] 핵심 용어 chunk 분해: {split_chapters}개 장 → {split_terms}개 용어별 chunk")
+    return result
 
 
 # ── main ──────────────────────────────────────────────────────────────

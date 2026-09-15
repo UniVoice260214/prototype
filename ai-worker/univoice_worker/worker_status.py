@@ -22,11 +22,16 @@ class WorkerStatus:
     status: WorkerStatusValue
     ts: float
     error: str | None = None
+    # 교수 화면이 그대로 읽는 진단 정보.
+    # 예: {"glossary": 0, "lexicon": "ai", "phraseList": 334, "rag": "off"}
+    diagnostics: dict[str, object] | None = None
 
     def to_json(self) -> str:
         payload: dict[str, object] = {"status": self.status, "ts": self.ts}
         if self.error:
             payload["error"] = self.error
+        if self.diagnostics:
+            payload["diagnostics"] = self.diagnostics
         return json.dumps(payload, ensure_ascii=False)
 
 
@@ -37,6 +42,7 @@ class WorkerStatusStore(Protocol):
         status: WorkerStatusValue,
         *,
         error: str | None = None,
+        diagnostics: dict[str, object] | None = None,
     ) -> None:
         """Persist worker status for a session."""
 
@@ -48,6 +54,7 @@ class NoOpWorkerStatusStore:
         status: WorkerStatusValue,
         *,
         error: str | None = None,
+        diagnostics: dict[str, object] | None = None,
     ) -> None:
         return None
 
@@ -63,6 +70,9 @@ class RedisWorkerStatusStore:
         status: WorkerStatusValue,
         *,
         error: str | None = None,
+        diagnostics: dict[str, object] | None = None,
     ) -> None:
-        payload = WorkerStatus(status=status, ts=time.time(), error=error).to_json()
+        payload = WorkerStatus(
+            status=status, ts=time.time(), error=error, diagnostics=diagnostics
+        ).to_json()
         await self._redis.set(worker_status_key(session_id), payload, ex=self._ttl_sec)

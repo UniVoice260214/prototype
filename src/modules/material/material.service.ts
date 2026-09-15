@@ -86,6 +86,9 @@ export class MaterialService {
       blobUrl: material.blobUrl,
       sourceType: material.sourceType,
       week: material.week ?? undefined,
+      // 인덱서가 PDF/PPT 를 구분해 파서를 고르는 데 필요하다.
+      originalFilename: material.originalFilename,
+      mimetype: file.mimetype,
     };
     await this.redis.lpush(this.ragQueue, JSON.stringify(job));
     try {

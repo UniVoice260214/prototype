@@ -103,9 +103,11 @@ function makeService(options: {
   const courses = {
     findOne: jest.fn(async () => ({ id: session.courseId, name: 'Test Course' })),
   };
+  const attendances = { upsert: jest.fn(async () => undefined) };
 
   const service = new SessionService(
     sessions as any,
+    attendances as any,
     { find: jest.fn() } as any,
     courses as any,
     redis as any,
@@ -118,6 +120,7 @@ function makeService(options: {
 
   return {
     service,
+    attendances,
     session,
     sessions,
     courses,
