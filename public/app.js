@@ -1688,7 +1688,8 @@
     const optionLocale =
       select.selectedOptions[0] && select.selectedOptions[0].dataset.locale;
     const locale = optionLocale || state.selectedStudentLocale;
-    const joinToken = $("join-token").value.trim();
+    // QR 진입은 토큰을 state.autoJoinToken 에 두므로 텍스트박스만 읽으면 게스트 요청이 토큰 없이 나간다.
+    const joinToken = getActiveJoinToken();
     try {
       const rows = await fetchAllTranscriptPages((afterSequence) =>
         api(`/sessions/${sessionId}/transcripts/query`, {
@@ -1981,7 +1982,8 @@
   const viewer = { pdfjs: null, docs: new Map(), doc: null, page: 1, renderTask: null, loadSeq: 0, renderSeq: 0, refreshFailed: false, listSignature: "" };
 
   function studentRequestOptions(extraBody = {}) {
-    const joinToken = $("join-token").value.trim();
+    // QR 진입은 토큰을 state.autoJoinToken 에 두므로 텍스트박스만 읽으면 게스트 요청이 토큰 없이 나간다.
+    const joinToken = getActiveJoinToken();
     return {
       method: "POST",
       auth: false,
@@ -2276,6 +2278,8 @@
     const token = query.get("token") || "";
     if (token) {
       state.autoJoinToken = token;
+      // 플레이스홀더("QR 링크로 접속하면 자동으로 입력됩니다")대로 박스에도 채워 둔다.
+      $("join-token").value = token;
       const payload = getJoinData(token);
       state.joinSessionId = payload?.sessionId || "";
       applyJoinTokenState(payload);
