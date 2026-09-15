@@ -54,6 +54,22 @@
       "err.localeNotAvailable": "This lecture doesn't offer that language. Please choose another.",
       "msg.joined": "You've joined the lecture.", "msg.autoplayBlocked": "Tap the screen once to allow audio playback.",
       "msg.roomClosed": "The classroom connection has ended.", "msg.localeChanged": "Translation language changed.",
+      "greeting.title": "Hello, {name}", "greeting.student": "Student",
+      "greeting.subtitle": "Check today's lecture and join the class with live translation.",
+      "today.badge": "Live translation available", "join.enter": "Join", "join.connecting": "Connecting to the classroom...",
+      "recent.viewAll": "View all", "recent.note": "Showing {shown} of {total} captions from your last class",
+      "lang.korean": "Korean", "settings.changeLocale": "Change translation language",
+      "auth.login": "Log in", "auth.logout": "Log out", "auth.loggingIn": "Logging in...", "auth.title": "Student login",
+      "auth.desc": "Logging in saves your name and preferred language to your profile.",
+      "auth.email": "Email", "auth.password": "Password", "profile.edit": "Edit profile",
+      "msg.loggedIn": "Logged in. Your profile and preferred language are now synced.", "msg.loggedOut": "Logged out.",
+      "live.localeFixed": "Rejoin to change", "live.history": "Caption history",
+      "live.audioProcessing": "Processing translated audio", "live.captionEmptyHint": "Translated captions will appear here.",
+      "slide.empty": "No lecture materials to show", "slide.emptyHint": "Shared lecture materials will appear in this area.",
+      "captions.title": "Live captions", "captions.autoscrollOn": "Auto-scroll on", "captions.autoscrollOff": "Auto-scroll off",
+      "captions.jumpLatest": "↓ Jump to latest", "captions.reopen": "Show captions",
+      "caption.speaker": "Professor", "caption.fallback": "Translation failed — showing original",
+      "audio.unlock": "🔊 Tap to enable sound", "audio.muted": "Sound is off — tap the button on screen",
     },
     "ja-JP": {
       "nav.home": "ホーム", "nav.qrShortcut": "QRで入室", "nav.settings": "設定", "nav.contact": "お問い合わせ",
@@ -91,6 +107,22 @@
       "err.localeNotAvailable": "この講義では選択した言語を提供していません。別の言語を選んでください。",
       "msg.joined": "講義に参加しました。", "msg.autoplayBlocked": "画面を一度タップすると音声再生が許可されます。",
       "msg.roomClosed": "教室との接続が終了しました。", "msg.localeChanged": "翻訳言語を変更しました。",
+      "greeting.title": "こんにちは、{name}さん", "greeting.student": "学生",
+      "greeting.subtitle": "本日の講義を確認し、リアルタイム翻訳と一緒に授業に参加しましょう。",
+      "today.badge": "リアルタイム翻訳対応", "join.enter": "入室", "join.connecting": "教室に接続中...",
+      "recent.viewAll": "すべて見る", "recent.note": "直近の授業の字幕 {total}件中 {shown}件を表示",
+      "lang.korean": "韓国語", "settings.changeLocale": "翻訳言語を変更",
+      "auth.login": "ログイン", "auth.logout": "ログアウト", "auth.loggingIn": "ログイン中...", "auth.title": "学生ログイン",
+      "auth.desc": "ログインすると名前と希望言語がプロフィールに保存されます。",
+      "auth.email": "メールアドレス", "auth.password": "パスワード", "profile.edit": "プロフィール編集",
+      "msg.loggedIn": "ログインしました。プロフィールと希望言語が連携されます。", "msg.loggedOut": "ログアウトしました。",
+      "live.localeFixed": "再入室で変更", "live.history": "字幕履歴",
+      "live.audioProcessing": "翻訳音声を処理中", "live.captionEmptyHint": "翻訳字幕がここに表示されます。",
+      "slide.empty": "表示する講義資料がありません", "slide.emptyHint": "講義資料が共有されるとこの領域に表示されます。",
+      "captions.title": "リアルタイム字幕", "captions.autoscrollOn": "自動スクロール オン", "captions.autoscrollOff": "自動スクロール オフ",
+      "captions.jumpLatest": "↓ 最新の字幕へ", "captions.reopen": "字幕を開く",
+      "caption.speaker": "教授", "caption.fallback": "翻訳失敗 — 原文を表示",
+      "audio.unlock": "🔊 タップして音声をオン", "audio.muted": "音声がオフです — 画面のボタンをタップしてください",
     },
     "zh-CN": {
       "nav.home": "首页", "nav.qrShortcut": "扫码入场", "nav.settings": "设置", "nav.contact": "联系我们",
@@ -123,6 +155,22 @@
       "err.localeNotAvailable": "本课程未提供该语言，请选择其他语言。",
       "msg.joined": "已加入课程。", "msg.autoplayBlocked": "请点按屏幕一次以允许播放音频。",
       "msg.roomClosed": "课堂连接已结束。", "msg.localeChanged": "已更改翻译语言。",
+      "greeting.title": "你好，{name}", "greeting.student": "同学",
+      "greeting.subtitle": "查看今日课程，借助实时翻译参与课堂。",
+      "today.badge": "支持实时翻译", "join.enter": "入场", "join.connecting": "正在连接课堂...",
+      "recent.viewAll": "查看全部", "recent.note": "显示最近课程字幕 {total} 条中的 {shown} 条",
+      "lang.korean": "韩语", "settings.changeLocale": "更改翻译语言",
+      "auth.login": "登录", "auth.logout": "退出登录", "auth.loggingIn": "登录中...", "auth.title": "学生登录",
+      "auth.desc": "登录后，您的姓名和偏好语言将保存到个人资料。",
+      "auth.email": "邮箱", "auth.password": "密码", "profile.edit": "编辑个人信息",
+      "msg.loggedIn": "已登录。个人资料和偏好语言已同步。", "msg.loggedOut": "已退出登录。",
+      "live.localeFixed": "重新入场可更改", "live.history": "字幕记录",
+      "live.audioProcessing": "正在处理翻译音频", "live.captionEmptyHint": "翻译字幕将显示在这里。",
+      "slide.empty": "暂无可显示的讲义资料", "slide.emptyHint": "讲义资料共享后将显示在此区域。",
+      "captions.title": "实时字幕", "captions.autoscrollOn": "自动滚动 开", "captions.autoscrollOff": "自动滚动 关",
+      "captions.jumpLatest": "↓ 跳到最新字幕", "captions.reopen": "打开字幕",
+      "caption.speaker": "教授", "caption.fallback": "翻译失败 — 显示原文",
+      "audio.unlock": "🔊 点按开启声音", "audio.muted": "声音已关闭 — 请点按屏幕上的按钮",
     },
     "zh-TW": {
       "nav.home": "首頁", "nav.qrShortcut": "掃碼入場", "nav.settings": "設定", "nav.contact": "聯絡我們",
@@ -155,6 +203,22 @@
       "err.localeNotAvailable": "本課程未提供該語言，請選擇其他語言。",
       "msg.joined": "已加入課程。", "msg.autoplayBlocked": "請點一下畫面以允許播放音訊。",
       "msg.roomClosed": "課堂連線已結束。", "msg.localeChanged": "已變更翻譯語言。",
+      "greeting.title": "你好，{name}", "greeting.student": "同學",
+      "greeting.subtitle": "查看今日課程，搭配即時翻譯參與課堂。",
+      "today.badge": "支援即時翻譯", "join.enter": "入場", "join.connecting": "正在連線至教室...",
+      "recent.viewAll": "查看全部", "recent.note": "顯示最近課程字幕 {total} 則中的 {shown} 則",
+      "lang.korean": "韓語", "settings.changeLocale": "變更翻譯語言",
+      "auth.login": "登入", "auth.logout": "登出", "auth.loggingIn": "登入中...", "auth.title": "學生登入",
+      "auth.desc": "登入後，您的姓名與偏好語言會儲存至個人資料。",
+      "auth.email": "電子郵件", "auth.password": "密碼", "profile.edit": "編輯個人資料",
+      "msg.loggedIn": "已登入。個人資料與偏好語言已同步。", "msg.loggedOut": "已登出。",
+      "live.localeFixed": "重新入場可變更", "live.history": "字幕紀錄",
+      "live.audioProcessing": "正在處理翻譯音訊", "live.captionEmptyHint": "翻譯字幕會顯示在這裡。",
+      "slide.empty": "沒有可顯示的講義資料", "slide.emptyHint": "講義資料分享後會顯示在此區域。",
+      "captions.title": "即時字幕", "captions.autoscrollOn": "自動捲動 開", "captions.autoscrollOff": "自動捲動 關",
+      "captions.jumpLatest": "↓ 跳至最新字幕", "captions.reopen": "開啟字幕",
+      "caption.speaker": "教授", "caption.fallback": "翻譯失敗 — 顯示原文",
+      "audio.unlock": "🔊 點一下開啟聲音", "audio.muted": "聲音已關閉 — 請點一下畫面上的按鈕",
     },
     "vi-VN": {
       "nav.home": "Trang chủ", "nav.qrShortcut": "Quét QR", "nav.settings": "Cài đặt", "nav.contact": "Liên hệ",
@@ -192,6 +256,22 @@
       "err.localeNotAvailable": "Buổi học này không hỗ trợ ngôn ngữ đó. Vui lòng chọn ngôn ngữ khác.",
       "msg.joined": "Bạn đã vào lớp học.", "msg.autoplayBlocked": "Chạm vào màn hình một lần để cho phép phát âm thanh.",
       "msg.roomClosed": "Kết nối lớp học đã kết thúc.", "msg.localeChanged": "Đã đổi ngôn ngữ dịch.",
+      "greeting.title": "Xin chào, {name}", "greeting.student": "Sinh viên",
+      "greeting.subtitle": "Xem buổi học hôm nay và tham gia lớp cùng bản dịch trực tiếp.",
+      "today.badge": "Hỗ trợ dịch trực tiếp", "join.enter": "Vào lớp", "join.connecting": "Đang kết nối vào lớp học...",
+      "recent.viewAll": "Xem tất cả", "recent.note": "Hiển thị {shown}/{total} phụ đề của buổi học gần nhất",
+      "lang.korean": "Tiếng Hàn", "settings.changeLocale": "Đổi ngôn ngữ dịch",
+      "auth.login": "Đăng nhập", "auth.logout": "Đăng xuất", "auth.loggingIn": "Đang đăng nhập...", "auth.title": "Đăng nhập sinh viên",
+      "auth.desc": "Khi đăng nhập, tên và ngôn ngữ ưa thích sẽ được lưu vào hồ sơ của bạn.",
+      "auth.email": "Email", "auth.password": "Mật khẩu", "profile.edit": "Chỉnh sửa hồ sơ",
+      "msg.loggedIn": "Đã đăng nhập. Hồ sơ và ngôn ngữ ưa thích đã được đồng bộ.", "msg.loggedOut": "Đã đăng xuất.",
+      "live.localeFixed": "Vào lại để đổi", "live.history": "Lịch sử phụ đề",
+      "live.audioProcessing": "Đang xử lý âm thanh dịch", "live.captionEmptyHint": "Phụ đề dịch sẽ hiện ở đây.",
+      "slide.empty": "Chưa có tài liệu bài giảng để hiển thị", "slide.emptyHint": "Tài liệu được chia sẻ sẽ hiển thị ở khu vực này.",
+      "captions.title": "Phụ đề trực tiếp", "captions.autoscrollOn": "Tự cuộn: bật", "captions.autoscrollOff": "Tự cuộn: tắt",
+      "captions.jumpLatest": "↓ Đến phụ đề mới nhất", "captions.reopen": "Mở phụ đề",
+      "caption.speaker": "Giảng viên", "caption.fallback": "Dịch thất bại — hiển thị bản gốc",
+      "audio.unlock": "🔊 Chạm để bật âm thanh", "audio.muted": "Âm thanh đang tắt — hãy chạm vào nút trên màn hình",
     },
     "mn-MN": {
       "nav.home": "Нүүр", "nav.qrShortcut": "QR уншуулах", "nav.settings": "Тохиргоо", "nav.contact": "Холбоо барих",
@@ -229,6 +309,22 @@
       "err.localeNotAvailable": "Энэ хичээл тухайн хэлийг санал болгодоггүй. Өөр хэл сонгоно уу.",
       "msg.joined": "Хичээлд нэвтэрлээ.", "msg.autoplayBlocked": "Дууг тоглуулахыг зөвшөөрөхийн тулд дэлгэцийг нэг товшино уу.",
       "msg.roomClosed": "Ангийн холболт дууслаа.", "msg.localeChanged": "Орчуулах хэлийг өөрчиллөө.",
+      "greeting.title": "Сайн байна уу, {name}", "greeting.student": "Оюутан",
+      "greeting.subtitle": "Өнөөдрийн хичээлээ шалгаад бодит цагийн орчуулгатайгаар хичээлд оролцоорой.",
+      "today.badge": "Бодит цагийн орчуулгатай", "join.enter": "Нэвтрэх", "join.connecting": "Ангид холбогдож байна...",
+      "recent.viewAll": "Бүгдийг харах", "recent.note": "Сүүлийн хичээлийн {total} хадмалаас {shown}-ийг харуулж байна",
+      "lang.korean": "Солонгос хэл", "settings.changeLocale": "Орчуулах хэл солих",
+      "auth.login": "Нэвтрэх", "auth.logout": "Гарах", "auth.loggingIn": "Нэвтэрч байна...", "auth.title": "Оюутны нэвтрэлт",
+      "auth.desc": "Нэвтэрсний дараа таны нэр болон сонгосон хэл профайлд хадгалагдана.",
+      "auth.email": "Имэйл", "auth.password": "Нууц үг", "profile.edit": "Профайл засах",
+      "msg.loggedIn": "Нэвтэрлээ. Профайл болон сонгосон хэл холбогдлоо.", "msg.loggedOut": "Гарлаа.",
+      "live.localeFixed": "Дахин нэвтэрч солино", "live.history": "Хадмалын түүх",
+      "live.audioProcessing": "Орчуулгын дууг боловсруулж байна", "live.captionEmptyHint": "Орчуулсан хадмал энд харагдана.",
+      "slide.empty": "Харуулах хичээлийн материал алга", "slide.emptyHint": "Хичээлийн материал хуваалцмагц энд харагдана.",
+      "captions.title": "Бодит цагийн хадмал", "captions.autoscrollOn": "Автомат гүйлгэлт асаалттай", "captions.autoscrollOff": "Автомат гүйлгэлт унтраалттай",
+      "captions.jumpLatest": "↓ Хамгийн сүүлийн хадмал руу", "captions.reopen": "Хадмал нээх",
+      "caption.speaker": "Багш", "caption.fallback": "Орчуулга амжилтгүй — эх текстийг харуулж байна",
+      "audio.unlock": "🔊 Дуу асаахын тулд товшино уу", "audio.muted": "Дуу унтраалттай байна — дэлгэц дээрх товчийг товшино уу",
     },
     "uk-UA": {
       "nav.home": "Головна", "nav.qrShortcut": "Сканувати QR", "nav.settings": "Налаштування", "nav.contact": "Зв'язок",
@@ -266,6 +362,22 @@
       "err.localeNotAvailable": "Ця лекція не пропонує цю мову. Оберіть іншу.",
       "msg.joined": "Ви приєдналися до лекції.", "msg.autoplayBlocked": "Торкніться екрана один раз, щоб дозволити відтворення звуку.",
       "msg.roomClosed": "З'єднання з аудиторією завершено.", "msg.localeChanged": "Мову перекладу змінено.",
+      "greeting.title": "Вітаємо, {name}", "greeting.student": "Студенте",
+      "greeting.subtitle": "Перегляньте сьогоднішню лекцію та приєднуйтеся до заняття з перекладом наживо.",
+      "today.badge": "Доступний переклад наживо", "join.enter": "Увійти", "join.connecting": "Підключення до аудиторії...",
+      "recent.viewAll": "Переглянути все", "recent.note": "Показано {shown} із {total} субтитрів останнього заняття",
+      "lang.korean": "Корейська", "settings.changeLocale": "Змінити мову перекладу",
+      "auth.login": "Увійти", "auth.logout": "Вийти", "auth.loggingIn": "Вхід...", "auth.title": "Вхід для студентів",
+      "auth.desc": "Після входу ваше ім'я та бажана мова зберігаються в профілі.",
+      "auth.email": "Електронна пошта", "auth.password": "Пароль", "profile.edit": "Редагувати профіль",
+      "msg.loggedIn": "Ви увійшли. Профіль і бажану мову синхронізовано.", "msg.loggedOut": "Ви вийшли.",
+      "live.localeFixed": "Змінити після повторного входу", "live.history": "Історія субтитрів",
+      "live.audioProcessing": "Обробка перекладеного аудіо", "live.captionEmptyHint": "Перекладені субтитри з'являться тут.",
+      "slide.empty": "Немає матеріалів лекції для показу", "slide.emptyHint": "Надані матеріали лекції з'являться в цій області.",
+      "captions.title": "Субтитри наживо", "captions.autoscrollOn": "Автопрокрутка увімкнена", "captions.autoscrollOff": "Автопрокрутка вимкнена",
+      "captions.jumpLatest": "↓ До останніх субтитрів", "captions.reopen": "Показати субтитри",
+      "caption.speaker": "Викладач", "caption.fallback": "Переклад не вдався — показано оригінал",
+      "audio.unlock": "🔊 Торкніться, щоб увімкнути звук", "audio.muted": "Звук вимкнено — торкніться кнопки на екрані",
     },
   };
 
@@ -333,8 +445,10 @@
   }
 
   // data-i18n 표기가 있는 학생 화면 요소만 교체한다. 표기가 없으면 한국어 그대로.
-  const STUDENT_I18N_SCOPE = "#student-app [data-i18n]";
-  const STUDENT_I18N_PLACEHOLDER_SCOPE = "#student-app [data-i18n-placeholder]";
+  // 학생 로그인 다이얼로그는 #student-app 밖(top-level)에 있어 범위에 따로 넣는다.
+  // 자막 기록 다이얼로그는 교수와 공유하므로 제외(교수 UI 는 한국어 유지).
+  const STUDENT_I18N_SCOPE = "#student-app [data-i18n], #student-login-dialog [data-i18n]";
+  const STUDENT_I18N_PLACEHOLDER_SCOPE = "#student-app [data-i18n-placeholder], #student-login-dialog [data-i18n-placeholder]";
 
   function applyStudentI18n() {
     document.querySelectorAll(STUDENT_I18N_SCOPE).forEach((el) => {
@@ -345,7 +459,10 @@
       const value = translate(el.dataset.i18nPlaceholder);
       if (value != null) el.setAttribute("placeholder", value);
     });
+    // JS 가 직접 그리는 문구는 data-i18n 을 못 타므로 여기서 다시 그린다.
     refreshJoinedSessionLabel();
+    updateStudentProfileUi();
+    if (studentScroller) syncAutoscrollButton(studentScroller.pinned);
   }
 
   // 과목명·오류 상태가 섞인 문구라 data-i18n 텍스트 교체로는 표현할 수 없어
@@ -465,7 +582,9 @@
     const button = $("autoscroll-toggle");
     button.setAttribute("aria-pressed", String(pinned));
     // 상태를 색이 아닌 텍스트로 구분한다 (접근성).
-    button.textContent = pinned ? "자동 스크롤 켬" : "자동 스크롤 끔";
+    button.textContent = pinned
+      ? t("captions.autoscrollOn", "자동 스크롤 켬")
+      : t("captions.autoscrollOff", "자동 스크롤 끔");
   }
 
   async function api(path, options = {}) {
@@ -1095,7 +1214,7 @@
     const payload = getJoinData(joinToken);
     if (!payload?.sessionId) return toast(t("err.invalidToken", "올바른 입장 토큰이 아닙니다."), "error");
     state.selectedStudentLocale = localeInput.value;
-    setBusy(button, true, "강의실에 연결 중...");
+    setBusy(button, true, t("join.connecting", "강의실에 연결 중..."));
     try {
       const liveKit = await api(`/sessions/${payload.sessionId}/token`, {
         method: "POST",
@@ -1157,7 +1276,7 @@
   // 학생이 영구 무음에 갇혔다 — 실제 태블릿에서 관측된 장애.
   function showAudioUnlock() {
     $("audio-unlock").classList.remove("hidden");
-    $("audio-status").textContent = "소리가 꺼져 있습니다 — 화면의 버튼을 탭하세요";
+    $("audio-status").textContent = t("audio.muted", "소리가 꺼져 있습니다 — 화면의 버튼을 탭하세요");
   }
 
   function hideAudioUnlock() {
@@ -1245,7 +1364,7 @@
         "audio.completed": t("live.audioCompleted", "다음 발화를 기다리는 중"),
         "audio.failed": t("live.audioFailed", "이 문장은 음성 없이 자막만 제공됩니다"),
       };
-      $("audio-status").textContent = labels[data.type] || "번역 음성 처리 중";
+      $("audio-status").textContent = labels[data.type] || t("live.audioProcessing", "번역 음성 처리 중");
     }
   }
 
@@ -1274,7 +1393,7 @@
     meta.className = "caption-meta";
     const speaker = document.createElement("span");
     speaker.className = "speaker";
-    speaker.textContent = "교수";
+    speaker.textContent = t("caption.speaker", "교수");
     const time = document.createElement("time");
     time.textContent = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
     meta.append(speaker, time);
@@ -1290,7 +1409,7 @@
     if (isFallback) {
       const notice = document.createElement("span");
       notice.className = "fallback-note";
-      notice.textContent = "번역 실패 — 원문 표시";
+      notice.textContent = t("caption.fallback", "번역 실패 — 원문 표시");
       item.appendChild(notice);
     } else if (sourceKo) {
       const source = document.createElement("span");
@@ -1385,7 +1504,8 @@
     $("student-live").classList.add("hidden");
     $("student-join").classList.remove("hidden");
     setModeSwitchVisible(true);
-    $("captions").innerHTML = '<div class="caption-empty">교수님의 발화를 기다리고 있습니다.<br>번역 자막이 이곳에 표시됩니다.</div>';
+    // 사전 문자열은 고정 리터럴이라 innerHTML 에 넣어도 안전하다.
+    $("captions").innerHTML = `<div class="caption-empty">${t("live.captionEmpty", "교수님의 발화를 기다리고 있습니다.")}<br>${t("live.captionEmptyHint", "번역 자막이 이곳에 표시됩니다.")}</div>`;
     if (studentScroller) studentScroller.reset();
     // 다음 입장을 위해 자막 패널 표시 상태를 초기화한다 (표시 전용).
     setTranscriptState("open");
@@ -1613,7 +1733,9 @@
       panel.appendChild(line);
     });
     const note = document.createElement("small");
-    note.textContent = `최근 수업 자막 ${items.length}건 중 ${recent.length}건 표시`;
+    note.textContent = t("recent.note", "최근 수업 자막 {total}건 중 {shown}건 표시")
+      .replace("{total}", String(items.length))
+      .replace("{shown}", String(recent.length));
     panel.appendChild(note);
   }
 
@@ -1651,12 +1773,13 @@
   // ── 학생 프로필(DB) 연동 ─────────────────────────────────────────────
   function updateStudentProfileUi() {
     const logged = Boolean(state.studentProfile);
-    $("student-name").textContent = logged ? state.studentProfile.name : "UniVoice 학생";
-    $("student-greeting-name").textContent = logged ? state.studentProfile.name : "학생";
+    $("student-name").textContent = logged ? state.studentProfile.name : t("profile.name", "UniVoice 학생");
+    $("student-greeting").textContent = t("greeting.title", "안녕하세요, {name}님")
+      .replace("{name}", logged ? state.studentProfile.name : t("greeting.student", "학생"));
     $("student-login-status").textContent = logged
       ? state.studentProfile.email
-      : "게스트 입장";
-    $("student-auth").textContent = logged ? "로그아웃" : "로그인";
+      : t("profile.guest", "게스트 입장");
+    $("student-auth").textContent = logged ? t("auth.logout", "로그아웃") : t("auth.login", "로그인");
   }
 
   function selectStudentLocale(code) {
@@ -1695,7 +1818,7 @@
   async function studentLogin(event) {
     event.preventDefault();
     const button = event.currentTarget.querySelector("button");
-    setBusy(button, true, "로그인 중...");
+    setBusy(button, true, t("auth.loggingIn", "로그인 중..."));
     try {
       const result = await api("/auth/student/login", {
         method: "POST",
@@ -1709,7 +1832,7 @@
       sessionStorage.setItem("univoice.studentToken", result.accessToken);
       await loadStudentProfile();
       $("student-login-dialog").close();
-      toast("로그인되었습니다. 프로필과 선호 언어가 연동됩니다.");
+      toast(t("msg.loggedIn", "로그인되었습니다. 프로필과 선호 언어가 연동됩니다."));
     } catch (error) {
       toast(error.message, "error");
     } finally {
@@ -1865,7 +1988,7 @@
     $("student-auth").addEventListener("click", () => {
       if (state.studentProfile) {
         studentLogout();
-        toast("로그아웃되었습니다.");
+        toast(t("msg.loggedOut", "로그아웃되었습니다."));
         return;
       }
       const dialog = $("student-login-dialog");
