@@ -21,6 +21,10 @@ class RagClient(Protocol):
 class NoOpRagClient:
     """RAG 미적용 기본 구현 — 항상 None (문맥 주입 없이 번역)."""
 
+    # 지연 계측에서 "RAG 0ms"(빠름)와 "RAG 미측정"(안 돎)을 구분하기 위한 표식.
+    # 이게 없으면 RAG 를 끈 측정 결과가 "RAG 오버헤드 0ms"로 잘못 읽힌다.
+    latency_enabled = False
+
     async def retrieve(self, sentence: str, glossary_hits: list[str]) -> str | None:
         return None
 

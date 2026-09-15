@@ -1,6 +1,7 @@
 import {
   Injectable,
   Logger,
+  NotFoundException,
   OnModuleInit,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -11,6 +12,12 @@ import { v4 as uuid } from 'uuid';
 export interface UploadResult {
   blobName: string;
   blobUrl: string;
+}
+
+export interface DownloadResult {
+  stream: NodeJS.ReadableStream;
+  contentType: string;
+  contentLength?: number;
 }
 
 @Injectable()
@@ -106,11 +113,41 @@ export class BlobService implements OnModuleInit {
   }
 
   /**
+   * Streams a blob for proxying to clients. Azurite/private containers are not
+   * reachable from student devices, so the API relays the bytes instead of
+   * handing out the raw blob URL.
+   */
+  async download(blobUrl: string): Promise<DownloadResult> {
+    if (!this.container) {
+      throw new ServiceUnavailableException(
+        'Azure Blob Storage is not configured',
+      );
+    }
+    const blobName = this.blobNameFromUrl(blobUrl);
+    if (!blobName) throw new NotFoundException('Blob not found');
+    const response = await this.container.getBlobClient(blobName).download();
+    if (!response.readableStreamBody) {
+      throw new ServiceUnavailableException('Blob stream unavailable');
+    }
+    return {
+      stream: response.readableStreamBody,
+      contentType: response.contentType ?? 'application/octet-stream',
+      contentLength: response.contentLength,
+    };
+  }
+
+  /**
    * Derives the blob name from a full blob URL and deletes it.
    */
   async deleteByUrl(blobUrl: string): Promise<void> {
     if (!this.container) return;
-    let blobName: string;
+    const blobName = this.blobNameFromUrl(blobUrl);
+    if (!blobName) return;
+    await this.container.deleteBlob(blobName, { deleteSnapshots: 'include' });
+  }
+
+  private blobNameFromUrl(blobUrl: string): string | null {
+    if (!this.container) return null;
     try {
       const segments = new URL(blobUrl).pathname
         .split('/')
@@ -118,16 +155,13 @@ export class BlobService implements OnModuleInit {
         .map((segment) => decodeURIComponent(segment));
       const containerOffset = segments.indexOf(this.container.containerName);
       if (containerOffset < 0 || containerOffset === segments.length - 1) {
-        this.logger.warn(
-          `deleteByUrl: container path not found in blob URL ${blobUrl}`,
-        );
-        return;
+        this.logger.warn(`Container path not found in blob URL ${blobUrl}`);
+        return null;
       }
-      blobName = segments.slice(containerOffset + 1).join('/');
+      return segments.slice(containerOffset + 1).join('/');
     } catch {
-      this.logger.warn(`deleteByUrl: cannot parse blobUrl ${blobUrl}`);
-      return;
+      this.logger.warn(`Cannot parse blobUrl ${blobUrl}`);
+      return null;
     }
-    await this.container.deleteBlob(blobName, { deleteSnapshots: 'include' });
   }
 }

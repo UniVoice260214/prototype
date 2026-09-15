@@ -10,6 +10,7 @@ import uuid
 from typing import Any, Awaitable, Callable
 
 from .dedupe import DedupeStore
+from .latency import LatencyLog, default_log, elapsed_ms
 from .models import AudioStatus, SpeechSegment, SttFinalResult, TtsJob
 from .rag import RagClient
 from .segmenter import SegmentDraft, Segmenter
@@ -62,6 +63,7 @@ class TranslationPipeline:
         tts_flush_timeout_sec: float = 3.0,
         sequence_start: int = 1,
         close_publisher_on_stop: bool = True,
+        latency_log: LatencyLog | None = None,
     ) -> None:
         self._session_id = session_id
         self._locales = target_locales
@@ -76,6 +78,7 @@ class TranslationPipeline:
         self._on_segment = on_segment or _noop_segment_sink
         self._on_audio_status = on_audio_status or _noop_audio_status
         self._on_transcript = on_transcript
+        self._latency = latency_log or default_log()
         self._tts_queue = tts_queue or LocaleTtsQueue(
             locales=target_locales,
             tts=tts,
@@ -84,6 +87,7 @@ class TranslationPipeline:
             dedupe_store=dedupe_store,
             queue_max_size=tts_queue_max_size,
             flush_timeout_sec=tts_flush_timeout_sec,
+            latency_log=self._latency,
         )
         self._close_publisher_on_stop = close_publisher_on_stop
         self._queue: asyncio.Queue[QueueItem] = asyncio.Queue(maxsize=max(1, queue_max_size))
@@ -252,6 +256,8 @@ class TranslationPipeline:
             started_at=draft.started_at,
             ended_at=draft.ended_at,
             raw_text=raw_text,
+            stt_received_at=draft.stt_received_at,
+            speech_end_at=draft.speech_end_at,
         )
 
     async def _consumer_loop(self) -> None:
@@ -275,12 +281,15 @@ class TranslationPipeline:
         await self._process_segment(segment)
 
     async def _process_segment(self, segment: SpeechSegment) -> None:
+        t_dequeue = time.monotonic()
         hits = self._translator.detect_glossary_hits(segment.text)
+        t_glossary = time.monotonic()
         try:
             context = await self._rag.retrieve(segment.text, hits)
         except Exception:  # noqa: BLE001 - RAG 는 번역을 막지 않는 보조 단계다.
             logger.exception("[%s] RAG 조회 실패; 문맥 없이 진행", self._session_id)
             context = None
+        t_rag = time.monotonic()
 
         # 번역 실패로 예외가 위로 올라가면 _consumer_loop 가 삼켜 세그먼트가 통째로
         # 사라진다. 여기서 잡아 빈 결과로 두면 아래 _emit_locale 의 원문 폴백을 탄다.
@@ -294,13 +303,64 @@ class TranslationPipeline:
             )
             translations = {}
         translations = translations or {}
+        t_translate = time.monotonic()
         await asyncio.gather(
             *(
                 self._safe_emit_locale(loc, translations.get(loc), segment, missing=loc not in translations)
                 for loc in self._locales
             )
         )
+        t_emit = time.monotonic()
+        self._record_segment_latency(
+            segment,
+            t_dequeue=t_dequeue,
+            t_glossary=t_glossary,
+            t_rag=t_rag,
+            t_translate=t_translate,
+            t_emit=t_emit,
+        )
         await self._safe_emit_transcript(segment, translations)
+
+    def _record_segment_latency(
+        self,
+        segment: SpeechSegment,
+        *,
+        t_dequeue: float,
+        t_glossary: float,
+        t_rag: float,
+        t_translate: float,
+        t_emit: float,
+    ) -> None:
+        """자막 경로 지연을 한 줄로 남긴다. 계측이 꺼져 있으면 즉시 반환한다.
+
+        emit_ms 는 자막 발행 + TTS 큐 적재를 함께 포함한다. 정상 상태에서는 큐
+        적재가 1ms 미만이지만, 백프레셔가 걸리면 여기서 드러난다.
+        """
+        if not self._latency.enabled:
+            return
+        self._latency.record(
+            "caption",
+            sessionId=self._session_id,
+            segmentId=segment.segment_id,
+            sequence=segment.sequence,
+            chars=len(segment.text),
+            locales=len(self._locales),
+            # 구간별
+            sttMs=elapsed_ms(segment.speech_end_at, segment.stt_received_at),
+            segmentMs=elapsed_ms(segment.stt_received_at, segment.ended_at),
+            queueMs=elapsed_ms(segment.ended_at, t_dequeue),
+            glossaryMs=elapsed_ms(t_dequeue, t_glossary),
+            # RAG 가 꺼져 있으면 0 을 기록하지 않는다. 0ms 로 남으면 "RAG 가 공짜"로
+            # 읽히지만 실제로는 호출 자체가 없었던 것이다 (None → 리포트에서 제외).
+            ragMs=elapsed_ms(t_glossary, t_rag)
+            if getattr(self._rag, "latency_enabled", True)
+            else None,
+            translateMs=elapsed_ms(t_rag, t_translate),
+            emitMs=elapsed_ms(t_translate, t_emit),
+            # 누적
+            workerMs=elapsed_ms(segment.stt_received_at, t_emit),
+            e2eCaptionMs=elapsed_ms(segment.speech_end_at, t_emit),
+        )
 
     async def _safe_emit_transcript(
         self,
@@ -371,6 +431,8 @@ class TranslationPipeline:
                 sequence=segment.sequence,
                 locale=locale,
                 text=text,
+                speech_end_at=segment.speech_end_at,
+                enqueued_at=time.monotonic(),
             )
         )
 

@@ -53,6 +53,11 @@ class SegmentDraft:
     stt_confidence: float | None
     started_at: float | None
     ended_at: float
+    # 지연 계측용. 이 draft 를 만들어낸 마지막 STT final 기준 (time.monotonic).
+    # 여러 final 이 한 세그먼트로 합쳐지면 "마지막" final 의 값이다 — 세그먼트가
+    # 확정 가능해진 시점이 그때이기 때문이다.
+    stt_received_at: float | None = None
+    speech_end_at: float | None = None
 
 
 def split_completed_sentences(
@@ -115,6 +120,8 @@ class Segmenter:
         self._confidences: list[float] = []
         self._started_at: float | None = None
         self._last_input_at: float | None = None
+        self._last_received_at: float | None = None
+        self._last_speech_end_at: float | None = None
 
     def push(self, final_result: SttFinalResult | str) -> list[SegmentDraft]:
         """Push an STT final and return any emitted segment drafts."""
@@ -133,6 +140,11 @@ class Segmenter:
         if result.confidence is not None:
             self._confidences.append(result.confidence)
         self._last_input_at = now
+        # 계측 앵커는 항상 최신 final 로 갱신한다 (없으면 이전 값을 유지).
+        if result.received_at is not None:
+            self._last_received_at = result.received_at
+        if result.speech_end_at is not None:
+            self._last_speech_end_at = result.speech_end_at
 
         drafts = self._drain_completed(now, result.confidence)
         drafts.extend(self._drain_by_max_chars(now))
@@ -205,6 +217,8 @@ class Segmenter:
             stt_confidence=confidence,
             started_at=self._started_at,
             ended_at=ended_at,
+            stt_received_at=self._last_received_at,
+            speech_end_at=self._last_speech_end_at,
         )
 
     def _is_emit_ready(self, text: str) -> bool:
@@ -215,6 +229,8 @@ class Segmenter:
         self._confidences = []
         self._started_at = None
         self._last_input_at = None
+        self._last_received_at = None
+        self._last_speech_end_at = None
 
     @staticmethod
     def _coerce_result(final_result: SttFinalResult | str) -> SttFinalResult:

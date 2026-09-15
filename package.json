@@ -51,6 +51,7 @@
     "livekit-server-sdk": "^2.9.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdfjs-dist": "^4.10.38",
     "pg": "^8.13.0",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",

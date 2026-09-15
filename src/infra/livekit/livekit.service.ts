@@ -4,7 +4,11 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import {
+  AccessToken,
+  DataPacket_Kind,
+  RoomServiceClient,
+} from 'livekit-server-sdk';
 
 export interface LiveKitTokenOptions {
   identity: string;
@@ -79,6 +83,25 @@ export class LiveKitService {
     } catch {
       // Ignore rooms that are already gone.
     }
+  }
+
+  /**
+   * Broadcasts a JSON data message to every participant in the room via the
+   * server API (no participant connection needed). Used for session-level
+   * events such as material updates.
+   */
+  async sendData(
+    roomName: string,
+    payload: Record<string, unknown>,
+    topic: string,
+  ): Promise<void> {
+    const data = new TextEncoder().encode(JSON.stringify(payload));
+    await this.requireConfigured().sendData(
+      roomName,
+      data,
+      DataPacket_Kind.RELIABLE,
+      { topic },
+    );
   }
 
   async createAccessToken(opts: LiveKitTokenOptions): Promise<string> {

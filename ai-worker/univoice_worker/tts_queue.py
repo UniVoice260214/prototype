@@ -9,6 +9,7 @@ import time
 from typing import Any, Awaitable, Callable
 
 from .dedupe import DedupeStore, InMemoryDedupeStore, tts_dedupe_key
+from .latency import LatencyLog, default_log, elapsed_ms
 from .models import AudioStatus, TtsException, TtsJob, TtsResult
 from .tts import SAMPLE_RATE
 
@@ -36,6 +37,7 @@ class LocaleTtsQueue:
         queue_max_size: int = 100,
         enqueue_timeout_sec: float = 1.0,
         flush_timeout_sec: float = 3.0,
+        latency_log: LatencyLog | None = None,
     ) -> None:
         self._locales = list(locales)
         self._locale_set = set(locales)
@@ -43,6 +45,7 @@ class LocaleTtsQueue:
         self._publisher = publisher
         self._on_audio_status = on_audio_status or _noop_audio_status
         self._dedupe = dedupe_store or InMemoryDedupeStore()
+        self._latency = latency_log or default_log()
         self._enqueue_timeout = max(0.05, enqueue_timeout_sec)
         self._flush_timeout = max(0.1, flush_timeout_sec)
         self._queues: dict[str, asyncio.Queue[QueueItem]] = {
@@ -176,8 +179,10 @@ class LocaleTtsQueue:
             return
 
         await self._emit_started(job)
+        t_start = time.monotonic()
         try:
             pcm = await self._synthesize(job)
+            t_synth = time.monotonic()
             duration_ms = await self._publish(job, pcm)
         except TtsException as exc:
             await self._dedupe.mark_failed(key)
@@ -188,8 +193,34 @@ class LocaleTtsQueue:
             await self._emit_failed(job, getattr(exc, "error_code", "AUDIO_PUBLISH_FAILED"))
             return
 
+        t_published = time.monotonic()
         await self._dedupe.mark_done(key)
         await self._emit_completed(job, duration_ms=duration_ms)
+        self._record_latency(job, t_start=t_start, t_synth=t_synth, t_published=t_published)
+
+    def _record_latency(
+        self,
+        job: TtsJob,
+        *,
+        t_start: float,
+        t_synth: float,
+        t_published: float,
+    ) -> None:
+        """음성 경로 지연. e2eAudioMs 가 "발화 종료 → 학생 귀에 들어가기 시작"이다."""
+        if not self._latency.enabled:
+            return
+        self._latency.record(
+            "audio",
+            sessionId=job.session_id,
+            segmentId=job.segment_id,
+            sequence=job.sequence,
+            locale=job.locale,
+            chars=len(job.text),
+            ttsQueueMs=elapsed_ms(job.enqueued_at, t_start),
+            ttsSynthMs=elapsed_ms(t_start, t_synth),
+            ttsPublishMs=elapsed_ms(t_synth, t_published),
+            e2eAudioMs=elapsed_ms(job.speech_end_at, t_published),
+        )
 
     async def _synthesize(self, job: TtsJob) -> bytes:
         if not job.text or not job.text.strip():
