@@ -63,7 +63,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err instanceof Error ? err : new UnauthorizedException();
     }
-    return user as TUser;
+    return user;
   }
 
   private isPublic(context: ExecutionContext): boolean {

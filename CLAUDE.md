@@ -35,6 +35,7 @@
 | ProfessorModule | 교수 프로필 CRUD (User와 1:1) |
 | StudentModule | 학생 CRUD (회원가입/조회) |
 | SessionModule | 수업 시작/종료, LiveKit Room 생성, token 발급, 워커 트리거 |
+| TranscriptModule | 워커가 발행한 자막 세그먼트 저장(`transcripts.segment` 구독) + 이력 조회 API |
 | MaterialModule | PDF/PPT 업로드 → Blob 저장 → indexing 이벤트 발행 |
 | GlossaryModule | 전공 용어 관리 (다국어 번역 포함), Redis prewarm |
 | QrModule | 학생 입장 QR 생성 (JoinToken 임베드) |
@@ -50,10 +51,11 @@
 - **Student**: id, email(unique), passwordHash, name, preferredLocale(nullable, e.g. `zh-CN`), createdAt, updatedAt
 - **School**: id, name, createdAt, updatedAt
 - **Department**: id, name, schoolId(FK), createdAt, updatedAt
-- **Course**: id, name, departmentId(FK), professorId(FK Professor), createdAt, updatedAt
+- **Course**: id, name, departmentId(FK), professorId(FK Professor), major(nullable, `ai` | `hss` | `bme` — 수업 시작 시 워커로 전달되어 그 전공 RAG 인덱스·STT lexicon 만 사용; null 이면 워커 설정 폴백), createdAt, updatedAt
 - **Session**: id, courseId(FK), liveKitRoomName(unique), status(`active` | `ended`, enum), targetLocales(`text[]`, 예: `['zh-CN','vi-VN','mn-MN']`), startedAt, endedAt(nullable), createdAt, updatedAt
 - **Material**: id, sessionId(FK, nullable — 사전 업로드 가능), courseId(FK), blobUrl, originalFilename, sourceType(`lecture` | `major`, enum), week(nullable int), indexingStatus(`pending` | `processing` | `done` | `failed`, enum), createdAt, updatedAt
 - **Glossary**: id, courseId(FK), term(한국어 원문), pronunciation(IPA/한글, nullable), definition(nullable), translations(`jsonb`, 예: `{ "zh-CN": "线粒体", "vi-VN": "Ty thể" }`), createdAt, updatedAt
+- **TranscriptSegment**: id, sessionId(FK, `onDelete: CASCADE`), segmentId(unique, `{sessionId}-seg-{seq}`), sequence, textKo, rawTextKo(nullable), sttConfidence(nullable), translations(`jsonb`, locale → `{ text, isFallback }`), createdAt, updatedAt
 
 ## 인증 모델
 
@@ -85,6 +87,8 @@
 - POST   /sessions/start                → LiveKit Room 생성 + 교수 token 반환 + `sessions.started` 이벤트 발행
 - POST   /sessions/:id/end              → 세션 종료 + `sessions.ended` 이벤트 발행
 - POST   /sessions/:id/token            → 학생 LiveKit token 반환 (JoinToken 또는 Student JWT 필요)
+- GET    /sessions/:id/transcripts      → 저장된 자막 이력 조회 (professor/admin, afterSequence/limit)
+- POST   /sessions/:id/transcripts/query → 학생용 자막 이력 조회 (Student JWT 또는 joinToken body)
 - POST   /materials/upload              → Blob 업로드 후 `materials.indexing.requested` 이벤트 발행
 - CRUD   /glossary
 - GET    /qr/:sessionId                 → QR 이미지 반환 (JoinToken 임베드)
@@ -119,10 +123,11 @@
 ### Pub/Sub 채널
 | Channel | Publisher | Subscriber | Payload |
 |---------|-----------|------------|---------|
-| `sessions.started` | NestJS | Python 워커 | `{ sessionId, courseId, liveKitRoomName, targetLocales }` |
+| `sessions.started` | NestJS | Python 워커 | `{ sessionId, courseId, liveKitRoomName, targetLocales, major? }` |
 | `sessions.ended` | NestJS | Python 워커, RAG 워커 | `{ sessionId }` |
 | `materials.indexing.requested` | NestJS | RAG 워커 | `{ materialId, blobUrl, sourceType, courseId, week? }` |
 | `materials.indexing.completed` | RAG 워커 | NestJS (Material.indexingStatus 갱신) | `{ materialId, status, error? }` |
+| `transcripts.segment` | Python 워커 | NestJS (TranscriptSegment upsert) | `{ sessionId, segmentId, sequence, textKo, rawTextKo?, sttConfidence?, translations, ts }` |
 
 ## 코딩 컨벤션
 

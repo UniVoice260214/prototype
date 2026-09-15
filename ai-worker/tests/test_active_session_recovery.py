@@ -232,6 +232,51 @@ def test_validate_started_payload_rejects_when_all_locales_are_unsupported() -> 
     assert event is None
 
 
+def test_validate_started_payload_keeps_known_course_major() -> None:
+    event = worker_main.validate_started_payload(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["zh-CN"],
+            "major": "ai",
+        },
+        config(),
+    )
+
+    assert event is not None
+    assert event["major"] == "ai"
+
+
+def test_validate_started_payload_drops_unknown_course_major() -> None:
+    event = worker_main.validate_started_payload(
+        {
+            "sessionId": "session-123",
+            "courseId": "course-1",
+            "liveKitRoomName": "room-1",
+            "targetLocales": ["zh-CN"],
+            "major": "law",
+        },
+        config(),
+    )
+
+    assert event is not None
+    assert event["major"] is None
+
+
+def test_resolve_major_prefers_course_major_over_config() -> None:
+    import dataclasses
+
+    cfg = dataclasses.replace(
+        config(), rag_default_major="auto", rag_course_major_map={"course-1": "bme"}
+    )
+
+    # 과목 전공 > 설정 맵 > 기본값
+    assert worker_main.resolve_major(cfg, "course-1", "ai") == "ai"
+    assert worker_main.resolve_major(cfg, "course-1", None) == "bme"
+    assert worker_main.resolve_major(cfg, "course-2", None) == "auto"
+
+
 @pytest.mark.asyncio
 async def test_bad_pubsub_payload_does_not_stop_loop() -> None:
     calls: list[dict] = []

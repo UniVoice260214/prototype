@@ -19,10 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ProfessorService } from './professor.service';
-import {
-  CreateProfessorDto,
-  UpdateProfessorDto,
-} from './dto/professor.dto';
+import { CreateProfessorDto, UpdateProfessorDto } from './dto/professor.dto';
 
 @ApiBearerAuth()
 @ApiTags('professors')

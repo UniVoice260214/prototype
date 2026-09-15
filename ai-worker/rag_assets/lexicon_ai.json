@@ -1,0 +1,3493 @@
+{
+  "major": "ai",
+  "label": "인공지능",
+  "index": "major_ai",
+  "score_threshold": 0.5,
+  "transliterations": {
+    "에이치엔에스더블유": "HNSW",
+    "케이 민즈": "K-평균 군집화",
+    "케이민즈": "K-평균 군집화",
+    "케이 평균": "K-평균",
+    "트랜스퍼 러닝": "전이학습",
+    "트랜스퍼러닝": "전이학습",
+    "하이어라키컬 클러스터링": "계층적 군집",
+    "엘에스티엠": "LSTM",
+    "지알유": "GRU",
+    "알오씨": "ROC",
+    "에이유씨": "AUC",
+    "엠에이이": "MAE",
+    "알엠에스이": "RMSE",
+    "엘원": "L1",
+    "엘투": "L2",
+    "데이터 리키지": "데이터 누수",
+    "데이터 리케이지": "데이터 누수",
+    "어그멘테이션": "데이터 증강",
+    "백프로파게이션": "역전파",
+    "포워드 체이닝": "전방향 추론",
+    "백워드 체이닝": "후방향 추론",
+    "배리언스": "분산",
+    "피이에이에스": "PEAS",
+    "스케일링 로": "스케일링 법칙",
+    "덴스 검색": "밀집 검색",
+    "스파스 검색": "희소 검색",
+    "에이스타": "A* 탐색",
+    "케이엔엔": "KNN",
+    "에스브이엠": "SVM",
+    "피시에이": "PCA",
+    "챙킹": "청킹",
+    "엘보 방법": "엘보우 방법",
+    "라그": "RAG",
+    "알에이지": "RAG"
+  },
+  "lexicon": [
+    {
+      "pattern": "1차 논리",
+      "canonical": "술어 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "a star",
+      "canonical": "A* 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "a* search",
+      "canonical": "A* 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "a* 탐색",
+      "canonical": "A* 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "accuracy",
+      "canonical": "정확도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "activation function",
+      "canonical": "활성화 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "adam",
+      "canonical": "Adam",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "adaptive moment estimation",
+      "canonical": "Adam",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "admissibility",
+      "canonical": "허용성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "agent",
+      "canonical": "지능형 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "agent function",
+      "canonical": "에이전트 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "agent program",
+      "canonical": "에이전트 프로그램",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ai",
+      "canonical": "인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ai winter",
+      "canonical": "인공지능 겨울",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "alpha-beta pruning",
+      "canonical": "알파-베타 가지치기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ann",
+      "canonical": "인공신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "anomaly detection",
+      "canonical": "이상탐지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "artificial intelligence",
+      "canonical": "인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "artificial neural network",
+      "canonical": "인공신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ask",
+      "canonical": "텔과 애스크",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "attention",
+      "canonical": "어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "auc",
+      "canonical": "ROC/AUC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "backpropagation",
+      "canonical": "역전파",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "backward chaining",
+      "canonical": "후향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "batch normalization",
+      "canonical": "배치 정규화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "batch size",
+      "canonical": "배치 크기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "bayes' theorem",
+      "canonical": "베이즈 정리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "beam search",
+      "canonical": "빔 서치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "bfs",
+      "canonical": "너비 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "bias",
+      "canonical": "편향",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "bias-variance tradeoff",
+      "canonical": "편향-분산 트레이드오프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "big o",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "boosting",
+      "canonical": "부스팅",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "bptt",
+      "canonical": "시간에 걸친 역전파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "breadth-first search",
+      "canonical": "너비 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "cell state",
+      "canonical": "셀 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "centroid",
+      "canonical": "중심",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "chain rule",
+      "canonical": "연쇄법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "chinese room argument",
+      "canonical": "중국어 방 논변",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "chunking",
+      "canonical": "청킹",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "classification",
+      "canonical": "분류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "clustering",
+      "canonical": "군집화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cnn",
+      "canonical": "합성곱 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "completeness",
+      "canonical": "완전성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "complexity",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "confusion matrix",
+      "canonical": "혼동 행렬",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "consistency",
+      "canonical": "일관성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "context vector",
+      "canonical": "문맥 벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "contextual embedding",
+      "canonical": "문맥 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "convolution",
+      "canonical": "합성곱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "convolutional neural network",
+      "canonical": "합성곱 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "cosine similarity",
+      "canonical": "코사인 유사도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cost function",
+      "canonical": "손실 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "cross-attention",
+      "canonical": "크로스 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "cross-encoder",
+      "canonical": "교차 인코더",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cross-entropy",
+      "canonical": "교차엔트로피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cross-validation",
+      "canonical": "교차 검증",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "curse of dimensionality",
+      "canonical": "차원의 저주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dartmouth workshop",
+      "canonical": "다트머스 회의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "data augmentation",
+      "canonical": "데이터 증강",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "data leakage",
+      "canonical": "데이터 누수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "decision tree",
+      "canonical": "결정 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "deep learning",
+      "canonical": "딥러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "dendrogram",
+      "canonical": "덴드로그램",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dense layer",
+      "canonical": "완전 연결 층",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "dense retrieval",
+      "canonical": "밀집 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "depth-first search",
+      "canonical": "깊이 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "deterministic environment",
+      "canonical": "결정론적 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dfs",
+      "canonical": "깊이 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "dimensionality reduction",
+      "canonical": "차원 축소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "distributional hypothesis",
+      "canonical": "분포 가설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dl",
+      "canonical": "딥러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "dropout",
+      "canonical": "드롭아웃",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "early stopping",
+      "canonical": "조기 종료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "elbow method",
+      "canonical": "엘보우 방법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "embedding",
+      "canonical": "임베딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "encoder-decoder",
+      "canonical": "인코더-디코더",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ensemble",
+      "canonical": "앙상블",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "entailment",
+      "canonical": "함의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "environment properties",
+      "canonical": "과제 환경의 속성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "epoch",
+      "canonical": "에폭",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "expert system",
+      "canonical": "전문가 시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "explainable ai",
+      "canonical": "설명 가능한 인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "exploding gradient",
+      "canonical": "기울기 폭주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "f1",
+      "canonical": "F1 점수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "f1 score",
+      "canonical": "F1 점수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "f1 점수",
+      "canonical": "F1 점수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "faiss",
+      "canonical": "벡터 데이터베이스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "faithfulness",
+      "canonical": "충실성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fc",
+      "canonical": "완전 연결 층",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "feature",
+      "canonical": "특징",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "feature engineering",
+      "canonical": "특징 공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "feature map",
+      "canonical": "특징 맵",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "few-shot learning",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "filter",
+      "canonical": "필터/커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "filter/kernel",
+      "canonical": "필터/커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fine-tuning",
+      "canonical": "미세 조정",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "finetuning",
+      "canonical": "미세 조정",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "first-order logic",
+      "canonical": "술어 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "forward chaining",
+      "canonical": "전향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "forward propagation",
+      "canonical": "순전파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "frontier",
+      "canonical": "프론티어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fully connected layer",
+      "canonical": "완전 연결 층",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "fully observable environment",
+      "canonical": "완전 관측 가능 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gate",
+      "canonical": "게이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gated recurrent unit",
+      "canonical": "GRU",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gd",
+      "canonical": "경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "generalization",
+      "canonical": "일반화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gini impurity",
+      "canonical": "지니 불순도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "glorot initialization",
+      "canonical": "Xavier 초기화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "goal-based agent",
+      "canonical": "목표 기반 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "gradient descent",
+      "canonical": "경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "graph",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "graph and tree",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "greedy best-first search",
+      "canonical": "그리디 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "gru",
+      "canonical": "순환 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "hallucination",
+      "canonical": "환각",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "he initialization",
+      "canonical": "He 초기화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "he 초기화",
+      "canonical": "He 초기화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "heuristic",
+      "canonical": "휴리스틱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "hidden layer",
+      "canonical": "은닉층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hidden state",
+      "canonical": "은닉 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hierarchical clustering",
+      "canonical": "계층적 군집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hnsw",
+      "canonical": "HNSW",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hybrid retrieval",
+      "canonical": "하이브리드 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hyperparameter",
+      "canonical": "하이퍼파라미터",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "hypothesis function",
+      "canonical": "가설함수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "icl",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "in-context learning",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "inertia",
+      "canonical": "관성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "information gain",
+      "canonical": "정보이득",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "initial state",
+      "canonical": "초기 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "intelligent agent",
+      "canonical": "지능형 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "inverted file index",
+      "canonical": "IVF",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ivf",
+      "canonical": "IVF",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-fold cross-validation",
+      "canonical": "k-겹 교차검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-means",
+      "canonical": "k-평균 군집화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "k-means clustering",
+      "canonical": "k-평균 군집화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "k-nearest neighbors",
+      "canonical": "k-최근접 이웃",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "k-겹 교차 검증",
+      "canonical": "교차 검증",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "k-겹 교차검증",
+      "canonical": "k-겹 교차검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-최근접 이웃",
+      "canonical": "k-최근접 이웃",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "k-최근접이웃",
+      "canonical": "K-최근접이웃",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-최근접이웃(knn)",
+      "canonical": "K-최근접이웃(KNN)",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-평균",
+      "canonical": "K-평균",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "k-평균 군집화",
+      "canonical": "k-평균 군집화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "kb",
+      "canonical": "지식 베이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kernel",
+      "canonical": "커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "knn",
+      "canonical": "k-최근접 이웃",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "knowledge base",
+      "canonical": "지식 베이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "knowledge cutoff",
+      "canonical": "지식 컷오프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "l1",
+      "canonical": "라쏘 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "l2",
+      "canonical": "릿지 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "l2 규제",
+      "canonical": "가중치 감쇠",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "label",
+      "canonical": "레이블",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "large language model",
+      "canonical": "대형 언어 모델",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "lasso",
+      "canonical": "라쏘 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "learning agent",
+      "canonical": "학습하는 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "learning rate",
+      "canonical": "학습률",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "learning rate scheduling",
+      "canonical": "학습률 스케줄링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "linear regression",
+      "canonical": "선형 회귀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "llm",
+      "canonical": "대형 언어 모델",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "llm 심판",
+      "canonical": "LLM 심판",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "llm-as-a-judge",
+      "canonical": "LLM 심판",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "logical connective",
+      "canonical": "논리 연결사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "logistic regression",
+      "canonical": "로지스틱 회귀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "long short-term memory",
+      "canonical": "LSTM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "long-term dependency",
+      "canonical": "장기 의존성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "loss function",
+      "canonical": "손실 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "lr",
+      "canonical": "학습률",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "lstm",
+      "canonical": "순환 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "lstm과 gru의 게이트",
+      "canonical": "LSTM과 GRU의 게이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "machine learning",
+      "canonical": "머신러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "masked language modeling",
+      "canonical": "마스킹 언어 모델링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "max pooling",
+      "canonical": "풀링",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "mini-batch",
+      "canonical": "미니배치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "minimax",
+      "canonical": "미니맥스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ml",
+      "canonical": "머신러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "mlp",
+      "canonical": "퍼셉트론",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "model",
+      "canonical": "모델",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "model-based agent",
+      "canonical": "모델 기반 에이전트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "model-based reflex agent",
+      "canonical": "모형 기반 반사 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "modus ponens",
+      "canonical": "전건 긍정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "momentum",
+      "canonical": "모멘텀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "mse",
+      "canonical": "평균제곱오차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "multi-head attention",
+      "canonical": "어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "multi-layer perceptron",
+      "canonical": "다층 퍼셉트론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "naive bayes",
+      "canonical": "나이브 베이즈",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "narrow ai",
+      "canonical": "약인공지능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "natural language processing",
+      "canonical": "자연어 처리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "neural network",
+      "canonical": "인공신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "next-token prediction",
+      "canonical": "다음 토큰 예측",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nlp",
+      "canonical": "자연어 처리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "normalization",
+      "canonical": "정규화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "object detection",
+      "canonical": "객체 탐지",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ontology",
+      "canonical": "온톨로지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "overfitting",
+      "canonical": "과적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "overlap",
+      "canonical": "겹침",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "padding",
+      "canonical": "패딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "parameter",
+      "canonical": "파라미터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "partially observable environment",
+      "canonical": "부분 관측 가능 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "path cost",
+      "canonical": "경로 비용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pca",
+      "canonical": "주성분 분석",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "peas",
+      "canonical": "과제 환경",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "peas를 통한 과제 환경 기술",
+      "canonical": "PEAS를 통한 과제 환경 기술",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "percept sequence",
+      "canonical": "지각열",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "perceptron",
+      "canonical": "퍼셉트론",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "performance measure",
+      "canonical": "성과 측도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "polynomial regression",
+      "canonical": "다항회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pooling",
+      "canonical": "풀링",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "positional encoding",
+      "canonical": "위치 인코딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "pre-training",
+      "canonical": "사전 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "precision",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "precision and recall",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "pretraining",
+      "canonical": "사전 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "principal component",
+      "canonical": "주성분",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "principal component analysis",
+      "canonical": "주성분 분석",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "product quantization",
+      "canonical": "곱 양자화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "prompt",
+      "canonical": "프롬프트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "prompt engineering",
+      "canonical": "프롬프트 엔지니어링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "prompt injection",
+      "canonical": "프롬프트 주입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "propositional logic",
+      "canonical": "명제 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "quantifier",
+      "canonical": "한정사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "query rewriting",
+      "canonical": "질의 재작성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "query·key·value",
+      "canonical": "Query·Key·Value",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rag",
+      "canonical": "검색 증강 생성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "rag 파이프라인 개관",
+      "canonical": "RAG 파이프라인 개관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rag의 평가",
+      "canonical": "RAG의 평가",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "random forest",
+      "canonical": "랜덤 포레스트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "rational agent",
+      "canonical": "합리적 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "re-ranking",
+      "canonical": "리랭킹",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "recall",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "recall@k",
+      "canonical": "recall@k",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rectified linear unit",
+      "canonical": "렐루",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "recurrent neural network",
+      "canonical": "순환 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "regularization",
+      "canonical": "정규화(규제)",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "reinforcement learning",
+      "canonical": "강화학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "relaxed problem",
+      "canonical": "이완 문제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "relu",
+      "canonical": "활성화 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "representation",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "representation learning",
+      "canonical": "표현 학습",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "residual connection",
+      "canonical": "잔차 연결",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "residual network",
+      "canonical": "ResNet",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "resnet",
+      "canonical": "잔차 연결",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "retrieval-augmented generation",
+      "canonical": "검색 증강 생성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "ridge",
+      "canonical": "릿지 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rl",
+      "canonical": "강화학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "rmse",
+      "canonical": "RMSE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rmsprop",
+      "canonical": "RMSProp",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rnn",
+      "canonical": "순환 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "roc",
+      "canonical": "ROC/AUC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "roc 곡선",
+      "canonical": "ROC 곡선",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "roc 곡선과 auc",
+      "canonical": "ROC 곡선과 AUC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "roc/auc",
+      "canonical": "ROC/AUC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rule-based system",
+      "canonical": "규칙 기반 시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "r²",
+      "canonical": "결정계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sample",
+      "canonical": "샘플",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "scaled dot-product attention",
+      "canonical": "스케일드 닷프로덕트 어텐션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "scaling laws",
+      "canonical": "스케일링 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "search",
+      "canonical": "탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "search problem",
+      "canonical": "탐색 문제",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "segmentation",
+      "canonical": "영역 분할",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "self-attention",
+      "canonical": "셀프 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "semantic search",
+      "canonical": "의미 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sentence embedding",
+      "canonical": "문장 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sequence data",
+      "canonical": "시퀀스 데이터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sgd",
+      "canonical": "확률적 경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "sigmoid",
+      "canonical": "활성화 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "silhouette score",
+      "canonical": "실루엣 계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "simple reflex agent",
+      "canonical": "단순 반사 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "skip connection",
+      "canonical": "잔차 연결",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "softmax",
+      "canonical": "소프트맥스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "soundness",
+      "canonical": "건전성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sparse retrieval",
+      "canonical": "희소 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "state space",
+      "canonical": "상태공간",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "static embedding",
+      "canonical": "정적 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "stochastic environment",
+      "canonical": "확률적 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "stochastic gradient descent",
+      "canonical": "확률적 경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "stride",
+      "canonical": "스트라이드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "strong ai",
+      "canonical": "강인공지능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "subword",
+      "canonical": "서브워드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "supervised learning",
+      "canonical": "지도학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "support vector machine",
+      "canonical": "서포트 벡터 머신",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "svm",
+      "canonical": "서포트 벡터 머신",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "task environment",
+      "canonical": "과제 환경",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "tell",
+      "canonical": "텔과 애스크",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tell/ask",
+      "canonical": "텔과 애스크",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tokenization",
+      "canonical": "토큰화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "transfer learning",
+      "canonical": "전이학습",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "transformer",
+      "canonical": "트랜스포머",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "transition model",
+      "canonical": "전이 모형",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "translation invariance",
+      "canonical": "위치 불변성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tree",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "turing test",
+      "canonical": "튜링 테스트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ucs",
+      "canonical": "균일 비용 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "underfitting",
+      "canonical": "과소적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "uniform-cost search",
+      "canonical": "균일 비용 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "unrolling",
+      "canonical": "시간 전개",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "unsupervised learning",
+      "canonical": "비지도학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "utility-based agent",
+      "canonical": "효용 기반 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "vanishing gradient",
+      "canonical": "기울기 소실",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "variance",
+      "canonical": "분산",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "vector database",
+      "canonical": "벡터 데이터베이스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "weak ai",
+      "canonical": "약인공지능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "weight",
+      "canonical": "가중치",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "weight decay",
+      "canonical": "가중치 감쇠",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "weight sharing",
+      "canonical": "가중치 공유",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "word2vec",
+      "canonical": "워드투벡",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "xai",
+      "canonical": "설명 가능한 인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "xavier 초기화",
+      "canonical": "Xavier 초기화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "xgboost",
+      "canonical": "부스팅",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "가설함수",
+      "canonical": "가설함수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가중치",
+      "canonical": "가중치",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가중치 감쇠",
+      "canonical": "가중치 감쇠",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가중치 공유",
+      "canonical": "가중치 공유",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "강인공지능",
+      "canonical": "강인공지능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "강화학습",
+      "canonical": "강화학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "객체 검출",
+      "canonical": "객체 탐지",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "객체 탐지",
+      "canonical": "객체 탐지",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "거대 언어 모델",
+      "canonical": "대형 언어 모델",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "건전성",
+      "canonical": "건전성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "검색 방식",
+      "canonical": "검색 방식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "검색 증강 생성",
+      "canonical": "검색 증강 생성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "검증",
+      "canonical": "훈련/검증/테스트 세트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "게이트",
+      "canonical": "게이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "결정 트리",
+      "canonical": "결정 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "결정계수",
+      "canonical": "결정계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "결정론적 환경",
+      "canonical": "결정론적 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "결정트리",
+      "canonical": "결정트리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "겹침",
+      "canonical": "겹침",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경로 비용",
+      "canonical": "경로 비용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경사 하강법",
+      "canonical": "경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "경사하강법",
+      "canonical": "경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "경사하강법과 학습",
+      "canonical": "경사하강법과 학습",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경사하강법의 원리",
+      "canonical": "경사하강법의 원리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계층적 군집",
+      "canonical": "계층적 군집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "곱 양자화",
+      "canonical": "곱 양자화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공간 복잡도",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "과대적합",
+      "canonical": "과대적합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과소적합",
+      "canonical": "과소적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "과소적합·과대적합과 교차검증",
+      "canonical": "과소적합·과대적합과 교차검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과적합",
+      "canonical": "과적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "과적합과 정규화(l1·l2)",
+      "canonical": "과적합과 정규화(L1·L2)",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "과제 환경",
+      "canonical": "과제 환경",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "과제 환경의 속성",
+      "canonical": "과제 환경의 속성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "관성",
+      "canonical": "관성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교차 검증",
+      "canonical": "교차 검증",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "교차 어텐션",
+      "canonical": "크로스 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "교차 엔트로피",
+      "canonical": "교차 엔트로피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교차 인코더",
+      "canonical": "교차 인코더",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교차검증",
+      "canonical": "교차 검증",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "교차엔트로피",
+      "canonical": "교차엔트로피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교차엔트로피 손실",
+      "canonical": "교차엔트로피 손실",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "구조적 표현",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "군집화",
+      "canonical": "군집화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "군집화와 k-평균 알고리즘",
+      "canonical": "군집화와 K-평균 알고리즘",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "규제",
+      "canonical": "정규화(규제)",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "규칙 기반 시스템",
+      "canonical": "규칙 기반 시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "규칙 기반 시스템과 추론 방향",
+      "canonical": "규칙 기반 시스템과 추론 방향",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "균일 비용 탐색",
+      "canonical": "균일 비용 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "그래디언트 부스팅",
+      "canonical": "부스팅",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "그래디언트 소실",
+      "canonical": "기울기 소실",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "그래프 구조",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "그래프와 트리",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "그리디 최선 우선 탐색",
+      "canonical": "그리디 최선 우선 탐색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "그리디 탐색",
+      "canonical": "그리디 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "근사 최근접 이웃",
+      "canonical": "근사 최근접 이웃",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "근사 최근접 이웃(ann)",
+      "canonical": "근사 최근접 이웃(ANN)",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기계학습",
+      "canonical": "머신러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "기본 용어",
+      "canonical": "기본 용어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기울기 소실",
+      "canonical": "기울기 소실",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "기울기 소실과 폭주, 가중치 초기화",
+      "canonical": "기울기 소실과 폭주, 가중치 초기화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기울기 폭주",
+      "canonical": "기울기 폭주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "깊이 우선 탐색",
+      "canonical": "깊이 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "나이브 베이즈",
+      "canonical": "나이브 베이즈",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "너비 우선 탐색",
+      "canonical": "너비 우선 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "논리 연결사",
+      "canonical": "논리 연결사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다음 토큰 예측",
+      "canonical": "다음 토큰 예측",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다층 퍼셉트론",
+      "canonical": "퍼셉트론",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "다트머스 회의",
+      "canonical": "다트머스 회의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다항회귀",
+      "canonical": "다항회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다항회귀와 비선형 관계",
+      "canonical": "다항회귀와 비선형 관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단순 반사 에이전트",
+      "canonical": "단순 반사 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "단어 임베딩에서 문장 임베딩으로",
+      "canonical": "단어 임베딩에서 문장 임베딩으로",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대표 아키텍처의 발전",
+      "canonical": "대표 아키텍처의 발전",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대형 언어 모델",
+      "canonical": "대형 언어 모델",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "데이터 누수",
+      "canonical": "데이터 누수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "데이터 증강",
+      "canonical": "데이터 증강",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "데이터 편향",
+      "canonical": "편향",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "덴드로그램",
+      "canonical": "덴드로그램",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "드롭아웃",
+      "canonical": "드롭아웃",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "딥러닝",
+      "canonical": "딥러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "라쏘 회귀",
+      "canonical": "라쏘 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "래그",
+      "canonical": "검색 증강 생성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "랜덤 포레스트",
+      "canonical": "랜덤 포레스트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "랜덤포레스트",
+      "canonical": "랜덤 포레스트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "러닝레이트",
+      "canonical": "학습률",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "레이블",
+      "canonical": "레이블",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "렐루",
+      "canonical": "렐루",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "로지스틱 회귀",
+      "canonical": "로지스틱 회귀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "로지스틱 회귀와 시그모이드",
+      "canonical": "로지스틱 회귀와 시그모이드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리랭킹",
+      "canonical": "리랭킹",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "릿지 회귀",
+      "canonical": "릿지 회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "마스킹 언어 모델링",
+      "canonical": "마스킹 언어 모델링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "머신러닝",
+      "canonical": "머신러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "멀티헤드 어텐션",
+      "canonical": "어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "멀티헤드 어텐션과 위치 인코딩",
+      "canonical": "멀티헤드 어텐션과 위치 인코딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "명제 논리",
+      "canonical": "명제 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "명제논리",
+      "canonical": "명제논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모델",
+      "canonical": "모델",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모델 기반 에이전트",
+      "canonical": "모델 기반 에이전트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모멘텀",
+      "canonical": "모멘텀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "모형 기반 반사 에이전트",
+      "canonical": "모형 기반 반사 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "모형 기반 에이전트",
+      "canonical": "모형 기반 반사 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "목표 기반 에이전트",
+      "canonical": "목표 기반 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "문맥 내 학습",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "문맥 벡터",
+      "canonical": "문맥 벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문맥 임베딩",
+      "canonical": "문맥 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "문장 임베딩",
+      "canonical": "임베딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "문제의 형식화",
+      "canonical": "문제의 형식화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미니 배치",
+      "canonical": "미니배치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "미니맥스",
+      "canonical": "미니맥스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "미니배치",
+      "canonical": "미니배치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "미세 조정",
+      "canonical": "미세 조정",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "미세조정",
+      "canonical": "미세조정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "밀집 검색",
+      "canonical": "밀집 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "밀집층",
+      "canonical": "완전 연결 층",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "바이어스",
+      "canonical": "편향",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "발견적 함수",
+      "canonical": "휴리스틱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "배치 사이즈",
+      "canonical": "배치 크기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "배치 정규화",
+      "canonical": "배치 정규화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "배치 정규화와 드롭아웃",
+      "canonical": "배치 정규화와 드롭아웃",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배치 크기",
+      "canonical": "배치 크기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "배치놈",
+      "canonical": "배치 정규화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "베이즈 정리",
+      "canonical": "베이즈 정리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "벡터 db",
+      "canonical": "벡터 데이터베이스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "벡터 데이터베이스",
+      "canonical": "벡터 데이터베이스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "벡터 데이터베이스와 색인",
+      "canonical": "벡터 데이터베이스와 색인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복잡도",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "부분 관측 가능 환경",
+      "canonical": "부분 관측 가능 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부스팅",
+      "canonical": "부스팅",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "분류",
+      "canonical": "분류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분산",
+      "canonical": "분산",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분포 가설",
+      "canonical": "분포 가설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분해된 표현",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "불확실성 하의 추론 도입",
+      "canonical": "불확실성 하의 추론 도입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비용 함수",
+      "canonical": "손실 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "비정보 탐색",
+      "canonical": "비정보 탐색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비지도학습",
+      "canonical": "비지도학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "비지도학습의 활용",
+      "canonical": "비지도학습의 활용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "빅 오 표기법",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "빔 서치",
+      "canonical": "빔 서치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "빔서치",
+      "canonical": "빔 서치",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "사전 학습",
+      "canonical": "사전 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "사전학습",
+      "canonical": "사전 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "상태 공간",
+      "canonical": "상태공간",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "상태 표현 방식",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "상태공간",
+      "canonical": "상태공간",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "샘플",
+      "canonical": "샘플",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서브워드",
+      "canonical": "서브워드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서포트 벡터 머신",
+      "canonical": "서포트 벡터 머신",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "서포트 벡터 머신과 나이브 베이즈",
+      "canonical": "서포트 벡터 머신과 나이브 베이즈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선형 회귀",
+      "canonical": "선형 회귀",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "선형회귀",
+      "canonical": "선형회귀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선형회귀와 가설함수",
+      "canonical": "선형회귀와 가설함수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "설명 가능한 인공지능",
+      "canonical": "설명 가능한 인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "설명가능 ai",
+      "canonical": "설명 가능한 인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "성과 측도",
+      "canonical": "성과 측도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "성능 척도",
+      "canonical": "성능 척도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "성능 측도",
+      "canonical": "성과 측도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "셀 상태",
+      "canonical": "셀 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "셀프 어텐션",
+      "canonical": "셀프 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "셀프 어텐션의 직관",
+      "canonical": "셀프 어텐션의 직관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소프트맥스",
+      "canonical": "소프트맥스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "손실 함수",
+      "canonical": "손실 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "손실함수",
+      "canonical": "손실함수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "순전파",
+      "canonical": "순전파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "순전파와 출력층",
+      "canonical": "순전파와 출력층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "순환 신경망",
+      "canonical": "순환 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "술어 논리",
+      "canonical": "술어 논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "술어 논리 개요",
+      "canonical": "술어 논리 개요",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "술어논리",
+      "canonical": "술어논리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스케일드 닷프로덕트 어텐션",
+      "canonical": "스케일드 닷프로덕트 어텐션",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스케일링 법칙",
+      "canonical": "스케일링 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스케일링 법칙과 대표 모델 계열",
+      "canonical": "스케일링 법칙과 대표 모델 계열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스킵 연결",
+      "canonical": "잔차 연결",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "스트라이드",
+      "canonical": "스트라이드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시간 복잡도",
+      "canonical": "복잡도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "시간 전개",
+      "canonical": "시간 전개",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시간 전개와 장기 의존성 문제",
+      "canonical": "시간 전개와 장기 의존성 문제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시간에 걸친 역전파",
+      "canonical": "시간에 걸친 역전파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시그모이드",
+      "canonical": "활성화 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "시퀀스 데이터",
+      "canonical": "시퀀스 데이터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시퀀스 데이터와 rnn 구조",
+      "canonical": "시퀀스 데이터와 RNN 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시퀀스-투-시퀀스와 인코더-디코더",
+      "canonical": "시퀀스-투-시퀀스와 인코더-디코더",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신경망",
+      "canonical": "인공신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "실루엣 계수",
+      "canonical": "실루엣 계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "심층학습",
+      "canonical": "딥러닝",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "알파-베타 가지치기",
+      "canonical": "알파-베타 가지치기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "알파베타 프루닝",
+      "canonical": "알파-베타 가지치기",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "앙상블",
+      "canonical": "앙상블",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "앙상블 학습",
+      "canonical": "앙상블",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "액티베이션 맵",
+      "canonical": "특징 맵",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "약인공지능",
+      "canonical": "약인공지능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "어텐션",
+      "canonical": "어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "어텐션의 등장과 트랜스포머로의 다리",
+      "canonical": "어텐션의 등장과 트랜스포머로의 다리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "언더피팅",
+      "canonical": "과소적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "에이스타",
+      "canonical": "A* 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "에이전트",
+      "canonical": "지능형 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "에이전트 프로그램",
+      "canonical": "에이전트 프로그램",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "에이전트 함수",
+      "canonical": "에이전트 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "에이전트와 환경의 상호작용",
+      "canonical": "에이전트와 환경의 상호작용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에이전트의 유형",
+      "canonical": "에이전트의 유형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에폭",
+      "canonical": "에폭",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "엘보우 방법",
+      "canonical": "엘보우 방법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역전파",
+      "canonical": "역전파",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "역전파와 연쇄법칙",
+      "canonical": "역전파와 연쇄법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연쇄법칙",
+      "canonical": "연쇄법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "영역 분할",
+      "canonical": "영역 분할",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오버피팅",
+      "canonical": "과적합",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "오차역전파",
+      "canonical": "역전파",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "온톨로지",
+      "canonical": "온톨로지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "온톨로지와 개념의 조직화",
+      "canonical": "온톨로지와 개념의 조직화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "옵티마이저",
+      "canonical": "옵티마이저",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "완전 관측 가능 환경",
+      "canonical": "완전 관측 가능 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "완전 연결 층",
+      "canonical": "완전 연결 층",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "완전성",
+      "canonical": "완전성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "워드 임베딩",
+      "canonical": "임베딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "워드투벡",
+      "canonical": "워드투벡",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "원자적 표현",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "위치 불변성",
+      "canonical": "위치 불변성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "위치 인코딩",
+      "canonical": "위치 인코딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "유틸리티 기반 에이전트",
+      "canonical": "효용 기반 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "은닉 상태",
+      "canonical": "은닉 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "은닉층",
+      "canonical": "은닉층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미 검색",
+      "canonical": "의미 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의미 유사도와 코사인 유사도",
+      "canonical": "의미 유사도와 코사인 유사도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의사결정나무",
+      "canonical": "결정 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "이상탐지",
+      "canonical": "이상탐지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이완 문제",
+      "canonical": "이완 문제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공신경망",
+      "canonical": "인공신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "인공지능",
+      "canonical": "인공지능",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "인공지능 겨울",
+      "canonical": "인공지능 겨울",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공지능·기계학습·딥러닝의 관계",
+      "canonical": "인공지능·기계학습·딥러닝의 관계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공지능의 대표적 응용 분야",
+      "canonical": "인공지능의 대표적 응용 분야",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공지능의 역사",
+      "canonical": "인공지능의 역사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공지능의 정의와 범위",
+      "canonical": "인공지능의 정의와 범위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인컨텍스트 학습",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "인컨텍스트 학습과 프롬프팅",
+      "canonical": "인컨텍스트 학습과 프롬프팅",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인코더 디코더",
+      "canonical": "인코더-디코더",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "인코더-디코더",
+      "canonical": "인코더-디코더",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "인코더·디코더",
+      "canonical": "인코더·디코더",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인코더·디코더 구조와 토큰화·임베딩",
+      "canonical": "인코더·디코더 구조와 토큰화·임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일관성",
+      "canonical": "일관성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일반화",
+      "canonical": "일반화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "일반화와 데이터 분할",
+      "canonical": "일반화와 데이터 분할",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "임베딩",
+      "canonical": "임베딩",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "자기 주의",
+      "canonical": "셀프 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "자연어 처리",
+      "canonical": "자연어 처리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "자연어처리",
+      "canonical": "자연어 처리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "작업 환경",
+      "canonical": "과제 환경",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "잔차 연결",
+      "canonical": "잔차 연결",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "장기 의존성",
+      "canonical": "장기 의존성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재현율",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "전건 긍정",
+      "canonical": "전건 긍정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전문가 시스템",
+      "canonical": "전문가 시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전방향 추론",
+      "canonical": "전방향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전이 모델",
+      "canonical": "전이 모형",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "전이 모형",
+      "canonical": "전이 모형",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "전이학습",
+      "canonical": "전이학습",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전이학습과 대표 비전 과제",
+      "canonical": "전이학습과 대표 비전 과제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전향 추론",
+      "canonical": "전향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "절편",
+      "canonical": "절편",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정규화",
+      "canonical": "정규화(규제)",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "정규화(규제)",
+      "canonical": "정규화(규제)",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "정밀도",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "정밀도와 재현율",
+      "canonical": "정밀도와 재현율",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "정보 탐색과 휴리스틱",
+      "canonical": "정보 탐색과 휴리스틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정보이득",
+      "canonical": "정보이득",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정적 임베딩",
+      "canonical": "정적 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "정확도",
+      "canonical": "정확도",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "조기 종료",
+      "canonical": "조기 종료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "주성분",
+      "canonical": "주성분",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "주성분 분석",
+      "canonical": "주성분 분석",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "주성분분석",
+      "canonical": "주성분분석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "주성분분석(pca)",
+      "canonical": "주성분분석(PCA)",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "주의 메커니즘",
+      "canonical": "어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "중국어 방 논변",
+      "canonical": "중국어 방 논변",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중심",
+      "canonical": "중심",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지각 열",
+      "canonical": "지각열",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "지각열",
+      "canonical": "지각열",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "지능형 에이전트",
+      "canonical": "지능형 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "지니 불순도",
+      "canonical": "지니 불순도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지도학습",
+      "canonical": "지도학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "지식 기반 에이전트",
+      "canonical": "지식 기반 에이전트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지식 베이스",
+      "canonical": "지식 베이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지식 컷오프",
+      "canonical": "지식 컷오프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "질의 재작성",
+      "canonical": "질의 재작성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "차원 축소",
+      "canonical": "차원 축소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "차원의 저주",
+      "canonical": "차원의 저주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "청킹",
+      "canonical": "청킹",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "청킹 전략",
+      "canonical": "청킹 전략",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "초기 상태",
+      "canonical": "초기 상태",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "초매개변수",
+      "canonical": "하이퍼파라미터",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "최대 풀링",
+      "canonical": "풀링",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "최소최대",
+      "canonical": "미니맥스",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "충실성",
+      "canonical": "충실성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "커널",
+      "canonical": "커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "컨볼루션",
+      "canonical": "합성곱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "컨볼루션 신경망",
+      "canonical": "합성곱 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "케이민즈",
+      "canonical": "k-평균 군집화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "코사인 유사도",
+      "canonical": "코사인 유사도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "크로스 어텐션",
+      "canonical": "크로스 어텐션",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "탐색",
+      "canonical": "탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "탐색 문제",
+      "canonical": "탐색 문제",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "탐색 알고리즘의 비교",
+      "canonical": "탐색 알고리즘의 비교",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탐욕 탐색",
+      "canonical": "그리디 탐색",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "테스트 세트",
+      "canonical": "훈련/검증/테스트 세트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "텔과 애스크",
+      "canonical": "텔과 애스크",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "토크나이징",
+      "canonical": "토큰화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "토큰화",
+      "canonical": "토큰화",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "튜링 테스트",
+      "canonical": "튜링 테스트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "트랜스포머",
+      "canonical": "트랜스포머",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "트리 구조",
+      "canonical": "그래프와 트리",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "특징",
+      "canonical": "특징",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "특징 공학",
+      "canonical": "특징 공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "특징 공학 입문",
+      "canonical": "특징 공학 입문",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "특징 맵",
+      "canonical": "특징 맵",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "특징맵",
+      "canonical": "특징맵",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파라미터",
+      "canonical": "파라미터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파인튜닝",
+      "canonical": "미세 조정",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "패딩",
+      "canonical": "패딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "퍼셉트론",
+      "canonical": "퍼셉트론",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "퍼셉트론에서 다층 신경망으로",
+      "canonical": "퍼셉트론에서 다층 신경망으로",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "편향",
+      "canonical": "편향",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "편향-분산 트레이드오프",
+      "canonical": "편향-분산 트레이드오프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균제곱근오차",
+      "canonical": "RMSE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균제곱오차",
+      "canonical": "평균제곱오차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평균제곱오차(mse) 손실",
+      "canonical": "평균제곱오차(MSE) 손실",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표현 방식",
+      "canonical": "상태 표현 방식",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "표현 학습",
+      "canonical": "표현 학습",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표현 학습으로서의 임베딩",
+      "canonical": "표현 학습으로서의 임베딩",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "풀링",
+      "canonical": "풀링",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "풀링과 전형적 cnn 구조",
+      "canonical": "풀링과 전형적 CNN 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "퓨샷 학습",
+      "canonical": "인컨텍스트 학습",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "프론티어",
+      "canonical": "프론티어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프롬프트",
+      "canonical": "프롬프트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "프롬프트 엔지니어링",
+      "canonical": "프롬프트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "프롬프트 엔지니어링과 환각 완화",
+      "canonical": "프롬프트 엔지니어링과 환각 완화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프롬프트 주입",
+      "canonical": "프롬프트 주입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "피처 맵",
+      "canonical": "특징 맵",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "필터",
+      "canonical": "필터/커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "필터/커널",
+      "canonical": "필터/커널",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "하이브리드 검색",
+      "canonical": "하이브리드 검색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "하이퍼파라미터",
+      "canonical": "하이퍼파라미터",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "하이퍼파라미터 튜닝과 데이터 누수",
+      "canonical": "하이퍼파라미터 튜닝과 데이터 누수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "학습 에이전트",
+      "canonical": "학습하는 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "학습률",
+      "canonical": "학습률",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "학습률 스케줄링",
+      "canonical": "학습률 스케줄링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "학습률 스케줄링과 규제",
+      "canonical": "학습률 스케줄링과 규제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "학습의 세 갈래",
+      "canonical": "학습의 세 갈래",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "학습하는 에이전트",
+      "canonical": "학습하는 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "한정사",
+      "canonical": "한정사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "할루시네이션",
+      "canonical": "환각",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "함의",
+      "canonical": "함의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "합리적 에이전트",
+      "canonical": "합리적 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "합성곱",
+      "canonical": "합성곱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "합성곱 신경망",
+      "canonical": "합성곱 신경망",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "합성곱 연산과 특징맵",
+      "canonical": "합성곱 연산과 특징맵",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "허용성",
+      "canonical": "허용성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "허용성과 일관성",
+      "canonical": "허용성과 일관성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼동 행렬",
+      "canonical": "혼동 행렬",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "혼동행렬",
+      "canonical": "혼동 행렬",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "혼동행렬과 정밀도·재현율·f1",
+      "canonical": "혼동행렬과 정밀도·재현율·F1",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "확률적 경사하강법",
+      "canonical": "확률적 경사하강법",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "확률적 환경",
+      "canonical": "확률적 환경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "환각",
+      "canonical": "환각",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "환경의 성질",
+      "canonical": "환경의 성질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "환경의 속성",
+      "canonical": "과제 환경의 속성",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "활성화 함수",
+      "canonical": "활성화 함수",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "회귀 평가 지표",
+      "canonical": "회귀 평가 지표",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "효용 기반 에이전트",
+      "canonical": "효용 기반 에이전트",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "후방향 추론",
+      "canonical": "후방향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "후향 추론",
+      "canonical": "후향 추론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "훈련",
+      "canonical": "훈련/검증/테스트 세트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "훈련/검증/테스트 세트",
+      "canonical": "훈련/검증/테스트 세트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "휴리스틱",
+      "canonical": "휴리스틱",
+      "reason": "GLOSSARY_TERM"
+    },
+    {
+      "pattern": "희소 검색",
+      "canonical": "희소 검색",
+      "reason": "LECTURE_CONCEPT"
+    }
+  ],
+  "pattern_exclusions": {},
+  "filler_patterns": [
+    "^(어|음|자|그|저)\\s+",
+    "그러니까\\s*",
+    "뭐시기\\s*",
+    "인가\\s+그\\s+",
+    "\\s+그거\\s+",
+    "\\s+그게\\s+"
+  ]
+}

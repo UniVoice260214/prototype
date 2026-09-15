@@ -55,7 +55,9 @@ export class AuthService {
   }
 
   async loginStudent(dto: LoginDto): Promise<TokenResponseDto> {
-    const student = await this.students.findOne({ where: { email: dto.email } });
+    const student = await this.students.findOne({
+      where: { email: dto.email },
+    });
     if (!student) throw new UnauthorizedException('Invalid credentials');
 
     const ok = await bcrypt.compare(dto.password, student.passwordHash);
@@ -74,7 +76,9 @@ export class AuthService {
     );
   }
 
-  async verifyJoinToken(token: string): Promise<{ sub: string; sessionId: string }> {
+  async verifyJoinToken(
+    token: string,
+  ): Promise<{ sub: string; sessionId: string }> {
     try {
       const payload = await this.jwt.verifyAsync<{
         sub: string;
@@ -99,9 +103,7 @@ export class AuthService {
     };
   }
 
-  private async signStudentToken(
-    studentId: string,
-  ): Promise<TokenResponseDto> {
+  private async signStudentToken(studentId: string): Promise<TokenResponseDto> {
     const accessToken = await this.jwt.signAsync(
       { sub: studentId, role: 'student', type: 'student' },
       this.signOpts('JWT_EXPIRES_IN', '1d'),

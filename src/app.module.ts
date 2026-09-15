@@ -15,12 +15,14 @@ import { CourseModule } from './modules/course/course.module';
 import { DepartmentModule } from './modules/department/department.module';
 import { EventsModule } from './modules/events/events.module';
 import { GlossaryModule } from './modules/glossary/glossary.module';
+import { HealthModule } from './modules/health/health.module';
 import { MaterialModule } from './modules/material/material.module';
 import { ProfessorModule } from './modules/professor/professor.module';
 import { QrModule } from './modules/qr/qr.module';
 import { SchoolModule } from './modules/school/school.module';
 import { SessionModule } from './modules/session/session.module';
 import { StudentModule } from './modules/student/student.module';
+import { TranscriptModule } from './modules/transcript/transcript.module';
 import { UserModule } from './modules/user/user.module';
 import { WebModule } from './modules/web/web.module';
 
@@ -45,10 +47,13 @@ import { WebModule } from './modules/web/web.module';
     ProfessorModule,
     CourseModule,
     SessionModule,
+    TranscriptModule,
     MaterialModule,
     GlossaryModule,
     QrModule,
     WebModule,
+    // 배포 헬스체크(/health/live, /health/ready) — compose healthcheck 가 의존한다.
+    HealthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

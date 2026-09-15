@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
 DATA_RAW_DIR = ROOT / "data" / "raw"
+# 전공별 원본 자료 디렉터리 (raw/ 아래 전공 단위로 분리)
+DATA_RAW_AI_DIR = DATA_RAW_DIR / "ai"
+DATA_RAW_HSS_DIR = DATA_RAW_DIR / "Humanities_Social_Sciences"
+DATA_RAW_BME_DIR = DATA_RAW_DIR / "Biomedical_Bioengineering"
 DATA_RAW_DISTRACTOR_DIR = ROOT / "data" / "raw_distractor"
 CHUNKS_PATH = ROOT / "data" / "chunks" / "chunks.jsonl"
 INDEXES_DIR = ROOT / "indexes"
@@ -46,9 +50,31 @@ MODELS: dict[str, ModelSpec] = {
 }
 
 # 분리 인덱스: doc_type 부분집합 → indexes/{index_name}/{model}/
+# 전공 RAG는 전공마다 doc_type을 분리해 서로 섞이지 않게 한다.
 INDEX_SUBSETS: dict[str, list[str]] = {
     "major_ai": ["glossary", "concept_doc", "textbook"],  # 전공 RAG: 용어사전 + 개념문서 + 입문교재
+    "major_humanities_social_sciences": [                 # 전공 RAG: 인문사회 개념문서 + 입문교재
+        "hss_concept_doc",
+        "hss_textbook",
+    ],
+    "major_biomedical_bioengineering": [                  # 전공 RAG: 바이오의생명공학 입문교재
+        "bme_concept_doc",
+        "bme_textbook",
+    ],
     "lecture_kim_i2a": ["lecture_slide"],     # 강의 RAG: 김교수 I2A 슬라이드
+    # 강의 RAG는 과목 단위다. 같은 전공이라도 과목이 다르면 인덱스를 나눈다
+    # (인문사회에 국어학개론·종교사회학 두 과목이 있다).
+    "lecture_heo_korling": ["korling_lecture_slide"],   # 허용 · 국어학개론
+    "lecture_nam_relsoc": ["relsoc_lecture_slide"],     # 남은경 · 종교사회학
+    "lecture_lee_molbio": ["molbio_lecture_slide"],     # 이우일 · 분자생물학
+}
+
+# 전공별 기본(강의 인덱스 제외) 인덱스. courseId가 RAG_COURSE_INDEX_MAP에
+# 등록되지 않은 경우의 폴백이자, RAG_COURSE_INDEX_MAP 값 검증의 기준이 된다.
+MAJOR_PRIMARY_INDEX: dict[str, str] = {
+    "ai": "major_ai",
+    "hss": "major_humanities_social_sciences",
+    "bme": "major_biomedical_bioengineering",
 }
 
 # Azure OpenAI (.env에서 로드)

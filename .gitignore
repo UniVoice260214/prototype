@@ -6,12 +6,16 @@ dist/
 *.tsbuildinfo
 
 # env (secrets)
+# .env 파생 파일(.env.bak.*, .env.demo, .env.staging 등)에는 실제 키가 들어가므로
+# .env.* 를 통째로 막고, 값이 비어 있는 example 템플릿만 되살린다.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.*.example
 
 # dev tools (PC-specific portable binaries: Redis Windows port, Azurite emulator data)
 .tools/
+.omc/
 
 # logs
 *.log

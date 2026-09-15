@@ -27,6 +27,7 @@ import {
   CurrentUser,
 } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { decodeMultipartFilename } from '../../common/util/multipart-filename';
 import { MaterialService } from './material.service';
 import { UploadMaterialDto } from './dto/material.dto';
 
@@ -72,6 +73,8 @@ export class MaterialController {
         `Unsupported mimetype: ${file.mimetype}. Allowed: ${ALLOWED_MIME.join(', ')}`,
       );
     }
+    // busboy 가 latin1 로 읽은 한글 파일명을 되돌린다.
+    file.originalname = decodeMultipartFilename(file.originalname);
     return this.service.upload(file, dto, user);
   }
 

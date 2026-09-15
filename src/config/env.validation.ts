@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -16,6 +17,10 @@ export enum NodeEnv {
 export class EnvVars {
   @IsInt()
   PORT: number = 3000;
+
+  @IsString()
+  @IsOptional()
+  HOST: string = '0.0.0.0';
 
   @IsEnum(NodeEnv)
   NODE_ENV: NodeEnv = NodeEnv.Development;
@@ -61,6 +66,17 @@ export class EnvVars {
   @IsOptional()
   AZURE_BLOB_CONTAINER: string = 'univoice-materials';
 
+  /** Optional browser-facing base URL used instead of the SDK's internal blob endpoint. */
+  @IsString()
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_BASE_URL?: string;
+
+  /** Demo-only switch for anonymous blob reads inside a private Tailscale network. */
+  @IsString()
+  @IsIn(['true', 'false'])
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_ACCESS?: string;
+
   @IsString()
   @IsOptional()
   QR_BASE_URL: string = 'https://app.univoice.example.com/join';
@@ -85,6 +101,21 @@ export class EnvVars {
   @IsOptional()
   @IsString()
   AUTH_DISABLED?: string;
+
+  /** Comma-separated browser origins allowed to call the API. */
+  @IsOptional()
+  @IsString()
+  CORS_ORIGINS?: string;
+
+  /** Enable Express proxy awareness when TLS is terminated by Caddy. */
+  @IsOptional()
+  @IsString()
+  TRUST_PROXY?: string;
+
+  /** Swagger is enabled by default outside production. */
+  @IsOptional()
+  @IsString()
+  SWAGGER_ENABLED?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvVars {
@@ -107,6 +138,42 @@ export function validateEnv(config: Record<string, unknown>): EnvVars {
     validated.AUTH_DISABLED === 'true'
   ) {
     throw new Error('AUTH_DISABLED=true is not allowed in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    validated.JWT_SECRET.length < 32
+  ) {
+    throw new Error('JWT_SECRET must be at least 32 characters in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    !validated.QR_BASE_URL.startsWith('https://')
+  ) {
+    throw new Error('QR_BASE_URL must use https:// in production');
+  }
+  if (validated.AZURE_BLOB_PUBLIC_BASE_URL) {
+    let publicBlobUrl: URL;
+    try {
+      publicBlobUrl = new URL(validated.AZURE_BLOB_PUBLIC_BASE_URL);
+    } catch {
+      throw new Error('AZURE_BLOB_PUBLIC_BASE_URL must be an absolute URL');
+    }
+    if (
+      validated.NODE_ENV === NodeEnv.Production &&
+      publicBlobUrl.protocol !== 'https:'
+    ) {
+      throw new Error(
+        'AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production',
+      );
+    }
+  }
+  if (
+    validated.AZURE_BLOB_PUBLIC_ACCESS === 'true' &&
+    !validated.AZURE_BLOB_PUBLIC_BASE_URL
+  ) {
+    throw new Error(
+      'AZURE_BLOB_PUBLIC_BASE_URL is required when AZURE_BLOB_PUBLIC_ACCESS=true',
+    );
   }
   return validated;
 }

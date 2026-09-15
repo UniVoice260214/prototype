@@ -39,7 +39,6 @@ async function main() {
   console.log('Seeded admin user:');
   console.log(`   id:       ${user.id}`);
   console.log(`   email:    ${user.email}`);
-  console.log(`   password: ${SEED_ADMIN.password}`);
   console.log('\nLogin via: POST /auth/login { email, password }');
   await dataSource.destroy();
 }

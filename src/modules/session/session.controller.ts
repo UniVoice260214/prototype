@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -9,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -21,7 +23,12 @@ import {
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SessionService } from './session.service';
-import { IssueStudentTokenDto, StartSessionDto } from './dto/session.dto';
+import {
+  IssueStudentTokenDto,
+  LiveKitTokenResponseDto,
+  PublicSessionInfoDto,
+  StartSessionDto,
+} from './dto/session.dto';
 
 @ApiBearerAuth()
 @ApiTags('sessions')
@@ -38,6 +45,24 @@ export class SessionController {
     return this.service.start(dto, user);
   }
 
+  @Roles('admin', 'professor')
+  @Get('active')
+  @ApiOperation({
+    summary: 'List active sessions visible to the current user',
+    description: 'Returns an empty array when there is no active session.',
+  })
+  @ApiQuery({
+    name: 'courseId',
+    required: false,
+    description: 'Optional course UUID filter',
+  })
+  findActive(
+    @Query('courseId') courseId: string | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.findActive(courseId, user);
+  }
+
   @Roles('professor', 'admin')
   @Post(':sessionId/end')
   @ApiOperation({ summary: 'End a session and stop its room' })
@@ -51,6 +76,23 @@ export class SessionController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.service.end(id, user);
+  }
+
+  @Public()
+  @Get(':sessionId/public')
+  @ApiOperation({
+    summary: 'Get public session info for the student join screen',
+    description:
+      'No auth required. Returns only the locales enabled for this session, so the join screen can restrict language choice.',
+  })
+  @ApiOkResponse({ type: PublicSessionInfoDto })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Session UUID',
+    format: 'uuid',
+  })
+  findPublic(@Param('sessionId', ParseUUIDPipe) id: string) {
+    return this.service.findPublic(id);
   }
 
   @Public()
@@ -72,6 +114,24 @@ export class SessionController {
     return this.service.issueStudentToken(id, dto, studentId);
   }
 
+  @Roles('professor', 'admin')
+  @Post(':sessionId/professor-token')
+  @ApiOperation({
+    summary: 'Reissue a professor LiveKit token for an active session',
+  })
+  @ApiOkResponse({ type: LiveKitTokenResponseDto })
+  @ApiParam({
+    name: 'sessionId',
+    description: 'Session UUID',
+    format: 'uuid',
+  })
+  issueProfessorToken(
+    @Param('sessionId', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.service.issueProfessorToken(id, user);
+  }
+
   @Roles('admin', 'professor')
   @Get()
   @ApiOperation({ summary: 'List sessions visible to the current user' })
@@ -80,11 +140,21 @@ export class SessionController {
     required: false,
     description: 'Optional course UUID filter',
   })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['active', 'ended'],
+    description: 'Optional status filter (e.g. ended for past-class list)',
+  })
   findAll(
     @Query('courseId') courseId: string | undefined,
+    @Query('status') status: string | undefined,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.service.findAll(courseId, user);
+    if (status !== undefined && status !== 'active' && status !== 'ended') {
+      throw new BadRequestException(`Invalid status: ${status}`);
+    }
+    return this.service.findAll(courseId, status, user);
   }
 
   @Roles('admin', 'professor')

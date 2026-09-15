@@ -9,7 +9,12 @@ import {
   ParseUUIDPipe,
   Patch,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   AuthUser,
   CurrentUser,
@@ -29,6 +34,15 @@ export class StudentController {
   @ApiOperation({ summary: 'List all students' })
   findAll() {
     return this.students.findAll();
+  }
+
+  @Roles('student')
+  @Get('me/sessions')
+  @ApiOperation({
+    summary: 'List sessions the logged-in student attended (newest first)',
+  })
+  listMySessions(@CurrentUser() user: AuthUser) {
+    return this.students.listMySessions(user.sub);
   }
 
   @Roles('admin', 'student')

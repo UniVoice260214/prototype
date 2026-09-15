@@ -17,13 +17,16 @@ import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { LiveKitService } from '../../infra/livekit/livekit.service';
 import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { AuthService } from '../auth/auth.service';
+import { Course, CourseMajor } from '../course/entities/course.entity';
 import { EventsService } from '../events/events.service';
 import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
 import { Session } from './entities/session.entity';
+import { SessionAttendance } from './entities/session-attendance.entity';
 import {
   IssueStudentTokenDto,
   LiveKitTokenResponseDto,
+  PublicSessionInfoDto,
   StartSessionDto,
 } from './dto/session.dto';
 
@@ -33,8 +36,11 @@ export class SessionService {
 
   constructor(
     @InjectRepository(Session) private readonly sessions: Repository<Session>,
+    @InjectRepository(SessionAttendance)
+    private readonly attendances: Repository<SessionAttendance>,
     @InjectRepository(Glossary)
     private readonly glossaries: Repository<Glossary>,
+    @InjectRepository(Course) private readonly courses: Repository<Course>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly liveKit: LiveKitService,
     private readonly events: EventsService,
@@ -72,33 +78,21 @@ export class SessionService {
     );
 
     try {
+      // 과목 전공을 세션 설정과 이벤트에 함께 실어 워커가 그 전공 RAG 만 쓰게 한다.
+      const major = course.major ?? null;
       await this.liveKit.createRoom(roomName);
-      await this.prewarmRedis(session);
+      await this.prewarmRedis(session, major);
       await this.events.publishSessionStarted({
         sessionId: session.id,
         courseId: session.courseId,
         liveKitRoomName: session.liveKitRoomName,
         targetLocales: session.targetLocales,
-      });
-
-      const token = await this.liveKit.createAccessToken({
-        identity: `professor-${course.professorId}`,
-        roomName,
-        canPublish: true,
-        canSubscribe: true,
-        canPublishData: true,
-        name: 'Professor',
-        metadata: { role: 'professor', sessionId: session.id },
+        major,
       });
 
       return {
         session,
-        liveKit: {
-          liveKitUrl: this.config.get<string>('LIVEKIT_URL') ?? '',
-          token,
-          roomName,
-          identity: `professor-${course.professorId}`,
-        },
+        liveKit: await this.createProfessorToken(session, course.professorId),
       };
     } catch (err) {
       await this.sessions.delete(session.id).catch(() => undefined);
@@ -192,6 +186,28 @@ export class SessionService {
       );
     }
 
+    // 로그인 학생의 참여를 기록한다 — 지난 수업 자막 열람 권한과
+    // "내 수업 목록"의 근거. QR 게스트(authStudentId 없음)는 기록할 수 없어
+    // joinToken 유효기간(24h) 내 재열람만 가능하다.
+    if (authStudentId) {
+      try {
+        await this.attendances.upsert(
+          {
+            studentId: authStudentId,
+            sessionId,
+            locale: dto.locale,
+            joinedAt: new Date(),
+          },
+          ['studentId', 'sessionId'],
+        );
+      } catch (err) {
+        // 참여 기록 실패가 수업 입장 자체를 막아서는 안 된다.
+        this.logger.warn(
+          `Attendance upsert failed for student ${authStudentId} in ${sessionId}: ${this.errorMessage(err)}`,
+        );
+      }
+    }
+
     const identity = `student-${identitySub}-${uuid().slice(0, 8)}`;
     const token = await this.liveKit.createAccessToken({
       identity,
@@ -211,12 +227,64 @@ export class SessionService {
     };
   }
 
-  findAll(courseId: string | undefined, user: AuthUser): Promise<Session[]> {
-    return this.courseAccess.findSessionsForUser({ courseId }, user);
+  findAll(
+    courseId: string | undefined,
+    status: 'active' | 'ended' | string | undefined,
+    user: AuthUser,
+  ): Promise<Session[]> {
+    return this.courseAccess.findSessionsForUser(
+      {
+        courseId,
+        status: status === 'active' || status === 'ended' ? status : undefined,
+      },
+      user,
+    );
+  }
+
+  findActive(courseId: string | undefined, user: AuthUser): Promise<Session[]> {
+    return this.courseAccess.findSessionsForUser(
+      { courseId, status: 'active' },
+      user,
+    );
   }
 
   findOne(id: string, user: AuthUser): Promise<Session> {
     return this.courseAccess.findSessionForUser(id, user);
+  }
+
+  /**
+   * Unauthenticated lookup used by the student join flow (QR scan happens
+   * before the student has any credential). Only exposes what the join
+   * screen needs: which locales are enabled, so students can't pick a
+   * locale the session doesn't translate into.
+   */
+  async findPublic(id: string): Promise<PublicSessionInfoDto> {
+    const session = await this.findOneById(id);
+    const course = await this.courses.findOne({
+      where: { id: session.courseId },
+    });
+    return {
+      id: session.id,
+      status: session.status,
+      targetLocales: session.targetLocales,
+      courseName: course?.name ?? '',
+    };
+  }
+
+  async issueProfessorToken(
+    id: string,
+    user: AuthUser,
+  ): Promise<LiveKitTokenResponseDto> {
+    const session = await this.courseAccess.findSessionForUser(id, user);
+    if (session.status !== 'active') {
+      throw new BadRequestException('Session is not active');
+    }
+
+    const course = await this.courseAccess.findCourseForUser(
+      session.courseId,
+      user,
+    );
+    return this.createProfessorToken(session, course.professorId);
   }
 
   async getStatus(
@@ -239,7 +307,33 @@ export class SessionService {
     return session;
   }
 
-  private async prewarmRedis(session: Session): Promise<void> {
+  private async createProfessorToken(
+    session: Session,
+    professorId: string,
+  ): Promise<LiveKitTokenResponseDto> {
+    const identity = `professor-${professorId}`;
+    const token = await this.liveKit.createAccessToken({
+      identity,
+      roomName: session.liveKitRoomName,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+      name: 'Professor',
+      metadata: { role: 'professor', sessionId: session.id },
+    });
+
+    return {
+      liveKitUrl: this.config.get<string>('LIVEKIT_URL') ?? '',
+      token,
+      roomName: session.liveKitRoomName,
+      identity,
+    };
+  }
+
+  private async prewarmRedis(
+    session: Session,
+    major: CourseMajor | null,
+  ): Promise<void> {
     const configKey = RedisKeys.sessionConfig(session.id);
     const statusKey = RedisKeys.sessionStatus(session.id);
     const glossaryKey = RedisKeys.glossaryByCourse(session.courseId);
@@ -256,6 +350,8 @@ export class SessionService {
         courseId: session.courseId,
         liveKitRoomName: session.liveKitRoomName,
         targetLocales: session.targetLocales,
+        // 워커 재기동 시 active 세션 복구 경로도 같은 전공을 쓰도록 여기에도 넣는다.
+        major,
         startedAt: session.startedAt.toISOString(),
       }),
       'EX',

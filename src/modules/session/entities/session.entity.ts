@@ -22,7 +22,9 @@ export class Session {
   @Column({ type: 'uuid' })
   courseId: string;
 
-  @ManyToOne(() => Course, (course) => course.sessions, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Course, (course) => course.sessions, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'courseId' })
   course: Course;
 
@@ -34,7 +36,7 @@ export class Session {
   status: SessionStatus;
 
   /** e.g. ['zh-CN', 'vi-VN', 'mn-MN'] */
-  @Column({ type: 'text', array: true, default: () => "ARRAY[]::text[]" })
+  @Column({ type: 'text', array: true, default: () => 'ARRAY[]::text[]' })
   targetLocales: string[];
 
   @Column({ type: 'timestamptz' })

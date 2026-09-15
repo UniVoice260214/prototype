@@ -97,8 +97,18 @@ async def test_missing_locale_translation_fails_only_that_locale() -> None:
         async def synthesize_job(self, tts_job: TtsJob) -> bytes:
             return tts_job.text.encode()
 
-    async def on_subtitle(locale: str, text: str, segment: SpeechSegment, is_final: bool) -> None:
+    fallbacks: list[tuple[str, bool]] = []
+
+    async def on_subtitle(
+        locale: str,
+        text: str,
+        segment: SpeechSegment,
+        is_final: bool,
+        *,
+        is_fallback: bool = False,
+    ) -> None:
         captions.append((locale, text, segment))
+        fallbacks.append((locale, is_fallback))
 
     async def on_audio_status(status: AudioStatus) -> None:
         statuses.append(status)
@@ -118,7 +128,13 @@ async def test_missing_locale_translation_fails_only_that_locale() -> None:
     await pipeline.enqueue_stt_final(final("안녕하세요."))
     await pipeline.flush_and_stop()
 
-    assert [(locale, text) for locale, text, _ in captions] == [("vi-VN", "xin chao")]
+    # 번역이 없는 locale 도 자막은 나가야 한다 — 한국어 원문 폴백.
+    # 음성만 실패로 표시하고(아래 audio.failed), 학생 화면이 비지 않게 한다.
+    assert sorted((locale, text) for locale, text, _ in captions) == [
+        ("vi-VN", "xin chao"),
+        ("zh-CN", "안녕하세요."),
+    ]
+    assert sorted(fallbacks) == [("vi-VN", False), ("zh-CN", True)]
     assert ("audio.failed", "zh-CN", "TRANSLATION_MISSING") in [
         (status.type, status.locale, status.error_code) for status in statuses
     ]

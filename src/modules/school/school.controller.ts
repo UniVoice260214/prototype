@@ -9,7 +9,12 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto, UpdateSchoolDto } from './dto/school.dto';
