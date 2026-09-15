@@ -59,6 +59,8 @@ class SessionWorker:
         status_store: WorkerStatusStore | None = None,
         transcript_publisher: Callable[[dict[str, Any]], Awaitable[None]] | None = None,
         sequence_start: int = 1,
+        # preflight_rag() 결과: ready | off | unreachable | no-index. 교수 화면 진단값으로 나간다.
+        rag_status: str = "off",
         room: Any | None = None,
         stt_factory: SttFactory | None = None,
         audio_stream_factory: AudioStreamFactory | None = None,
@@ -72,6 +74,7 @@ class SessionWorker:
         self._glossary = glossary
         self._lexicon = lexicon
         self._rag = rag or NoOpRagClient()
+        self._rag_status = rag_status
         self._loop = asyncio.get_running_loop()
 
         # PhraseList 는 세션 시작 시 한 번만 합성해 두고 STT 재생성 때마다 재사용한다.
@@ -773,13 +776,15 @@ class SessionWorker:
     def _diagnostics(self) -> dict[str, object]:
         """교수 화면이 그대로 읽는 진단 요약.
 
-        glossary 0개 / lexicon 없음 / RAG off 는 자막만 봐서는 알 수 없다.
+        glossary 0개 / lexicon 없음 / RAG 미동작은 자막만 봐서는 알 수 없다.
+        RAG 는 설정값(on/off)이 아니라 preflight 결과를 내보낸다 — 켜 놓고 서비스가
+        죽어 있거나 인덱스가 없어도 fail-open 이라 겉으로는 똑같이 번역되기 때문이다.
         """
         return {
             "glossary": len(self._glossary),
             "lexicon": self._lexicon.major if self._lexicon is not None else None,
             "phraseList": len(self._phrase_list),
-            "rag": "on" if self._config.rag_enabled else "off",
+            "rag": self._rag_status,
         }
 
     async def _set_worker_status(self, status: str, *, error: str | None = None) -> None:

@@ -170,10 +170,12 @@ def build_rag_client(config: WorkerConfig, course_id: str) -> RagClient:
 
 
 async def preflight_rag(config: WorkerConfig) -> str:
-    """기동 시 RAG 서비스 상태를 1회 확인해 로그로 드러낸다.
+    """RAG 서비스 상태를 확인해 로그로 드러내고 진단값을 돌려준다.
 
+    반환: "ready" | "off" | "unreachable" | "no-index".
+    기동 시 1회, 그리고 세션 시작마다 다시 호출한다 — 반환값은 세션 워커의
+    diagnostics 로 실려 교수 화면 상태줄에 표시된다.
     RAG 는 실패해도 fail-open 이라 자막만 보고는 동작 여부를 알 수 없다.
-    여기서 한 번 찍어 두지 않으면 인덱스 누락을 아무도 눈치채지 못한다.
     """
     if not config.rag_enabled:
         logger.warning(
@@ -223,10 +225,12 @@ class WorkerRegistry:
         redis: aioredis.Redis,
         config: WorkerConfig,
         lexicons: LexiconRegistry | None = None,
+        rag_status: str = "off",
     ) -> None:
         self._redis = redis
         self._config = config
         self._lexicons = lexicons if lexicons is not None else LexiconRegistry({})
+        self._rag_status = rag_status
         self._status_store = RedisWorkerStatusStore(redis, ttl_sec=config.worker_status_ttl_sec)
         self._workers: dict[str, tuple[SessionWorker, asyncio.Task[None]]] = {}
         # 백그라운드로 분리한 end_session 태스크 (GC 방지 + stop_all 에서 대기).
@@ -280,6 +284,10 @@ class WorkerRegistry:
         glossary = await load_glossary(self._redis, course_id)
         lexicon = self._lexicon_for(session_id, course_id)
         rag = build_rag_client(self._config, course_id)
+        # 세션마다 다시 확인한다 — 워커 기동 뒤에 rag-service 를 띄우거나 인덱스를 빌드해도
+        # 진단값이 따라오게. 꺼져 있으면 호출하지 않는다(기동 시 이미 경고했다).
+        rag_status = await preflight_rag(self._config) if self._config.rag_enabled else "off"
+        self._rag_status = rag_status
         sequence_start = await load_sequence_start(self._redis, session_id)
         if sequence_start > 1:
             logger.info(
@@ -296,19 +304,20 @@ class WorkerRegistry:
             transcript_publisher=self._publish_transcript,
             sequence_start=sequence_start,
             rag=rag,
+            rag_status=rag_status,
         )
 
         task = asyncio.create_task(worker.run(), name=f"session-{session_id}")
         task.add_done_callback(lambda t, sid=session_id: self._on_worker_done(sid, t))
         self._workers[session_id] = (worker, task)
-        # 한 줄로 진단이 끝나야 한다: glossary 0개 / lexicon 없음 / RAG off 를 즉시 본다.
+        # 한 줄로 진단이 끝나야 한다: glossary 0개 / lexicon 없음 / RAG 미동작을 즉시 본다.
         logger.info(
             "[%s] 세션 워커 시작 locales=%s | glossary=%d | lexicon=%s | RAG=%s",
             session_id,
             validated["targetLocales"],
             len(glossary),
             f"{lexicon.major}({len(lexicon.lexicon)}패턴)" if lexicon else "NONE",
-            "on" if self._config.rag_enabled else "off",
+            rag_status,
         )
         if not glossary and lexicon is None:
             logger.error(
@@ -470,10 +479,10 @@ async def main() -> None:
 
     config = load_config()
     lexicons = load_lexicons(config)
-    await preflight_rag(config)
+    rag_status = await preflight_rag(config)
 
     redis = aioredis.from_url(config.redis_url, decode_responses=True)
-    registry = WorkerRegistry(redis, config, lexicons)
+    registry = WorkerRegistry(redis, config, lexicons, rag_status=rag_status)
     pubsub: Any = None
     reconnect_delay = 1.0
 

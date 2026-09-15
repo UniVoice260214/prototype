@@ -1146,7 +1146,12 @@
         const warnings = [];
         if (!d.phraseList) warnings.push("전공용어 미적용");
         else if (!d.lexicon) warnings.push("lexicon 없음");
-        if (d.rag === "off") warnings.push("RAG off");
+        // 워커 진단값은 설정이 아니라 preflight 결과다: ready | off | unreachable | no-index
+        // ("on" 은 구버전 워커 호환). 켜 놓고도 안 도는 경우를 여기서 바로 드러낸다.
+        if (d.rag && d.rag !== "ready" && d.rag !== "on") {
+          const ragWarnings = { off: "RAG off", unreachable: "RAG 연결 안 됨", "no-index": "RAG 인덱스 없음" };
+          warnings.push(ragWarnings[d.rag] || `RAG ${d.rag}`);
+        }
         suffix = warnings.length
           ? ` · ⚠ ${warnings.join(", ")}`
           : ` · 용어 ${d.phraseList}개(${d.lexicon})`;
