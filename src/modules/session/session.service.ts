@@ -17,7 +17,7 @@ import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { LiveKitService } from '../../infra/livekit/livekit.service';
 import { REDIS_CLIENT } from '../../infra/redis/redis.module';
 import { AuthService } from '../auth/auth.service';
-import { Course } from '../course/entities/course.entity';
+import { Course, CourseMajor } from '../course/entities/course.entity';
 import { EventsService } from '../events/events.service';
 import { WorkerStatusPayload } from '../events/events.types';
 import { Glossary } from '../glossary/entities/glossary.entity';
@@ -78,13 +78,16 @@ export class SessionService {
     );
 
     try {
+      // 과목 전공을 세션 설정과 이벤트에 함께 실어 워커가 그 전공 RAG 만 쓰게 한다.
+      const major = course.major ?? null;
       await this.liveKit.createRoom(roomName);
-      await this.prewarmRedis(session);
+      await this.prewarmRedis(session, major);
       await this.events.publishSessionStarted({
         sessionId: session.id,
         courseId: session.courseId,
         liveKitRoomName: session.liveKitRoomName,
         targetLocales: session.targetLocales,
+        major,
       });
 
       return {
@@ -327,7 +330,10 @@ export class SessionService {
     };
   }
 
-  private async prewarmRedis(session: Session): Promise<void> {
+  private async prewarmRedis(
+    session: Session,
+    major: CourseMajor | null,
+  ): Promise<void> {
     const configKey = RedisKeys.sessionConfig(session.id);
     const statusKey = RedisKeys.sessionStatus(session.id);
     const glossaryKey = RedisKeys.glossaryByCourse(session.courseId);
@@ -344,6 +350,8 @@ export class SessionService {
         courseId: session.courseId,
         liveKitRoomName: session.liveKitRoomName,
         targetLocales: session.targetLocales,
+        // 워커 재기동 시 active 세션 복구 경로도 같은 전공을 쓰도록 여기에도 넣는다.
+        major,
         startedAt: session.startedAt.toISOString(),
       }),
       'EX',

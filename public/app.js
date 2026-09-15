@@ -690,11 +690,17 @@
     return manual || state.autoJoinToken;
   }
 
+  // 과목에 지정된 전공 (Course.major). 수업 중 이 전공의 RAG 만 검색된다는 걸 교수가 바로 보게 한다.
+  const MAJOR_LABELS = { ai: "인공지능", hss: "인문사회", bme: "바이오의생명공학" };
+
   async function loadCourses() {
     const courses = await api("/courses");
     const select = $("course-select");
     select.innerHTML = courses.length
-      ? courses.map((course) => `<option value="${course.id}">${escapeHtml(course.name)}</option>`).join("")
+      ? courses.map((course) => {
+          const major = course.major ? ` · ${MAJOR_LABELS[course.major] || course.major}` : "";
+          return `<option value="${course.id}">${escapeHtml(course.name)}${escapeHtml(major)}</option>`;
+        }).join("")
       : '<option value="">등록된 과목이 없습니다</option>';
     $("professor-login").classList.add("hidden");
     $("professor-setup").classList.remove("hidden");

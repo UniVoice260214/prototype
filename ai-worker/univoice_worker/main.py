@@ -38,6 +38,8 @@ logger = logging.getLogger("univoice_worker")
 CHANNEL_SESSIONS_STARTED = "sessions.started"
 CHANNEL_SESSIONS_ENDED = "sessions.ended"
 SESSION_STATUS_PATTERN = "session:*:status"
+# Core API 의 Course.major 와 rag-service 의 MAJOR_ROUTERS 가 공유하는 전공 키.
+COURSE_MAJORS = frozenset({"ai", "hss", "bme"})
 
 
 async def load_glossary(redis: aioredis.Redis, course_id: str) -> list[GlossaryEntry]:
@@ -94,11 +96,17 @@ def validate_started_payload(payload: Any, config: WorkerConfig) -> dict[str, An
     locales = [locale for locale in locales if locale in config.voice_map]
     if not locales:
         return None
+    # 과목 전공: 알 수 없는 값은 버리고(폴백), 있으면 그 전공 RAG 만 쓴다.
+    raw_major = payload.get("major")
+    major = raw_major if isinstance(raw_major, str) and raw_major in COURSE_MAJORS else None
+    if raw_major and major is None:
+        logger.warning("[%s] unknown course major %r ignored", session_id, raw_major)
     return {
         "sessionId": session_id,
         "courseId": course_id,
         "liveKitRoomName": room_name,
         "targetLocales": locales,
+        "major": major,
     }
 
 
@@ -150,16 +158,21 @@ async def recover_active_sessions(
         await start_session(event)
 
 
-def resolve_major(config: WorkerConfig, course_id: str) -> str:
-    """과목 → 전공 키. RAG 클라이언트와 STT lexicon 이 같은 규칙을 쓴다."""
+def resolve_major(config: WorkerConfig, course_id: str, course_major: str | None = None) -> str:
+    """과목 → 전공 키. RAG 클라이언트와 STT lexicon 이 같은 규칙을 쓴다.
+
+    우선순위: 과목에 저장된 전공(Core API Course.major) > RAG_COURSE_MAJOR_MAP > RAG_DEFAULT_MAJOR.
+    교수가 고른 과목이 전공을 알고 있으면 설정 파일을 손대지 않아도 그 전공만 검색된다.
+    """
+    if course_major in COURSE_MAJORS:
+        return course_major
     return config.rag_course_major_map.get(course_id, config.rag_default_major)
 
 
-def build_rag_client(config: WorkerConfig, course_id: str) -> RagClient:
+def build_rag_client(config: WorkerConfig, course_id: str, major: str) -> RagClient:
     """세션 과목에 맞는 데모 RAG 클라이언트를 만든다."""
     if not config.rag_enabled:
         return NoOpRagClient()
-    major = resolve_major(config, course_id)
     logger.info("RAG client configured: course=%s major=%s url=%s", course_id, major, config.rag_url)
     return HttpRagClient(
         config.rag_url,
@@ -236,14 +249,13 @@ class WorkerRegistry:
         # 백그라운드로 분리한 end_session 태스크 (GC 방지 + stop_all 에서 대기).
         self._background_tasks: set[asyncio.Task[None]] = set()
 
-    def _lexicon_for(self, session_id: str, course_id: str) -> MajorLexicon | None:
-        major = resolve_major(self._config, course_id)
+    def _lexicon_for(self, session_id: str, course_id: str, major: str) -> MajorLexicon | None:
         if major == "auto":
             # 전공 union 은 위험하다 — bme 의 '피디' → 'PD' 가 AI 강의에서 발동하면
             # 자막이 오히려 망가진다. 전공을 특정할 수 없으면 교정을 끈다.
             logger.warning(
-                "[%s] RAG_DEFAULT_MAJOR=auto — STT lexicon 교정 비활성. "
-                "과목별 전공을 RAG_COURSE_MAJOR_MAP 에 지정하라 (course=%s)",
+                "[%s] 전공 미지정(auto) — STT lexicon 교정 비활성. "
+                "과목에 major 를 지정하거나(POST /courses) RAG_COURSE_MAJOR_MAP 을 쓰라 (course=%s)",
                 session_id,
                 course_id,
             )
@@ -281,9 +293,10 @@ class WorkerRegistry:
 
     async def _start_session_inner(self, session_id: str, validated: dict[str, Any]) -> None:
         course_id = validated["courseId"]
+        major = resolve_major(self._config, course_id, validated.get("major"))
         glossary = await load_glossary(self._redis, course_id)
-        lexicon = self._lexicon_for(session_id, course_id)
-        rag = build_rag_client(self._config, course_id)
+        lexicon = self._lexicon_for(session_id, course_id, major)
+        rag = build_rag_client(self._config, course_id, major)
         # 세션마다 다시 확인한다 — 워커 기동 뒤에 rag-service 를 띄우거나 인덱스를 빌드해도
         # 진단값이 따라오게. 꺼져 있으면 호출하지 않는다(기동 시 이미 경고했다).
         rag_status = await preflight_rag(self._config) if self._config.rag_enabled else "off"
@@ -312,9 +325,10 @@ class WorkerRegistry:
         self._workers[session_id] = (worker, task)
         # 한 줄로 진단이 끝나야 한다: glossary 0개 / lexicon 없음 / RAG 미동작을 즉시 본다.
         logger.info(
-            "[%s] 세션 워커 시작 locales=%s | glossary=%d | lexicon=%s | RAG=%s",
+            "[%s] 세션 워커 시작 locales=%s | major=%s | glossary=%d | lexicon=%s | RAG=%s",
             session_id,
             validated["targetLocales"],
+            major,
             len(glossary),
             f"{lexicon.major}({len(lexicon.lexicon)}패턴)" if lexicon else "NONE",
             rag_status,

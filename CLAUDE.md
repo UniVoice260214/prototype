@@ -51,7 +51,7 @@
 - **Student**: id, email(unique), passwordHash, name, preferredLocale(nullable, e.g. `zh-CN`), createdAt, updatedAt
 - **School**: id, name, createdAt, updatedAt
 - **Department**: id, name, schoolId(FK), createdAt, updatedAt
-- **Course**: id, name, departmentId(FK), professorId(FK Professor), createdAt, updatedAt
+- **Course**: id, name, departmentId(FK), professorId(FK Professor), major(nullable, `ai` | `hss` | `bme` — 수업 시작 시 워커로 전달되어 그 전공 RAG 인덱스·STT lexicon 만 사용; null 이면 워커 설정 폴백), createdAt, updatedAt
 - **Session**: id, courseId(FK), liveKitRoomName(unique), status(`active` | `ended`, enum), targetLocales(`text[]`, 예: `['zh-CN','vi-VN','mn-MN']`), startedAt, endedAt(nullable), createdAt, updatedAt
 - **Material**: id, sessionId(FK, nullable — 사전 업로드 가능), courseId(FK), blobUrl, originalFilename, sourceType(`lecture` | `major`, enum), week(nullable int), indexingStatus(`pending` | `processing` | `done` | `failed`, enum), createdAt, updatedAt
 - **Glossary**: id, courseId(FK), term(한국어 원문), pronunciation(IPA/한글, nullable), definition(nullable), translations(`jsonb`, 예: `{ "zh-CN": "线粒体", "vi-VN": "Ty thể" }`), createdAt, updatedAt
@@ -123,7 +123,7 @@
 ### Pub/Sub 채널
 | Channel | Publisher | Subscriber | Payload |
 |---------|-----------|------------|---------|
-| `sessions.started` | NestJS | Python 워커 | `{ sessionId, courseId, liveKitRoomName, targetLocales }` |
+| `sessions.started` | NestJS | Python 워커 | `{ sessionId, courseId, liveKitRoomName, targetLocales, major? }` |
 | `sessions.ended` | NestJS | Python 워커, RAG 워커 | `{ sessionId }` |
 | `materials.indexing.requested` | NestJS | RAG 워커 | `{ materialId, blobUrl, sourceType, courseId, week? }` |
 | `materials.indexing.completed` | RAG 워커 | NestJS (Material.indexingStatus 갱신) | `{ materialId, status, error? }` |

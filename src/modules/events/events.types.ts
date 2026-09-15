@@ -1,3 +1,5 @@
+import type { CourseMajor } from '../course/entities/course.entity';
+
 /**
  * Redis Pub/Sub channel names shared with the Python workers.
  */
@@ -16,6 +18,11 @@ export interface SessionsStartedEvent {
   courseId: string;
   liveKitRoomName: string;
   targetLocales: string[];
+  /**
+   * 과목 전공 (Course.major). 워커는 이 값을 RAG 서비스에 그대로 보내 그 전공의
+   * 라우터·인덱스만 쓴다. null 이면 워커의 RAG_COURSE_MAJOR_MAP / RAG_DEFAULT_MAJOR 로 폴백.
+   */
+  major?: CourseMajor | null;
 }
 
 export interface SessionsEndedEvent {
@@ -35,13 +42,14 @@ export type WorkerStatus =
 
 /**
  * AI 워커 진단 요약. 자막만 봐서는 알 수 없는 설정 누락을 교수 화면에 노출한다.
- * (glossary 0개 / lexicon 미적용 / RAG off)
+ * (glossary 0개 / lexicon 미적용 / RAG 미동작)
  */
 export interface WorkerDiagnostics {
   glossary: number;
   lexicon: string | null;
   phraseList: number;
-  rag: 'on' | 'off';
+  /** 워커의 RAG preflight 결과. 'on' 은 구버전 워커 호환값. */
+  rag: 'ready' | 'off' | 'unreachable' | 'no-index' | 'on';
 }
 
 export interface WorkerStatusPayload {

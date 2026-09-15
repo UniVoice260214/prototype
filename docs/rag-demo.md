@@ -85,6 +85,12 @@ docker compose --env-file .env.demo -f docker-compose.demo.yml logs -f rag-servi
 
 ## 전공 선택
 
+가장 단순한 방법은 **과목에 전공을 저장**하는 것이다. `POST /courses` 에 `major`
+(`ai` | `hss` | `bme`)를 넣어 두면, 그 과목으로 수업을 시작할 때 워커가 그 전공을
+RAG 서비스에 보내 **라우터 비교 없이 그 전공 인덱스만** 검색하고 STT 전공 용어
+교정도 켜진다. 교수 화면의 과목 목록에도 전공이 표시된다. 아래 설정들은 전공이
+없는 과목에만 적용되는 폴백이다.
+
 기본값 `RAG_DEFAULT_MAJOR=auto`는 세 전공 Router 중 검색 점수가 가장 높은 결과를 사용한다.
 특정 과목을 고정하려면 `.env.demo`에 다음 중 하나를 설정한다.
 
