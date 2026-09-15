@@ -100,9 +100,14 @@ function makeService(options: {
     ),
   };
 
+  const courses = {
+    findOne: jest.fn(async () => ({ id: session.courseId, name: 'Test Course' })),
+  };
+
   const service = new SessionService(
     sessions as any,
     { find: jest.fn() } as any,
+    courses as any,
     redis as any,
     liveKit as any,
     events as any,
@@ -115,6 +120,7 @@ function makeService(options: {
     service,
     session,
     sessions,
+    courses,
     redis,
     liveKit,
     events,

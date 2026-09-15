@@ -53,3 +53,20 @@ export class LiveKitTokenResponseDto {
   @ApiProperty()
   identity: string;
 }
+
+export class PublicSessionInfoDto {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ enum: ['active', 'ended'] })
+  status: string;
+
+  @ApiProperty({
+    example: ['zh-CN', 'vi-VN', 'mn-MN'],
+    description: 'Locales students may choose from for this session',
+  })
+  targetLocales: string[];
+
+  @ApiProperty()
+  courseName: string;
+}
