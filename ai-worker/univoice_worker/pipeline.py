@@ -34,16 +34,25 @@ DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
 
 @dataclass
 class _SegmentWork:
-    """번역 태스크 하나와 그 계측 시각. emit 큐에 sequence 순서대로 쌓인다."""
+    """번역 태스크 하나와 그 계측 시각. emit 큐에 sequence 순서대로 쌓인다.
+
+    locale_futures 는 로케일별 완성 이벤트다. 스트리밍 번역기는 로케일이 완성되는
+    즉시 채우고, 나머지는 번역 태스크가 끝날 때 결과(또는 실패=누락)로 채운다.
+    값은 (번역문 또는 None, 누락 여부).
+    """
 
     segment: SpeechSegment
     t_dequeue: float
+    locale_futures: "dict[str, asyncio.Future[tuple[str | None, bool]]]" = field(
+        default_factory=dict
+    )
     task: "asyncio.Task[dict[str, str]] | None" = None
     t_slot: float | None = None
     t_glossary: float | None = None
     t_rag: float | None = None
+    t_first_token: float | None = None
     t_translate: float | None = None
-    translations: dict[str, str] = field(default_factory=dict)
+    locale_ready_at: dict[str, float] = field(default_factory=dict)
 
 
 EmitItem = _SegmentWork | None
@@ -131,7 +140,8 @@ class TranslationPipeline:
         self._emit_q: asyncio.Queue[EmitItem] = asyncio.Queue()
         self._inflight: set[asyncio.Task[dict[str, str]]] = set()
         self._translate_kwargs = self._accepted_kwargs(
-            getattr(translator, "translate", None), ("sequence", "glossary_hits")
+            getattr(translator, "translate", None),
+            ("sequence", "glossary_hits", "on_locale", "on_first_token"),
         )
         self._stopping = False
         self._stopped = False
@@ -349,7 +359,12 @@ class TranslationPipeline:
         except Exception:  # noqa: BLE001
             logger.exception("[%s] stt.final segment publish failed: %s", self._session_id, segment.segment_id)
 
-        work = _SegmentWork(segment=segment, t_dequeue=time.monotonic())
+        loop = asyncio.get_running_loop()
+        work = _SegmentWork(
+            segment=segment,
+            t_dequeue=time.monotonic(),
+            locale_futures={locale: loop.create_future() for locale in self._locales},
+        )
         # 슬롯을 컨슈머에서 잡는다. 태스크 안에서 잡으면 태스크가 무한정 쌓이고,
         # 여기서 막히면 세그먼트 큐가 차서 기존 백프레셔(드롭) 정책이 그대로 동작한다.
         await self._translate_slots.acquire()
@@ -365,6 +380,9 @@ class TranslationPipeline:
         work.task = task
         self._inflight.add(task)
         task.add_done_callback(self._inflight.discard)
+        # 태스크가 어떻게 끝나든(성공/예외/시작 전 취소) 남은 로케일 이벤트를 채운다.
+        # 코루틴 안의 finally 는 "시작 전 취소"에서 실행되지 않으므로 콜백으로 건다.
+        task.add_done_callback(lambda t, w=work: self._resolve_remaining(w, t))
         self._emit_q.put_nowait(work)
 
     async def _translate_work(self, work: _SegmentWork) -> dict[str, str]:
@@ -383,7 +401,7 @@ class TranslationPipeline:
             # 번역 실패가 위로 올라가면 세그먼트가 통째로 사라진다. 빈 결과로 두면
             # _emit_locale 의 원문 폴백을 탄다.
             try:
-                translations = await self._call_translate(segment, context, hits)
+                translations = await self._call_translate(work, context, hits)
             except Exception:  # noqa: BLE001
                 logger.exception(
                     "[%s] 번역 실패; 한국어 원문으로 폴백 (%s)",
@@ -392,24 +410,71 @@ class TranslationPipeline:
                 )
                 translations = {}
             work.t_translate = time.monotonic()
-            work.translations = translations or {}
-            return work.translations
+            return translations or {}
         finally:
             self._translate_slots.release()
 
     async def _call_translate(
         self,
-        segment: SpeechSegment,
+        work: _SegmentWork,
         context: str | None,
         hits: list[str],
     ) -> dict[str, str]:
+        segment = work.segment
         kwargs: dict[str, Any] = {}
         if "sequence" in self._translate_kwargs:
             # 병렬 번역에서도 직전 문맥(history)이 sequence 순서로 쌓이게 한다.
             kwargs["sequence"] = segment.sequence
         if "glossary_hits" in self._translate_kwargs:
             kwargs["glossary_hits"] = hits
+        if "on_locale" in self._translate_kwargs:
+            # 스트리밍 번역기: 로케일이 완성되는 즉시 그 로케일만 먼저 발행 대기열로.
+            kwargs["on_locale"] = lambda locale, text: self._resolve_locale(
+                work, locale, text, missing=False
+            )
+        if "on_first_token" in self._translate_kwargs:
+            kwargs["on_first_token"] = lambda: self._mark_first_token(work)
         return await self._translator.translate(segment.text, context, **kwargs)
+
+    @staticmethod
+    def _mark_first_token(work: _SegmentWork) -> None:
+        if work.t_first_token is None:
+            work.t_first_token = time.monotonic()
+
+    @staticmethod
+    def _resolve_locale(
+        work: _SegmentWork,
+        locale: str,
+        text: str | None,
+        *,
+        missing: bool,
+    ) -> None:
+        future = work.locale_futures.get(locale)
+        if future is None or future.done():
+            return
+        work.locale_ready_at[locale] = time.monotonic()
+        future.set_result((text, missing))
+
+    def _resolve_remaining(self, work: _SegmentWork, task: "asyncio.Task[dict[str, str]]") -> None:
+        translations: dict[str, str] = {}
+        if task.cancelled():
+            pass
+        elif task.exception() is not None:
+            logger.error(
+                "[%s] 번역 태스크 실패; 한국어 원문으로 폴백 (%s): %r",
+                self._session_id,
+                work.segment.segment_id,
+                task.exception(),
+            )
+        else:
+            translations = task.result() or {}
+        for locale in self._locales:
+            self._resolve_locale(
+                work,
+                locale,
+                translations.get(locale),
+                missing=locale not in translations,
+            )
 
     async def _emitter_loop(self) -> None:
         while True:
@@ -424,37 +489,47 @@ class TranslationPipeline:
                 self._emit_q.task_done()
 
     async def _emit_work(self, work: _SegmentWork) -> None:
+        """한 세그먼트를 발행한다. 로케일은 완성되는 순서대로 각자 즉시 나간다.
+
+        세그먼트 단위 순서는 emitter 가 하나씩 처리하는 것으로 보장된다: 이 세그먼트의
+        모든 로케일이 끝나야 다음 세그먼트로 넘어가므로 로케일별 자막/TTS 순서도
+        sequence 순서 그대로다.
+        """
         segment = work.segment
-        task = work.task
-        if task is not None:
-            # `await task` 는 태스크가 취소된 경우와 emitter 자신이 취소된 경우를
-            # 구분할 수 없다. wait 로 끝나기만 기다리고 결과는 따로 꺼낸다.
-            await asyncio.wait({task})
-            if task.cancelled():
-                translations: dict[str, str] = {}
-            elif task.exception() is not None:
-                logger.error(
-                    "[%s] 번역 태스크 실패; 한국어 원문으로 폴백 (%s): %r",
-                    self._session_id,
-                    segment.segment_id,
-                    task.exception(),
+        # emitter 가 이 세그먼트를 잡은 시각 = 앞 세그먼트 발행이 끝난 시각
+        t_head = time.monotonic()
+        pending = {future: locale for locale, future in work.locale_futures.items()}
+        emits: list[asyncio.Task[None]] = []
+        translations: dict[str, str] = {}
+        t_first_emit: float | None = None
+        while pending:
+            # 개별 Future 를 기다린다. `await future` 는 emitter 자신이 취소될 때만
+            # CancelledError 가 된다 (Future 는 항상 set_result 로만 채워진다).
+            done, _ = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for future in done:
+                locale = pending.pop(future)
+                text, missing = future.result()
+                if not missing and text:
+                    translations[locale] = text
+                if t_first_emit is None:
+                    t_first_emit = time.monotonic()
+                emits.append(
+                    asyncio.create_task(
+                        self._safe_emit_locale(locale, text, segment, missing=missing)
+                    )
                 )
-                translations = {}
-            else:
-                translations = task.result() or {}
-        else:  # pragma: no cover - 방어
-            translations = {}
-        t_emit_start = time.monotonic()
-        await asyncio.gather(
-            *(
-                self._safe_emit_locale(loc, translations.get(loc), segment, missing=loc not in translations)
-                for loc in self._locales
-            )
-        )
+        try:
+            if emits:
+                await asyncio.gather(*emits)
+        except asyncio.CancelledError:
+            for emit in emits:
+                emit.cancel()
+            raise
         t_emit = time.monotonic()
         self._record_segment_latency(
             work,
-            t_emit_start=t_emit_start,
+            t_head=t_head,
+            t_first_emit=t_first_emit or t_emit,
             t_emit=t_emit,
         )
         await self._safe_emit_transcript(segment, translations)
@@ -489,21 +564,27 @@ class TranslationPipeline:
         self,
         work: _SegmentWork,
         *,
-        t_emit_start: float,
+        t_head: float,
+        t_first_emit: float,
         t_emit: float,
     ) -> None:
         """자막 경로 지연을 한 줄로 남긴다. 계측이 꺼져 있으면 즉시 반환한다.
 
-        emit_ms 는 자막 발행 + TTS 큐 적재를 함께 포함한다. 정상 상태에서는 큐
-        적재가 1ms 미만이지만, 백프레셔가 걸리면 여기서 드러난다.
+        emit_ms 는 마지막 로케일의 자막 발행 + TTS 큐 적재 꼬리 구간이다. 정상
+        상태에서는 큐 적재가 1ms 미만이지만, 백프레셔가 걸리면 여기서 드러난다.
+        e2eCaptionMs 는 "모든 로케일" 발행 완료, e2eFirstCaptionMs 는 가장 먼저
+        완성된 로케일의 발행 시작 기준이다 (스트리밍 조기 확정 효과).
         """
         if not self._latency.enabled:
             return
         segment = work.segment
-        # 번역이 예외로 끝나 시각이 비었으면 발행 직전 시각으로 메운다.
-        t_glossary = work.t_glossary or work.t_slot or t_emit_start
+        # 번역이 예외로 끝나 시각이 비었으면 발행 시작 시각으로 메운다.
+        t_glossary = work.t_glossary or work.t_slot or t_head
         t_rag = work.t_rag or t_glossary
-        t_translate = work.t_translate or t_emit_start
+        t_translate = work.t_translate or t_head
+        ready = work.locale_ready_at
+        t_first_ready = min(ready.values()) if ready else t_translate
+        t_last_ready = max(ready.values()) if ready else t_translate
         self._latency.record(
             "caption",
             sessionId=self._session_id,
@@ -524,11 +605,16 @@ class TranslationPipeline:
             if getattr(self._rag, "latency_enabled", True)
             else None,
             translateMs=elapsed_ms(t_rag, t_translate),
-            # 번역은 끝났지만 앞 세그먼트 발행을 기다린 시간 (순서 보장 비용)
-            orderWaitMs=elapsed_ms(t_translate, t_emit_start),
-            emitMs=elapsed_ms(t_emit_start, t_emit),
+            # 스트리밍 번역: 첫 토큰까지 / 첫 로케일 완성까지 / 로케일별 완성까지
+            translateTtftMs=elapsed_ms(t_rag, work.t_first_token),
+            firstLocaleMs=elapsed_ms(t_rag, t_first_ready),
+            localeReadyMs={loc: elapsed_ms(t_rag, at) for loc, at in ready.items()} or None,
+            # 번역은 나왔지만 앞 세그먼트 발행을 기다린 시간 (순서 보장 비용)
+            orderWaitMs=elapsed_ms(t_first_ready, t_first_emit),
+            emitMs=elapsed_ms(max(t_last_ready, t_head), t_emit),
             # 누적
             workerMs=elapsed_ms(segment.stt_received_at, t_emit),
+            e2eFirstCaptionMs=elapsed_ms(segment.speech_end_at, t_first_emit),
             e2eCaptionMs=elapsed_ms(segment.speech_end_at, t_emit),
         )
 

@@ -7,13 +7,19 @@
 
 target_locales 는 세션마다 다르므로, 그 세션의 locale 들을 required 키로 갖는
 JSON Schema 를 동적으로 만들어 strict 모드로 강제한다.
+
+응답은 스트리밍으로 받는다(TRANSLATE_STREAMING, 기본 on). JSON Schema 는 그대로
+두고, 델타를 누적하다가 `"로케일": "값"` 쌍이 닫히는 즉시 on_locale 콜백으로 그
+로케일만 먼저 넘긴다. 스트리밍이 안 되는 환경이면 비스트리밍 호출로 폴백한다.
 """
 
+import asyncio
 import bisect
 import itertools
 import json
 import logging
 from dataclasses import dataclass
+from typing import Any, Callable
 
 from .config import WorkerConfig
 from .glossary import GlossaryEntry
@@ -36,6 +42,101 @@ class HistoryEntry:
     order: int
     source: str
     translation: str = ""
+
+
+LocaleCallback = Callable[[str, str], None]
+FirstTokenCallback = Callable[[], None]
+
+
+class LocaleStreamParser:
+    """스트리밍 중인 JSON 객체에서 최상위 `"key": "string"` 쌍이 닫히는 즉시 꺼낸다.
+
+    전체 JSON 이 완성되기를 기다리지 않는다. 값 안의 이스케이프(\\", \\uXXXX)는
+    json.loads 로 풀기 때문에 따옴표가 섞인 번역문도 안전하다. 문자열이 아닌 값 등
+    예상 밖 모양을 만나면 조용히 멈춘다 — 그 경우 최종 JSON 파싱 결과가 쓰인다.
+    """
+
+    def __init__(self, keys: list[str]) -> None:
+        self._keys = set(keys)
+        self._buf = ""
+        self._pos = 0
+        self._seen: set[str] = set()
+        self._stopped = False
+
+    def feed(self, delta: str) -> list[tuple[str, str]]:
+        self._buf += delta
+        completed: list[tuple[str, str]] = []
+        while not self._stopped:
+            pair = self._next_pair()
+            if pair is None:
+                break
+            key, value = pair
+            if key in self._keys and key not in self._seen:
+                self._seen.add(key)
+                completed.append((key, value))
+        return completed
+
+    def _skip_ws(self, index: int) -> int:
+        buf = self._buf
+        while index < len(buf) and buf[index] in " \t\r\n":
+            index += 1
+        return index
+
+    def _string_end(self, start: int) -> int | None:
+        """start 의 여는 따옴표에 대응하는 닫는 따옴표 위치. 아직 안 왔으면 None."""
+        buf = self._buf
+        index = start + 1
+        while index < len(buf):
+            ch = buf[index]
+            if ch == "\\":
+                index += 2
+                continue
+            if ch == '"':
+                return index
+            index += 1
+        return None
+
+    def _next_pair(self) -> tuple[str, str] | None:
+        buf = self._buf
+        i = self._skip_ws(self._pos)
+        if i >= len(buf):
+            return None
+        if buf[i] in "{,":
+            i = self._skip_ws(i + 1)
+            if i >= len(buf):
+                return None
+        if buf[i] == "}":
+            self._stopped = True
+            return None
+        if buf[i] != '"':
+            self._stopped = True
+            return None
+        key_end = self._string_end(i)
+        if key_end is None:
+            return None
+        j = self._skip_ws(key_end + 1)
+        if j >= len(buf):
+            return None
+        if buf[j] != ":":
+            self._stopped = True
+            return None
+        j = self._skip_ws(j + 1)
+        if j >= len(buf):
+            return None
+        if buf[j] != '"':
+            self._stopped = True
+            return None
+        value_end = self._string_end(j)
+        if value_end is None:
+            return None
+        try:
+            key = json.loads(buf[i : key_end + 1])
+            value = json.loads(buf[j : value_end + 1])
+        except (json.JSONDecodeError, ValueError):
+            self._stopped = True
+            return None
+        self._pos = value_end + 1
+        return str(key), str(value)
 
 
 class Translator:
@@ -65,6 +166,8 @@ class Translator:
         self._history: list[HistoryEntry] = []
         # sequence 를 넘기지 않는 호출자용 순번
         self._order_counter = itertools.count(1)
+        # 스트리밍 미지원이 확인되면 세션 동안 끈다 (매 호출 실패 후 폴백을 반복하지 않게).
+        self._streaming = bool(getattr(config, "translate_streaming", True))
 
     @staticmethod
     def _build_client(config: WorkerConfig):
@@ -206,14 +309,24 @@ class Translator:
         glossary_hits: list[str] | None = None,
         *,
         sequence: int | None = None,
+        on_locale: LocaleCallback | None = None,
+        on_first_token: FirstTokenCallback | None = None,
     ) -> dict[str, str]:
+        """세션 로케일 전부를 한 번에 번역한다.
+
+        on_locale 이 있으면 스트리밍 중 로케일 하나가 완성될 때마다 즉시 호출된다
+        (완성 순서는 모델 출력 순서를 따른다). 반환값은 언제나 전체 결과다.
+        """
         hits = glossary_hits if glossary_hits is not None else self.detect_glossary_hits(sentence)
         order = sequence if sequence is not None else next(self._order_counter)
         # 프롬프트는 자기 자리를 잡기 "전"의 history 로 만든다 (자기 문장 제외).
         user_content = self._build_user_content(sentence, rag_context, hits, order=order)
         entry = self._reserve_history(sentence, order)
         try:
-            result = await self._request(user_content)
+            if self._streaming:
+                result = await self._request_stream(user_content, on_locale, on_first_token)
+            else:
+                result = await self._request(user_content)
         except BaseException:
             self._release_history(entry)
             raise
@@ -226,24 +339,156 @@ class Translator:
             self._release_history(entry)
         return result
 
-    async def _request(self, user_content: str) -> dict[str, str]:
-        resp = await self._client.chat.completions.create(
-            model=self._model,
-            messages=[
+    def _request_params(self, user_content: str, timeout: float) -> dict[str, Any]:
+        return {
+            "model": self._model,
+            "messages": [
                 {"role": "system", "content": self._system_prompt()},
                 {"role": "user", "content": user_content},
             ],
-            response_format={"type": "json_schema", "json_schema": self._schema},
-            temperature=0.2,
+            "response_format": {"type": "json_schema", "json_schema": self._schema},
+            "temperature": 0.2,
             # 기본값은 600초다. 자막은 sequence 순서로 나가므로 한 번 늘어지면
             # 뒤따르는 자막이 전부 그 뒤에 줄을 선다.
-            timeout=self._config.translate_timeout_sec,
+            "timeout": timeout,
+        }
+
+    async def _request(self, user_content: str, timeout: float | None = None) -> dict[str, str]:
+        """비스트리밍 호출 (기존 동작)."""
+        resp = await self._client.chat.completions.create(
+            **self._request_params(
+                user_content,
+                timeout if timeout is not None else self._config.translate_timeout_sec,
+            )
         )
-        content = resp.choices[0].message.content or "{}"
+        return self._parse_content(self._response_content(resp))
+
+    @staticmethod
+    def _response_content(resp: Any) -> str:
+        return resp.choices[0].message.content or "{}"
+
+    def _parse_content(self, content: str) -> dict[str, str]:
         try:
             data = json.loads(content)
         except json.JSONDecodeError:
             logger.error("번역 JSON 파싱 실패: %r", content)
             return {}
+        if not isinstance(data, dict):
+            logger.error("번역 JSON 이 객체가 아니다: %r", content)
+            return {}
         # 스키마상 모든 locale 이 채워지지만, 방어적으로 문자열만 남긴다
         return {loc: str(data.get(loc, "")) for loc in self._locales}
+
+    async def _request_stream(
+        self,
+        user_content: str,
+        on_locale: LocaleCallback | None,
+        on_first_token: FirstTokenCallback | None,
+    ) -> dict[str, str]:
+        """스트리밍 호출. 로케일이 하나 완성될 때마다 on_locale 로 즉시 넘긴다.
+
+        - 타임아웃은 비스트리밍과 같은 "전체 소요" 기준이다 (httpx 타임아웃은
+          청크 간 간격에만 걸리므로 따로 감싼다).
+        - 첫 청크 전에 실패하면 비스트리밍으로 한 번 폴백한다. 스트리밍 자체가
+          지원되지 않는 경우로 보이면 이 세션 동안 스트리밍을 끈다.
+        - 스트림 도중 끊기면 남은 시간 안에서 비스트리밍으로 다시 받고, 이미 넘긴
+          로케일 값은 그대로 유지한다 (학생 화면과 저장본이 어긋나지 않게).
+        """
+        total = self._config.translate_timeout_sec
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + total
+
+        def remaining() -> float:
+            return max(0.05, deadline - loop.time())
+
+        try:
+            stream = await asyncio.wait_for(
+                self._client.chat.completions.create(
+                    **self._request_params(user_content, total), stream=True
+                ),
+                timeout=total,
+            )
+        except asyncio.TimeoutError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            if self._looks_stream_unsupported(exc):
+                self._streaming = False
+                logger.warning("번역 스트리밍 미지원으로 판단 — 비스트리밍으로 전환: %r", exc)
+            else:
+                logger.warning("번역 스트리밍 시작 실패 — 비스트리밍으로 폴백: %r", exc)
+            return await self._request(user_content, timeout=remaining())
+
+        if not hasattr(stream, "__aiter__"):
+            # stream 인자를 무시하고 완성 응답을 돌려주는 클라이언트
+            if self._streaming:
+                logger.warning("번역 클라이언트가 스트림을 돌려주지 않는다 — 비스트리밍으로 전환")
+                self._streaming = False
+            return self._parse_content(self._response_content(stream))
+
+        parser = LocaleStreamParser(self._locales)
+        emitted: dict[str, str] = {}
+        parts: list[str] = []
+
+        async def consume() -> None:
+            async for chunk in stream:
+                choices = getattr(chunk, "choices", None)
+                if not choices:  # Azure 는 content filter 결과만 담긴 청크를 보낸다
+                    continue
+                delta = getattr(getattr(choices[0], "delta", None), "content", None)
+                if not delta:
+                    continue
+                if not parts and on_first_token is not None:
+                    self._safe_callback(on_first_token)
+                parts.append(delta)
+                for locale, text in parser.feed(delta):
+                    emitted[locale] = text
+                    if on_locale is not None:
+                        self._safe_callback(on_locale, locale, text)
+
+        try:
+            await asyncio.wait_for(consume(), timeout=remaining())
+        except asyncio.TimeoutError:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "번역 스트림 도중 실패 (%d/%d 로케일 완료) — 비스트리밍으로 재요청: %r",
+                len(emitted),
+                len(self._locales),
+                exc,
+            )
+            result = await self._request(user_content, timeout=remaining())
+            result.update(emitted)
+            return result
+        finally:
+            await self._close_stream(stream)
+
+        result = self._parse_content("".join(parts) or "{}")
+        # 스트리밍 중 이미 내보낸 값이 기준이다 (파서와 최종 파싱은 같은 값을 준다).
+        result.update(emitted)
+        return result
+
+    @staticmethod
+    def _safe_callback(callback: Callable[..., Any], *args: Any) -> None:
+        try:
+            callback(*args)
+        except Exception:  # noqa: BLE001 - 콜백 실패가 번역을 막으면 안 된다.
+            logger.exception("번역 스트리밍 콜백 실패")
+
+    @staticmethod
+    async def _close_stream(stream: Any) -> None:
+        close = getattr(stream, "close", None) or getattr(stream, "aclose", None)
+        if close is None:
+            return
+        try:
+            result = close()
+            if asyncio.iscoroutine(result) or isinstance(result, asyncio.Future):
+                await result
+        except Exception:  # noqa: BLE001
+            logger.debug("번역 스트림 close 실패", exc_info=True)
+
+    @staticmethod
+    def _looks_stream_unsupported(exc: BaseException) -> bool:
+        if isinstance(exc, (TypeError, NotImplementedError)):
+            return True
+        status = getattr(exc, "status_code", None)
+        return status == 400 and "stream" in str(exc).lower()

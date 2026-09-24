@@ -24,14 +24,19 @@ CAPTION_STAGES = [
     ("sttMs", "STT 확정", "발화 종료 → STT final 수신 (침묵 대기 + 인식 + 왕복)"),
     ("segmentMs", "세그먼트 대기", "STT final → 번역 단위 확정 (문장 경계/idle flush)"),
     ("queueMs", "큐 대기", "세그먼트 큐에서 대기"),
+    ("translateSlotMs", "번역 슬롯 대기", "TRANSLATE_MAX_CONCURRENCY 상한에 걸려 대기"),
     ("glossaryMs", "용어 탐지", "glossary 히트 검사"),
     ("ragMs", "RAG 검색", "전공 문맥 검색 (타임아웃 시 잘림)"),
-    ("translateMs", "번역", "번역 LLM 호출"),
-    ("emitMs", "자막 발행", "LiveKit data 발행 + TTS 큐 적재"),
+    ("translateTtftMs", "번역 첫 토큰", "번역 LLM 스트리밍 첫 토큰 (스트리밍일 때만)"),
+    ("firstLocaleMs", "첫 로케일 완성", "번역 시작 → 가장 먼저 완성된 로케일"),
+    ("translateMs", "번역", "번역 LLM 호출 전체 (모든 로케일)"),
+    ("orderWaitMs", "순서 대기", "번역은 나왔지만 앞 세그먼트 발행을 기다림"),
+    ("emitMs", "자막 발행", "LiveKit data 발행 + TTS 큐 적재 (마지막 로케일)"),
 ]
 CAPTION_TOTALS = [
     ("workerMs", "워커 내부 합", "STT final 수신 → 자막 발행"),
-    ("e2eCaptionMs", "E2E 자막", "발화 종료 → 자막 발행"),
+    ("e2eFirstCaptionMs", "E2E 첫 자막", "발화 종료 → 첫 로케일 자막 발행"),
+    ("e2eCaptionMs", "E2E 자막", "발화 종료 → 모든 로케일 자막 발행"),
 ]
 AUDIO_STAGES = [
     ("ttsQueueMs", "TTS 큐 대기", "TTS 큐 적재 → 합성 시작"),

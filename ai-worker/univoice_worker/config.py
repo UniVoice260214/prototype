@@ -152,6 +152,8 @@ class WorkerConfig:
     stt_low_confidence_warn: float = DEFAULT_STT_LOW_CONFIDENCE_WARN
     translate_timeout_sec: float = DEFAULT_TRANSLATE_TIMEOUT_SEC
     translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY
+    # 번역 응답 스트리밍 — 로케일 하나가 완성되는 즉시 그 자막/TTS 를 먼저 낸다.
+    translate_streaming: bool = True
     rag_enabled: bool = False
     rag_url: str = ""
     rag_default_major: str = "auto"
@@ -340,6 +342,7 @@ def load_config() -> WorkerConfig:
         translate_max_concurrency=_load_int(
             "TRANSLATE_MAX_CONCURRENCY", DEFAULT_TRANSLATE_MAX_CONCURRENCY
         ),
+        translate_streaming=_load_bool("TRANSLATE_STREAMING", True),
         rag_enabled=_load_bool("RAG_ENABLED"),
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
         rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),

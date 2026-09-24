@@ -22,7 +22,10 @@ STT final
 
 - TTS publishing does not overlap within the same locale.
 - Sequence order is preserved per locale.
-- `caption.final` is emitted as soon as translation is ready.
+- Translations for several segments run concurrently (`TRANSLATE_MAX_CONCURRENCY`),
+  but captions, TTS jobs and transcripts are emitted in sequence order.
+- With streaming translation, each locale's `caption.final` (and TTS job) is
+  emitted as soon as that locale is complete, without waiting for the others.
 - TTS timeout, retry, and dedupe protections are applied.
 - Professor audio tracks can detach and reattach without restarting the process.
 - Active sessions can be recovered from Redis state on worker restart.
@@ -92,6 +95,9 @@ Pipeline tuning:
 - `TRANSLATE_TIMEOUT_SEC`
 - `TRANSLATE_MAX_CONCURRENCY` (default 3): concurrent RAG + translation calls;
   captions are still emitted in sequence order
+- `TRANSLATE_STREAMING` (default true): stream the translation response and
+  emit each locale's caption/TTS as soon as that locale is complete; falls back
+  to a non-streaming call when streaming is unavailable
 - `TTS_TIMEOUT_SEC`
 - `TTS_MAX_RETRIES`
 - `TTS_RETRY_BASE_DELAY_MS`
