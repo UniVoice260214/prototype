@@ -73,6 +73,8 @@ class TtsSynthesizer:
         self._retry_base_delay = max(0, retry_base_delay_ms) / 1000
         self._semaphore = asyncio.Semaphore(max(1, max_concurrency))
         self._synthesizers: dict[str, Any] = {}
+        # 예열로 미리 연 연결. 참조를 쥐고 있어야 GC 로 닫히지 않는다.
+        self._connections: dict[str, Any] = {}
 
     def _get(self, locale: str) -> Any:
         if locale in self._synthesizers:
@@ -99,6 +101,35 @@ class TtsSynthesizer:
         synth = speechsdk.SpeechSynthesizer(speech_config=cfg, audio_config=None)
         self._synthesizers[locale] = synth
         return synth
+
+    async def warmup(self, locales: list[str]) -> None:
+        """로케일별 synthesizer 를 만들고 서비스 연결을 미리 연다.
+
+        synthesizer 생성과 Connection.open 은 모두 blocking 이라 스레드에서 돈다.
+        로케일 하나의 실패는 로그만 남기고, 전부 실패했을 때만 예외를 올린다.
+        """
+        if not locales:
+            return
+        results = await asyncio.gather(
+            *(asyncio.to_thread(self._open_connection, locale) for locale in locales),
+            return_exceptions=True,
+        )
+        failures: list[tuple[str, BaseException]] = []
+        for locale, result in zip(locales, results):
+            if isinstance(result, BaseException):
+                failures.append((locale, result))
+                logger.warning("TTS 예열 실패 (locale=%s): %r", locale, result)
+        if failures and len(failures) == len(locales):
+            raise failures[0][1]
+
+    def _open_connection(self, locale: str) -> None:
+        synth = self._get(locale)
+        connection_cls = getattr(speechsdk, "Connection", None)
+        if connection_cls is None:  # pragma: no cover - 구버전 SDK
+            return
+        connection = connection_cls.from_speech_synthesizer(synth)
+        connection.open(True)
+        self._connections[locale] = connection
 
     def synthesize(self, locale: str, text: str) -> bytes:
         """Blocking Azure synthesis. Raises TtsException on typed failure."""

@@ -50,6 +50,8 @@ DEFAULT_TRANSLATE_TIMEOUT_SEC = 8.0
 # 동시에 진행할 번역(RAG + LLM) 호출 상한. 한 STT final 에 문장이 여러 개 들어와도
 # 뒷문장이 앞문장의 번역 완료를 기다리지 않게 한다. 자막 발행 순서는 그대로 보장된다.
 DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
+# 세션 시작 시 번역/TTS 클라이언트 예열 상한. 예열이 늘어져도 ready 가 이 이상 밀리지 않는다.
+DEFAULT_WARMUP_TIMEOUT_SEC = 3.0
 DEFAULT_RAG_ASSETS_DIR = "rag_assets"
 DEFAULT_SEGMENT_QUEUE_MAX_SIZE = 100
 DEFAULT_SEGMENT_ENQUEUE_TIMEOUT_MS = 250
@@ -154,6 +156,9 @@ class WorkerConfig:
     translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY
     # 번역 응답 스트리밍 — 로케일 하나가 완성되는 즉시 그 자막/TTS 를 먼저 낸다.
     translate_streaming: bool = True
+    # 세션 시작 시 번역/TTS 연결 예열 (첫 세그먼트 지연 제거). 실패해도 세션은 시작된다.
+    warmup_enabled: bool = True
+    warmup_timeout_sec: float = DEFAULT_WARMUP_TIMEOUT_SEC
     rag_enabled: bool = False
     rag_url: str = ""
     rag_default_major: str = "auto"
@@ -343,6 +348,8 @@ def load_config() -> WorkerConfig:
             "TRANSLATE_MAX_CONCURRENCY", DEFAULT_TRANSLATE_MAX_CONCURRENCY
         ),
         translate_streaming=_load_bool("TRANSLATE_STREAMING", True),
+        warmup_enabled=_load_bool("WARMUP_ENABLED", True),
+        warmup_timeout_sec=_load_float("WARMUP_TIMEOUT_SEC", DEFAULT_WARMUP_TIMEOUT_SEC),
         rag_enabled=_load_bool("RAG_ENABLED"),
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
         rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),

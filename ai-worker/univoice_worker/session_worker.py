@@ -201,6 +201,7 @@ class SessionWorker:
                 translate_max_concurrency=self._config.translate_max_concurrency,
             )
             await self._pipeline.start()
+            await self._warmup_clients(translator, tts)
             await self._set_worker_status("ready")
             logger.info("[%s] pipeline ready (locales=%s)", self._session_id, self._target_locales)
 
@@ -212,6 +213,51 @@ class SessionWorker:
             raise
         finally:
             await self._cleanup()
+
+    async def _warmup_clients(self, translator: Any, tts: Any) -> None:
+        """번역/TTS 클라이언트를 병렬로 예열한다. 실패·지연은 로그만 남기고 넘어간다.
+
+        예열이 없으면 첫 세그먼트가 TLS 연결 수립과 서비스 콜드스타트를 떠안아
+        유독 느리다 (실측 +0.9~1초). 세션 시작을 막으면 안 되므로 상한을 둔다.
+        """
+        if not self._config.warmup_enabled:
+            return
+        jobs: dict[str, Awaitable[Any]] = {}
+        translator_warmup = getattr(translator, "warmup", None)
+        if translator_warmup is not None:
+            jobs["translator"] = translator_warmup()
+        tts_warmup = getattr(tts, "warmup", None)
+        if tts_warmup is not None:
+            jobs["tts"] = tts_warmup(list(self._target_locales))
+        if not jobs:
+            return
+
+        started = time.monotonic()
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*jobs.values(), return_exceptions=True),
+                timeout=self._config.warmup_timeout_sec,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                "[%s] 클라이언트 예열이 %.1f초 내 끝나지 않아 건너뛴다",
+                self._session_id,
+                self._config.warmup_timeout_sec,
+            )
+            return
+        except Exception:  # noqa: BLE001 - 예열은 어떤 이유로도 세션을 막지 않는다.
+            logger.exception("[%s] 클라이언트 예열 실패", self._session_id)
+            return
+        for name, result in zip(jobs, results):
+            if isinstance(result, BaseException):
+                logger.warning(
+                    "[%s] %s 예열 실패 (세션은 계속): %r", self._session_id, name, result
+                )
+        logger.info(
+            "[%s] 클라이언트 예열 완료 (%.0fms)",
+            self._session_id,
+            (time.monotonic() - started) * 1000,
+        )
 
     async def stop(self) -> None:
         if self._cleaned_up:
