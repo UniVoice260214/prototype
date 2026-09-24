@@ -151,6 +151,7 @@ class SessionWorker:
                 max_retries=self._config.tts_max_retries,
                 retry_base_delay_ms=self._config.tts_retry_base_delay_ms,
                 max_concurrency=self._config.tts_max_concurrency,
+                streaming=self._config.tts_streaming,
             )
             try:
                 dedupe_store = RedisDedupeStore.from_url(
@@ -199,6 +200,7 @@ class SessionWorker:
                 tts_flush_timeout_sec=self._config.tts_flush_timeout_sec,
                 sequence_start=self._sequence_start,
                 translate_max_concurrency=self._config.translate_max_concurrency,
+                tts_prefetch=self._config.tts_prefetch,
             )
             await self._pipeline.start()
             await self._warmup_clients(translator, tts)

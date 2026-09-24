@@ -54,6 +54,12 @@ class LocaleAudioPublisher:
         self._started = True
 
     async def push_pcm(self, locale: str, pcm: bytes) -> int:
+        """PCM 을 10ms 프레임으로 잘라 넣는다. 반환값은 넣은 오디오 길이(ms).
+
+        마지막 프레임이 모자라면 0 으로 패딩한다. 스트리밍 합성처럼 한 문장을 여러
+        번 나눠 넣을 때는 호출자가 FRAME_BYTES 배수로 맞춰야(마지막 조각 제외)
+        문장 중간에 무음 틱이 끼지 않는다 — LocaleTtsQueue 가 그렇게 한다.
+        """
         if self._closed:
             raise AudioPublishError("AUDIO_PUBLISHER_CLOSED", "Audio publisher is closed")
         source = self._sources.get(locale)

@@ -94,6 +94,7 @@ class TranslationPipeline:
         close_publisher_on_stop: bool = True,
         latency_log: LatencyLog | None = None,
         translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY,
+        tts_prefetch: bool = True,
     ) -> None:
         self._session_id = session_id
         self._locales = target_locales
@@ -118,6 +119,7 @@ class TranslationPipeline:
             queue_max_size=tts_queue_max_size,
             flush_timeout_sec=tts_flush_timeout_sec,
             latency_log=self._latency,
+            prefetch=tts_prefetch,
         )
         self._close_publisher_on_stop = close_publisher_on_stop
         self._queue: asyncio.Queue[QueueItem] = asyncio.Queue(maxsize=max(1, queue_max_size))
