@@ -198,6 +198,7 @@ class SessionWorker:
                 flush_timeout_sec=self._config.pipeline_flush_timeout_sec,
                 tts_flush_timeout_sec=self._config.tts_flush_timeout_sec,
                 sequence_start=self._sequence_start,
+                translate_max_concurrency=self._config.translate_max_concurrency,
             )
             await self._pipeline.start()
             await self._set_worker_status("ready")

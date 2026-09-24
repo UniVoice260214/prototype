@@ -9,9 +9,11 @@ target_locales 는 세션마다 다르므로, 그 세션의 locale 들을 requir
 JSON Schema 를 동적으로 만들어 strict 모드로 강제한다.
 """
 
+import bisect
+import itertools
 import json
 import logging
-from collections import deque
+from dataclasses import dataclass
 
 from .config import WorkerConfig
 from .glossary import GlossaryEntry
@@ -22,6 +24,18 @@ logger = logging.getLogger(__name__)
 
 # 직전 발화 문맥을 몇 개까지 넘길지. 너무 길면 모델이 이전 문장을 다시 번역한다.
 HISTORY_SIZE = 3
+# 병렬 번역 중에는 뒤 세그먼트가 먼저 기록될 수 있어, 프롬프트에 넣는 개수보다
+# 넉넉히 보관한다. 앞 세그먼트가 늦게 끼어들어도 직전 문맥이 잘려 나가지 않게.
+HISTORY_KEEP = HISTORY_SIZE * 3
+
+
+@dataclass
+class HistoryEntry:
+    """(원문, 번역) 한 쌍. 번역 호출 시작 시 번역을 비운 채 자리를 잡는다."""
+
+    order: int
+    source: str
+    translation: str = ""
 
 
 class Translator:
@@ -45,8 +59,12 @@ class Translator:
             if config.translate_provider == "azure"
             else config.openai_model
         )
-        # (한국어 원문, 대표 locale 번역). 파이프라인 컨슈머가 직렬이라 경쟁 조건이 없다.
-        self._history: deque[tuple[str, str]] = deque(maxlen=HISTORY_SIZE)
+        # (한국어 원문, 대표 locale 번역) — order(=세그먼트 sequence) 오름차순.
+        # 파이프라인이 번역을 병렬로 돌리므로 "완료 순서"로 append 하면 순서가 꼬인다.
+        # 호출 시작 시점에 order 위치로 끼워 넣고, 완료 후 번역을 채운다.
+        self._history: list[HistoryEntry] = []
+        # sequence 를 넘기지 않는 호출자용 순번
+        self._order_counter = itertools.count(1)
 
     @staticmethod
     def _build_client(config: WorkerConfig):
@@ -128,12 +146,33 @@ class Translator:
             return ""
         return "[이번 발화의 전공 용어 — 지정된 번역을 사용하라]\n" + "\n".join(lines)
 
-    def _history_hint(self) -> str:
-        if not self._history:
+    @property
+    def history(self) -> list[tuple[str, str]]:
+        """(원문, 번역) 목록, sequence 순서. 진행 중인 항목은 번역이 빈 문자열이다."""
+        return [(entry.source, entry.translation) for entry in self._history]
+
+    def _reserve_history(self, sentence: str, order: int) -> HistoryEntry:
+        entry = HistoryEntry(order=order, source=sentence)
+        orders = [e.order for e in self._history]
+        self._history.insert(bisect.bisect_right(orders, order), entry)
+        if len(self._history) > HISTORY_KEEP:
+            del self._history[: len(self._history) - HISTORY_KEEP]
+        return entry
+
+    def _release_history(self, entry: HistoryEntry) -> None:
+        # 값 비교(remove)는 같은 문장이 반복될 때 엉뚱한 항목을 지운다 — identity 로.
+        for index, existing in enumerate(self._history):
+            if existing is entry:
+                del self._history[index]
+                return
+
+    def _history_hint(self, before: int | None = None) -> str:
+        entries = [
+            e for e in self._history if before is None or e.order < before
+        ][-HISTORY_SIZE:]
+        if not entries:
             return ""
-        lines = [
-            f"{i}) {source}" for i, (source, _) in enumerate(self._history, start=1)
-        ]
+        lines = [f"{i}) {e.source}" for i, e in enumerate(entries, start=1)]
         return "[직전 문맥 — 참고만 하고 다시 번역하지 말 것]\n" + "\n".join(lines)
 
     def _build_user_content(
@@ -141,9 +180,11 @@ class Translator:
         sentence: str,
         rag_context: str | None,
         hits: list[str],
+        *,
+        order: int | None = None,
     ) -> str:
         blocks: list[str] = []
-        history = self._history_hint()
+        history = self._history_hint(before=order)
         if history:
             blocks.append(history)
         glossary_hint = self._glossary_hint(hits)
@@ -163,10 +204,29 @@ class Translator:
         sentence: str,
         rag_context: str | None,
         glossary_hits: list[str] | None = None,
+        *,
+        sequence: int | None = None,
     ) -> dict[str, str]:
         hits = glossary_hits if glossary_hits is not None else self.detect_glossary_hits(sentence)
-        user_content = self._build_user_content(sentence, rag_context, hits)
+        order = sequence if sequence is not None else next(self._order_counter)
+        # 프롬프트는 자기 자리를 잡기 "전"의 history 로 만든다 (자기 문장 제외).
+        user_content = self._build_user_content(sentence, rag_context, hits, order=order)
+        entry = self._reserve_history(sentence, order)
+        try:
+            result = await self._request(user_content)
+        except BaseException:
+            self._release_history(entry)
+            raise
 
+        primary = next((result[loc] for loc in self._locales if result.get(loc)), "")
+        if primary:
+            entry.translation = primary
+        else:
+            # 예전 동작과 같다: 번역이 비면 문맥으로 남기지 않는다.
+            self._release_history(entry)
+        return result
+
+    async def _request(self, user_content: str) -> dict[str, str]:
         resp = await self._client.chat.completions.create(
             model=self._model,
             messages=[
@@ -175,8 +235,8 @@ class Translator:
             ],
             response_format={"type": "json_schema", "json_schema": self._schema},
             temperature=0.2,
-            # 기본값은 600초다. 파이프라인 컨슈머가 직렬이라 한 번 늘어지면
-            # 뒤따르는 자막이 전부 멈춘다.
+            # 기본값은 600초다. 자막은 sequence 순서로 나가므로 한 번 늘어지면
+            # 뒤따르는 자막이 전부 그 뒤에 줄을 선다.
             timeout=self._config.translate_timeout_sec,
         )
         content = resp.choices[0].message.content or "{}"
@@ -186,9 +246,4 @@ class Translator:
             logger.error("번역 JSON 파싱 실패: %r", content)
             return {}
         # 스키마상 모든 locale 이 채워지지만, 방어적으로 문자열만 남긴다
-        result = {loc: str(data.get(loc, "")) for loc in self._locales}
-
-        primary = next((result[loc] for loc in self._locales if result.get(loc)), "")
-        if primary:
-            self._history.append((sentence, primary))
-        return result
+        return {loc: str(data.get(loc, "")) for loc in self._locales}

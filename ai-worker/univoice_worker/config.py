@@ -47,6 +47,9 @@ DEFAULT_STT_PHRASE_LIST_MAX_ITEMS = 500
 DEFAULT_STT_PHRASE_LIST_MAX_CHARS = 8000
 DEFAULT_STT_LOW_CONFIDENCE_WARN = 0.5
 DEFAULT_TRANSLATE_TIMEOUT_SEC = 8.0
+# 동시에 진행할 번역(RAG + LLM) 호출 상한. 한 STT final 에 문장이 여러 개 들어와도
+# 뒷문장이 앞문장의 번역 완료를 기다리지 않게 한다. 자막 발행 순서는 그대로 보장된다.
+DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
 DEFAULT_RAG_ASSETS_DIR = "rag_assets"
 DEFAULT_SEGMENT_QUEUE_MAX_SIZE = 100
 DEFAULT_SEGMENT_ENQUEUE_TIMEOUT_MS = 250
@@ -148,6 +151,7 @@ class WorkerConfig:
     stt_phrase_list_max_chars: int = DEFAULT_STT_PHRASE_LIST_MAX_CHARS
     stt_low_confidence_warn: float = DEFAULT_STT_LOW_CONFIDENCE_WARN
     translate_timeout_sec: float = DEFAULT_TRANSLATE_TIMEOUT_SEC
+    translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY
     rag_enabled: bool = False
     rag_url: str = ""
     rag_default_major: str = "auto"
@@ -332,6 +336,9 @@ def load_config() -> WorkerConfig:
         ),
         translate_timeout_sec=_load_float(
             "TRANSLATE_TIMEOUT_SEC", DEFAULT_TRANSLATE_TIMEOUT_SEC
+        ),
+        translate_max_concurrency=_load_int(
+            "TRANSLATE_MAX_CONCURRENCY", DEFAULT_TRANSLATE_MAX_CONCURRENCY
         ),
         rag_enabled=_load_bool("RAG_ENABLED"),
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
