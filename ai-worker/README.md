@@ -89,6 +89,9 @@ Pipeline tuning:
 - `SEGMENT_MIN_CHARS`
 - `SEGMENT_QUEUE_MAX_SIZE`
 - `SEGMENT_ENQUEUE_TIMEOUT_MS`
+- `TRANSLATE_TIMEOUT_SEC`
+- `TRANSLATE_MAX_CONCURRENCY` (default 3): concurrent RAG + translation calls;
+  captions are still emitted in sequence order
 - `TTS_TIMEOUT_SEC`
 - `TTS_MAX_RETRIES`
 - `TTS_RETRY_BASE_DELAY_MS`
