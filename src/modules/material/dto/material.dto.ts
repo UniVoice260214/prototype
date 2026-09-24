@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsInt,
   IsOptional,
+  IsString,
   IsUUID,
   Min,
 } from 'class-validator';
@@ -28,4 +29,35 @@ export class UploadMaterialDto {
   @IsInt()
   @Min(1)
   week?: number;
+}
+
+export class StudentMaterialQueryDto {
+  @ApiPropertyOptional({
+    description:
+      'Join token issued from the QR flow. Optional when a Student JWT is used.',
+  })
+  @IsOptional()
+  @IsString()
+  joinToken?: string;
+}
+
+/** 학생 화면에 노출하는 자료 요약. blobUrl 은 프록시 엔드포인트로 대체된다. */
+export class StudentMaterialDto {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty()
+  originalFilename: string;
+
+  @ApiProperty({ enum: ['lecture', 'major'] })
+  sourceType: 'lecture' | 'major';
+
+  @ApiPropertyOptional({ nullable: true })
+  week: number | null;
+
+  @ApiProperty({ enum: ['pending', 'ready', 'failed'] })
+  previewStatus: 'pending' | 'ready' | 'failed';
+
+  @ApiProperty()
+  createdAt: Date;
 }

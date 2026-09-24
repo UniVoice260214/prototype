@@ -32,7 +32,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      if (typeof res === 'string') {
+      if (status >= 500) {
+        message = 'Internal server error';
+        errorCode = HttpStatus[status] ?? 'HTTP_ERROR';
+        this.logger.error(exception.stack ?? exception.message);
+      } else if (typeof res === 'string') {
         message = res;
         errorCode = HttpStatus[status] ?? 'HTTP_ERROR';
       } else if (typeof res === 'object' && res !== null) {
@@ -41,8 +45,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         errorCode = obj.error ?? HttpStatus[status] ?? 'HTTP_ERROR';
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
       this.logger.error(exception.stack);
+    } else {
+      this.logger.error(`Non-error exception: ${String(exception)}`);
     }
 
     const payload: ErrorPayload = {

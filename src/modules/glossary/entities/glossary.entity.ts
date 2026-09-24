@@ -11,7 +11,7 @@ import {
 import { Course } from '../../course/entities/course.entity';
 
 /**
- * locale string -> translated term. e.g. { 'zh-CN': '线粒体', 'vi-VN': 'Ty thể' }
+ * Locale string to translated term mapping.
  */
 export type GlossaryTranslations = Record<string, string>;
 
@@ -24,22 +24,24 @@ export class Glossary {
   @Column({ type: 'uuid' })
   courseId: string;
 
-  @ManyToOne(() => Course, (course) => course.glossaries, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Course, (course) => course.glossaries, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'courseId' })
   course: Course;
 
-  /** 한국어 원문 용어 */
+  /** Source term in Korean. */
   @Column({ type: 'varchar', length: 200 })
   term: string;
 
-  /** IPA or 한글 발음 표기. STT phrase list / TTS lexicon에 활용. */
+  /** Pronunciation text for STT phrase lists or TTS lexicons. */
   @Column({ type: 'varchar', length: 200, nullable: true })
   pronunciation: string | null;
 
   @Column({ type: 'text', nullable: true })
   definition: string | null;
 
-  /** locale 키 → 번역어 매핑 */
+  /** Mapping from locale key to translated term. */
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
   translations: GlossaryTranslations;
 

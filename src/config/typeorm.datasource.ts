@@ -20,5 +20,6 @@ export const dataSource = new DataSource({
   entities: [join(process.cwd(), rootDir, `**/*.entity.${ext}`)],
   migrations: [join(process.cwd(), rootDir, `migrations/*.${ext}`)],
   synchronize: false,
-  logging: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  logging:
+    process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
 });

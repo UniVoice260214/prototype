@@ -22,6 +22,8 @@ from config import EVAL_DIR, INDEX_SUBSETS, MODELS
 from embed import load_chunks
 from evaluate import RECALL_KS, evaluate_model, load_queries, metrics_of
 
+# 평가 대상 인덱스와 그 인덱스에 물어볼 질의 유형.
+# 여기에 없는 인덱스(예: 평가셋이 아직 없는 전공)는 평가에서 조용히 제외된다.
 INDEX_QUERY_TYPES: dict[str, list[str]] = {
     "major_ai": ["definition", "comparison", "principle", "paraphrase", "stt_noise"],
     "lecture_kim_i2a": ["lecture", "paraphrase", "stt_noise"],
@@ -181,7 +183,7 @@ def main() -> None:
     notes: dict[str, list[tuple[str, list[str]]]] = {}
     dropped: dict[str, list[str]] = {}
     n_queries: dict[str, int] = {}
-    for index_name in INDEX_SUBSETS:
+    for index_name in INDEX_QUERY_TYPES:
         subset, note_list, drop_list = prepare_queries(
             queries, index_name, chunk_doc_types
         )

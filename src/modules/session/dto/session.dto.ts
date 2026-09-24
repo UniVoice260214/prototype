@@ -2,10 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
+import { SUPPORTED_TARGET_LOCALES } from '../../../common/supported-locales';
 
 export class StartSessionDto {
   @ApiProperty({ format: 'uuid' })
@@ -14,18 +16,19 @@ export class StartSessionDto {
 
   @ApiProperty({
     example: ['zh-CN', 'vi-VN', 'mn-MN'],
-    description: '이 세션에서 번역해 송출할 언어 locale 목록',
+    description: 'List of locales to translate and publish for this session',
   })
   @IsArray()
   @ArrayMinSize(1)
   @IsString({ each: true })
+  @IsIn(SUPPORTED_TARGET_LOCALES, { each: true })
   targetLocales: string[];
 }
 
 export class IssueStudentTokenDto {
   @ApiPropertyOptional({
     description:
-      'QR 입장 시 발급받은 JoinToken. Student JWT로 인증되면 생략 가능.',
+      'Join token issued from the QR flow. Optional when a Student JWT is used.',
   })
   @IsOptional()
   @IsString()
@@ -33,6 +36,7 @@ export class IssueStudentTokenDto {
 
   @ApiProperty({ example: 'vi-VN' })
   @IsString()
+  @IsIn(SUPPORTED_TARGET_LOCALES)
   locale: string;
 }
 
@@ -48,4 +52,21 @@ export class LiveKitTokenResponseDto {
 
   @ApiProperty()
   identity: string;
+}
+
+export class PublicSessionInfoDto {
+  @ApiProperty({ format: 'uuid' })
+  id: string;
+
+  @ApiProperty({ enum: ['active', 'ended'] })
+  status: string;
+
+  @ApiProperty({
+    example: ['zh-CN', 'vi-VN', 'mn-MN'],
+    description: 'Locales students may choose from for this session',
+  })
+  targetLocales: string[];
+
+  @ApiProperty()
+  courseName: string;
 }

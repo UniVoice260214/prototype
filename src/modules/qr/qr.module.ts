@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { CourseAccessModule } from '../../common/access/course-access.module';
 import { AuthModule } from '../auth/auth.module';
-import { Session } from '../session/entities/session.entity';
 import { QrController } from './qr.controller';
 import { QrService } from './qr.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Session]), AuthModule],
+  imports: [AuthModule, CourseAccessModule],
   controllers: [QrController],
   providers: [QrService],
 })

@@ -1,4 +1,4 @@
-import { Global, Module, OnModuleDestroy } from '@nestjs/common';
+import { Global, Inject, Module, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -32,9 +32,12 @@ export const REDIS_SUBSCRIBER = 'REDIS_SUBSCRIBER';
   exports: [REDIS_CLIENT, REDIS_SUBSCRIBER],
 })
 export class RedisModule implements OnModuleDestroy {
-  constructor() {}
+  constructor(
+    @Inject(REDIS_CLIENT) private readonly client: Redis,
+    @Inject(REDIS_SUBSCRIBER) private readonly subscriber: Redis,
+  ) {}
 
   async onModuleDestroy() {
-    // Client cleanup handled via DI lifecycle; explicit quit handled in app shutdown if needed.
+    await Promise.allSettled([this.subscriber.quit(), this.client.quit()]);
   }
 }

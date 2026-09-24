@@ -8,10 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Professor } from './entities/professor.entity';
 import { User } from '../user/entities/user.entity';
-import {
-  CreateProfessorDto,
-  UpdateProfessorDto,
-} from './dto/professor.dto';
+import { CreateProfessorDto, UpdateProfessorDto } from './dto/professor.dto';
 
 @Injectable()
 export class ProfessorService {
@@ -28,7 +25,9 @@ export class ProfessorService {
     }
     const exists = await this.repo.findOne({ where: { userId: dto.userId } });
     if (exists) {
-      throw new ConflictException('Professor profile already exists for this user');
+      throw new ConflictException(
+        'Professor profile already exists for this user',
+      );
     }
     return this.repo.save(this.repo.create(dto));
   }

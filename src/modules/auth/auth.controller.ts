@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../../common/decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { LoginDto, TokenResponseDto } from './dto/login.dto';
@@ -13,7 +13,7 @@ export class AuthController {
   @Public()
   @HttpCode(200)
   @Post('login')
-  @ApiOperation({ summary: 'admin/professor 로그인' })
+  @ApiOperation({ summary: 'Admin/professor login' })
   @ApiOkResponse({ type: TokenResponseDto })
   login(@Body() dto: LoginDto) {
     return this.auth.loginUser(dto);
@@ -21,7 +21,7 @@ export class AuthController {
 
   @Public()
   @Post('student/signup')
-  @ApiOperation({ summary: '학생 회원가입' })
+  @ApiOperation({ summary: 'Student signup' })
   @ApiOkResponse({ type: TokenResponseDto })
   signupStudent(@Body() dto: SignupStudentDto) {
     return this.auth.signupStudent(dto);
@@ -30,7 +30,7 @@ export class AuthController {
   @Public()
   @HttpCode(200)
   @Post('student/login')
-  @ApiOperation({ summary: '학생 로그인' })
+  @ApiOperation({ summary: 'Student login' })
   @ApiOkResponse({ type: TokenResponseDto })
   loginStudent(@Body() dto: LoginDto) {
     return this.auth.loginStudent(dto);

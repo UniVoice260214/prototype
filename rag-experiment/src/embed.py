@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -51,6 +52,10 @@ class SentenceTransformersEmbedder:
         device = torch_device()
         print(f"[embed] {model_name} 로드 중 (device={device})...")
         self._model = SentenceTransformer(model_name, device=device)
+        max_seq_length = int(os.getenv("RAG_MAX_SEQ_LENGTH", "0"))
+        if max_seq_length > 0:
+            self._model.max_seq_length = max_seq_length
+            print(f"[embed] max_seq_length={max_seq_length}")
 
     def encode(self, texts: list[str]) -> np.ndarray:
         vectors = self._model.encode(

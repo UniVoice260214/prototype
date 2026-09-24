@@ -10,8 +10,7 @@ import {
 } from './events.types';
 
 /**
- * 모든 외부 시스템 이벤트(Pub/Sub) 발행의 단일 진입점.
- * NestJS → Python 워커 / RAG 워커로 전달되는 메시지는 반드시 이 서비스를 통해 publish.
+ * Single entry point for outbound Redis Pub/Sub events.
  */
 @Injectable()
 export class EventsService {
@@ -36,7 +35,7 @@ export class EventsService {
   private async publish<T>(channel: EventChannel, payload: T): Promise<void> {
     const message = JSON.stringify(payload);
     const subscribers = await this.redis.publish(channel, message);
-    this.logger.log(
+    this.logger.debug(
       `[${channel}] published to ${subscribers} subscriber(s): ${message}`,
     );
   }

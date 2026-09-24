@@ -21,7 +21,7 @@ export class User {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
-  /** 응답 직렬화에서 제외 (ClassSerializerInterceptor). bcrypt 비교용 내부 접근은 영향 없음. */
+  /** Hidden from serialized API responses. */
   @Exclude()
   @Column({ type: 'varchar', length: 255 })
   passwordHash: string;

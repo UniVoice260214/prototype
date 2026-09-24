@@ -22,8 +22,6 @@ from embed import get_embedder, load_chunks
 def load_index(
     model_key: str, index_name: str | None = None
 ) -> tuple[Any, list[str]]:
-    import faiss
-
     index_dir = (
         INDEXES_DIR / index_name / model_key if index_name else INDEXES_DIR / model_key
     )
@@ -35,6 +33,10 @@ def load_index(
             f"{index_dir} 에 인덱스 없음 — 먼저 "
             f"python src/embed.py --model {model_key}{index_opt} 실행"
         )
+    # 존재 확인 뒤에 import 한다 — "인덱스 없음" 판정(동적 lecture_{courseId} 폴백)에
+    # faiss 설치가 필요하지 않도록.
+    import faiss
+
     index = faiss.read_index(str(index_path))
     chunk_ids = json.loads(ids_path.read_text(encoding="utf-8"))
     return index, chunk_ids

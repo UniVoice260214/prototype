@@ -12,13 +12,14 @@ import { Session } from '../../session/entities/session.entity';
 
 export type MaterialSourceType = 'lecture' | 'major';
 export type IndexingStatus = 'pending' | 'processing' | 'done' | 'failed';
+export type PreviewStatus = 'pending' | 'ready' | 'failed';
 
 @Entity('materials')
 export class Material {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** 사전 업로드 시 nullable. 세션 종료 후 분석 시 채워질 수 있음. */
+  /** Nullable for pre-session uploads or post-session association. */
   @Column({ type: 'uuid', nullable: true })
   sessionId: string | null;
 
@@ -32,7 +33,9 @@ export class Material {
   @Column({ type: 'uuid' })
   courseId: string;
 
-  @ManyToOne(() => Course, (course) => course.materials, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Course, (course) => course.materials, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'courseId' })
   course: Course;
 
@@ -54,6 +57,20 @@ export class Material {
     default: 'pending',
   })
   indexingStatus: IndexingStatus;
+
+  /**
+   * 학생 화면이 렌더링하는 PDF. PDF 원본은 blobUrl 과 같고, PPT/PPTX 는
+   * 업로드 후 비동기로 변환한 결과다. 변환 전(pending)/실패(failed)면 null.
+   */
+  @Column({ type: 'text', nullable: true })
+  previewBlobUrl: string | null;
+
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'ready', 'failed'],
+    default: 'pending',
+  })
+  previewStatus: PreviewStatus;
 
   @CreateDateColumn()
   createdAt: Date;

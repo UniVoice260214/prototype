@@ -1,6 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -16,6 +17,10 @@ export enum NodeEnv {
 export class EnvVars {
   @IsInt()
   PORT: number = 3000;
+
+  @IsString()
+  @IsOptional()
+  HOST: string = '0.0.0.0';
 
   @IsEnum(NodeEnv)
   NODE_ENV: NodeEnv = NodeEnv.Development;
@@ -49,6 +54,10 @@ export class EnvVars {
   @IsOptional()
   LIVEKIT_API_SECRET?: string;
 
+  @IsInt()
+  @IsOptional()
+  LIVEKIT_TOKEN_TTL_SEC: number = 4 * 60 * 60;
+
   @IsString()
   @IsOptional()
   AZURE_BLOB_CONNECTION_STRING?: string;
@@ -57,25 +66,56 @@ export class EnvVars {
   @IsOptional()
   AZURE_BLOB_CONTAINER: string = 'univoice-materials';
 
+  /** Optional browser-facing base URL used instead of the SDK's internal blob endpoint. */
+  @IsString()
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_BASE_URL?: string;
+
+  /** Demo-only switch for anonymous blob reads inside a private Tailscale network. */
+  @IsString()
+  @IsIn(['true', 'false'])
+  @IsOptional()
+  AZURE_BLOB_PUBLIC_ACCESS?: string;
+
   @IsString()
   @IsOptional()
   QR_BASE_URL: string = 'https://app.univoice.example.com/join';
 
-  /** RAG 인덱싱 작업 큐(Redis List) 이름. RAG 워커가 BRPOP으로 소비. */
+  /** Redis list name consumed by the RAG worker via BRPOP. */
   @IsString()
   @IsOptional()
   RAG_INDEX_QUEUE: string = 'rag:index:queue';
 
+  @IsInt()
+  @IsOptional()
+  WORKER_STOP_TIMEOUT_SEC: number = 8;
+
+  @IsInt()
+  @IsOptional()
+  WORKER_STOP_POLL_INTERVAL_MS: number = 200;
+
   /**
-   * ⚠️ 개발 전용 인증 우회 스위치. 문자열 'true'일 때만 활성화.
-   * 활성화 시 JwtAuthGuard/RolesGuard를 건너뛰고 합성 admin 사용자를 주입한다.
-   * → 토큰 없이 모든 엔드포인트 호출 가능.
-   * 운영(production)에서는 절대 'true'로 두지 말 것.
-   * (boolean 대신 string으로 둠: env의 "false"가 Boolean 변환 시 true가 되는 함정 회피)
+   * Development-only auth bypass.
+   * Enabled only when the literal string value is 'true'.
    */
   @IsOptional()
   @IsString()
   AUTH_DISABLED?: string;
+
+  /** Comma-separated browser origins allowed to call the API. */
+  @IsOptional()
+  @IsString()
+  CORS_ORIGINS?: string;
+
+  /** Enable Express proxy awareness when TLS is terminated by Caddy. */
+  @IsOptional()
+  @IsString()
+  TRUST_PROXY?: string;
+
+  /** Swagger is enabled by default outside production. */
+  @IsOptional()
+  @IsString()
+  SWAGGER_ENABLED?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvVars {
@@ -86,8 +126,53 @@ export function validateEnv(config: Record<string, unknown>): EnvVars {
   if (errors.length > 0) {
     throw new Error(
       `Invalid environment variables:\n${errors
-        .map((e) => `  - ${e.property}: ${Object.values(e.constraints ?? {}).join(', ')}`)
+        .map(
+          (e) =>
+            `  - ${e.property}: ${Object.values(e.constraints ?? {}).join(', ')}`,
+        )
         .join('\n')}`,
+    );
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    validated.AUTH_DISABLED === 'true'
+  ) {
+    throw new Error('AUTH_DISABLED=true is not allowed in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    validated.JWT_SECRET.length < 32
+  ) {
+    throw new Error('JWT_SECRET must be at least 32 characters in production');
+  }
+  if (
+    validated.NODE_ENV === NodeEnv.Production &&
+    !validated.QR_BASE_URL.startsWith('https://')
+  ) {
+    throw new Error('QR_BASE_URL must use https:// in production');
+  }
+  if (validated.AZURE_BLOB_PUBLIC_BASE_URL) {
+    let publicBlobUrl: URL;
+    try {
+      publicBlobUrl = new URL(validated.AZURE_BLOB_PUBLIC_BASE_URL);
+    } catch {
+      throw new Error('AZURE_BLOB_PUBLIC_BASE_URL must be an absolute URL');
+    }
+    if (
+      validated.NODE_ENV === NodeEnv.Production &&
+      publicBlobUrl.protocol !== 'https:'
+    ) {
+      throw new Error(
+        'AZURE_BLOB_PUBLIC_BASE_URL must use https:// in production',
+      );
+    }
+  }
+  if (
+    validated.AZURE_BLOB_PUBLIC_ACCESS === 'true' &&
+    !validated.AZURE_BLOB_PUBLIC_BASE_URL
+  ) {
+    throw new Error(
+      'AZURE_BLOB_PUBLIC_BASE_URL is required when AZURE_BLOB_PUBLIC_ACCESS=true',
     );
   }
   return validated;

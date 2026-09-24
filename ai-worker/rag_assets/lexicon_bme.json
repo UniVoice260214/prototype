@@ -1,0 +1,3541 @@
+{
+  "major": "bme",
+  "label": "바이오의생명공학",
+  "index": "major_biomedical_bioengineering",
+  "score_threshold": 0.45,
+  "transliterations": {
+    "디엔에이": "DNA",
+    "알엔에이": "RNA",
+    "엠아르엔에이": "mRNA",
+    "엠알엔에이": "mRNA",
+    "티알엔에이": "tRNA",
+    "알알엔에이": "rRNA",
+    "씨디엔에이": "cDNA",
+    "에스엔피": "SNP",
+    "엔지에스": "NGS",
+    "피시알": "PCR",
+    "피씨알": "PCR",
+    "알티 피시알": "RT-PCR",
+    "알티피시알": "RT-PCR",
+    "큐피시알": "qPCR",
+    "엘라이자": "ELISA",
+    "엘리사": "ELISA",
+    "웨스턴 블랏": "웨스턴 블롯",
+    "서던 블랏": "서던 블롯",
+    "노던 블랏": "노던 블롯",
+    "에스디에스 페이지": "SDS-PAGE",
+    "에스디에스페이지": "SDS-PAGE",
+    "지에프피": "GFP",
+    "에스이엠": "SEM",
+    "티이엠": "TEM",
+    "팩스": "FACS",
+    "유세포 분석": "유세포분석",
+    "크리스퍼": "CRISPR",
+    "캐스나인": "Cas9",
+    "크리스퍼 캐스나인": "CRISPR-Cas9",
+    "가이드 알엔에이": "가이드 RNA",
+    "지알엔에이": "gRNA",
+    "엔에이치이제이": "NHEJ",
+    "에이치디알": "HDR",
+    "피에이엠": "PAM",
+    "엠씨에스": "MCS",
+    "히스 태그": "His-태그",
+    "히스태그": "His-태그",
+    "아이피티지": "IPTG",
+    "에이에이브이": "AAV",
+    "에이티피": "ATP",
+    "에이디피": "ADP",
+    "엔에이디에이치": "NADH",
+    "지피시알": "GPCR",
+    "알티케이": "RTK",
+    "씨디케이": "CDK",
+    "피오십삼": "p53",
+    "피 오십삼": "p53",
+    "아폽토시스": "세포자멸사",
+    "아포토시스": "세포자멸사",
+    "네크로시스": "세포괴사",
+    "티씨에이 회로": "TCA 회로",
+    "브이맥스": "Vmax",
+    "케이엠": "Km",
+    "케이캣": "kcat",
+    "엠에이치씨": "MHC",
+    "에이치엘에이": "HLA",
+    "아이지지": "IgG",
+    "아이지엠": "IgM",
+    "아이지에이": "IgA",
+    "아이지이": "IgE",
+    "씨디사": "CD4",
+    "씨디팔": "CD8",
+    "티세포": "T세포",
+    "비세포": "B세포",
+    "카티": "CAR-T",
+    "카티세포": "CAR-T 세포",
+    "피디원": "PD-1",
+    "씨에이치오": "CHO",
+    "케이엘에이": "kLa",
+    "에프비에스": "FBS",
+    "지엠피": "GMP",
+    "지엘피": "GLP",
+    "지씨피": "GCP",
+    "큐비디": "QbD",
+    "에이디씨": "ADC",
+    "피케이": "PK",
+    "피디": "PD",
+    "에이디엠이": "ADME",
+    "아이엔디": "IND",
+    "에프디에이": "FDA",
+    "이엠에이": "EMA",
+    "아이피에스씨": "iPSC",
+    "이에스씨": "ESC",
+    "이씨지": "ECG",
+    "이이지": "EEG",
+    "이엠지": "EMG",
+    "엠아르아이": "MRI",
+    "엠알아이": "MRI",
+    "에프엠아르아이": "fMRI",
+    "씨티": "CT",
+    "피이티": "PET",
+    "에크모": "ECMO",
+    "씨엠아르아르": "CMRR",
+    "에이디씨 변환": "ADC 변환",
+    "에일리어싱": "에일리어싱",
+    "비씨아이": "BCI",
+    "에스에이엠디": "SaMD",
+    "디디에스": "DDS",
+    "엘엔피": "LNP",
+    "피엘지에이": "PLGA"
+  },
+  "lexicon": [
+    {
+      "pattern": "1상",
+      "canonical": "1상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "2상",
+      "canonical": "2상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "2차 전달자",
+      "canonical": "2차 전달자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "3상",
+      "canonical": "3상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "aav",
+      "canonical": "AAV/렌티바이러스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "aav/렌티바이러스",
+      "canonical": "AAV/렌티바이러스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "action potential",
+      "canonical": "활동전위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "active transport",
+      "canonical": "능동수송",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "adc",
+      "canonical": "항체약물접합체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "aliasing",
+      "canonical": "에일리어싱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "alignment",
+      "canonical": "서열 정렬",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "allele",
+      "canonical": "대립유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "alphafold",
+      "canonical": "알파폴드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "alveoli",
+      "canonical": "폐포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "amino acid",
+      "canonical": "아미노산",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "angiogenesis",
+      "canonical": "혈관신생",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "antibody",
+      "canonical": "항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "anticodon",
+      "canonical": "안티코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "antigen",
+      "canonical": "항원",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "antiparallel",
+      "canonical": "역평행",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "apoptosis",
+      "canonical": "세포자멸사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "atp",
+      "canonical": "ATP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "bci",
+      "canonical": "뇌-컴퓨터 인터페이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "biofilm",
+      "canonical": "생물막",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "biomaterial",
+      "canonical": "생체재료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "biomechanics",
+      "canonical": "생체역학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "bioreactor",
+      "canonical": "생물반응기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "biosignal",
+      "canonical": "생체신호",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "blast",
+      "canonical": "BLAST",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "b세포",
+      "canonical": "B세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "capsid",
+      "canonical": "캡시드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "car-t",
+      "canonical": "CAR-T",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "car-t 세포치료",
+      "canonical": "CAR-T 세포치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "carrier",
+      "canonical": "보인자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cas9",
+      "canonical": "Cas9",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cd4⁺",
+      "canonical": "보조T세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cd8⁺",
+      "canonical": "세포독성T세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cdna",
+      "canonical": "cDNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cell",
+      "canonical": "세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cell disruption",
+      "canonical": "파쇄",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cell line",
+      "canonical": "세포주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "central dogma",
+      "canonical": "중심원리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "chaperone",
+      "canonical": "샤페론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "checkpoint",
+      "canonical": "검문지점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cho",
+      "canonical": "CHO",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cholesterol",
+      "canonical": "콜레스테롤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cmrr",
+      "canonical": "동상제거비",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "codon",
+      "canonical": "코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "coverage",
+      "canonical": "커버리지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "crispr",
+      "canonical": "CRISPR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "crispr-cas9",
+      "canonical": "CRISPR-Cas9",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "crossing over",
+      "canonical": "교차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "cryo-em",
+      "canonical": "cryo-EM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ct",
+      "canonical": "CT",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dds",
+      "canonical": "약물전달시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "deg",
+      "canonical": "차등발현유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "denaturation",
+      "canonical": "변성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dna",
+      "canonical": "DNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dna 복제",
+      "canonical": "DNA 복제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dna 연결효소",
+      "canonical": "DNA 연결효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dna 중합효소",
+      "canonical": "DNA 중합효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "dnase",
+      "canonical": "DNase",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ecg",
+      "canonical": "ECG",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ecmo",
+      "canonical": "ECMO",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "eeg",
+      "canonical": "EEG",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "elisa",
+      "canonical": "ELISA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "emg",
+      "canonical": "EMG",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "endospore",
+      "canonical": "내생포자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "epigenetics",
+      "canonical": "후성유전학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "epitope",
+      "canonical": "에피토프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "er",
+      "canonical": "소포체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "esc",
+      "canonical": "배아줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "eukaryotic cell",
+      "canonical": "진핵세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ex vivo",
+      "canonical": "ex vivo / in vivo 치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ex vivo / in vivo 치료",
+      "canonical": "ex vivo / in vivo 치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "facs",
+      "canonical": "유세포분석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fair 원칙",
+      "canonical": "FAIR 원칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fbs",
+      "canonical": "소태아혈청",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fdr",
+      "canonical": "다중검정 보정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fed-batch",
+      "canonical": "유가식 배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "fermentation",
+      "canonical": "발효",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gcp",
+      "canonical": "GCP/GLP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gcp/glp",
+      "canonical": "GCP/GLP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "genbank",
+      "canonical": "GenBank/UniProt/PDB",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "genbank/uniprot/pdb",
+      "canonical": "GenBank/UniProt/PDB",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "genome",
+      "canonical": "유전체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "genome editing",
+      "canonical": "유전자 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gfp",
+      "canonical": "GFP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "glp",
+      "canonical": "GCP/GLP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "glycolysis",
+      "canonical": "해당과정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gmp",
+      "canonical": "GMP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "golgi apparatus",
+      "canonical": "골지체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "gpcr",
+      "canonical": "GPCR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "grna",
+      "canonical": "가이드 RNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hdr",
+      "canonical": "HDR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "herd immunity",
+      "canonical": "집단면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "his-태그",
+      "canonical": "His-태그",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hla",
+      "canonical": "MHC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "homeostasis",
+      "canonical": "항상성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "hts",
+      "canonical": "고속대량스크리닝",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "iga",
+      "canonical": "IgG/IgM/IgA/IgE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ige",
+      "canonical": "IgG/IgM/IgA/IgE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "igg",
+      "canonical": "IgG/IgM/IgA/IgE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "igg/igm/iga/ige",
+      "canonical": "IgG/IgM/IgA/IgE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "igm",
+      "canonical": "IgG/IgM/IgA/IgE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "immunogenicity",
+      "canonical": "면역원성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "in vivo 치료",
+      "canonical": "ex vivo / in vivo 치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "inclusion body",
+      "canonical": "봉입체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "informed consent",
+      "canonical": "사전 동의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ipsc",
+      "canonical": "유도만능줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "iptg",
+      "canonical": "IPTG",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "iso 14971",
+      "canonical": "ISO 14971",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kcat",
+      "canonical": "kcat/Km",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kcat/km",
+      "canonical": "kcat/Km",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kinase",
+      "canonical": "인산화효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "kla",
+      "canonical": "산소전달계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "km",
+      "canonical": "Km",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "lead",
+      "canonical": "선도물질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ligase",
+      "canonical": "DNA 연결효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "linkage",
+      "canonical": "연관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "lysosome",
+      "canonical": "리소좀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mcs",
+      "canonical": "다중클로닝부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "medium",
+      "canonical": "배지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "meiosis",
+      "canonical": "감수분열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "metastasis",
+      "canonical": "전이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mhc",
+      "canonical": "MHC",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mirna",
+      "canonical": "miRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mitochondria",
+      "canonical": "미토콘드리아",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mitosis",
+      "canonical": "체세포분열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "monod equation",
+      "canonical": "모노 식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mri",
+      "canonical": "MRI",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mri와 핵의학 영상",
+      "canonical": "MRI와 핵의학 영상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mrna",
+      "canonical": "mRNA/tRNA/rRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "mrna/trna/rrna",
+      "canonical": "mRNA/tRNA/rRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nadh",
+      "canonical": "NADH",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "necrosis",
+      "canonical": "세포괴사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nephron",
+      "canonical": "네프론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ngs",
+      "canonical": "NGS",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nhej",
+      "canonical": "NHEJ",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nondisjunction",
+      "canonical": "비분리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "nucleotide",
+      "canonical": "뉴클레오타이드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "omics",
+      "canonical": "오믹스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "operon",
+      "canonical": "오페론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ori",
+      "canonical": "복제원점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "p53",
+      "canonical": "p53",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pacemaker",
+      "canonical": "심박조율기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pam",
+      "canonical": "PAM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "passage",
+      "canonical": "계대배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pcr",
+      "canonical": "PCR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pd",
+      "canonical": "약력학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pdb",
+      "canonical": "GenBank/UniProt/PDB",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "peptide bond",
+      "canonical": "펩타이드 결합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "perfusion",
+      "canonical": "관류배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pet",
+      "canonical": "PET",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "phospholipid bilayer",
+      "canonical": "인지질 이중층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pi",
+      "canonical": "등전점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "pk",
+      "canonical": "약동학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "plasmid",
+      "canonical": "플라스미드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "polysaccharide",
+      "canonical": "다당류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "primer",
+      "canonical": "프라이머",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "prokaryotic cell",
+      "canonical": "원핵세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "promoter",
+      "canonical": "프로모터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "protein a",
+      "canonical": "단백질 A",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "qbd",
+      "canonical": "QbD",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "qpcr",
+      "canonical": "실시간 PCR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "read",
+      "canonical": "리드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "refolding",
+      "canonical": "재접힘",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "reprogramming",
+      "canonical": "역분화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ribosome",
+      "canonical": "리보솜",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rna",
+      "canonical": "RNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rna 가공",
+      "canonical": "RNA 가공",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rna 분해효소",
+      "canonical": "RNA 분해효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rna 중합효소",
+      "canonical": "RNA 중합효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rna-seq",
+      "canonical": "RNA-seq",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rnase",
+      "canonical": "RNase",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rrna",
+      "canonical": "mRNA/tRNA/rRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "rt-pcr",
+      "canonical": "RT-PCR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "samd",
+      "canonical": "SaMD",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "scaffold",
+      "canonical": "지지체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "scale-up",
+      "canonical": "스케일업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sds-page",
+      "canonical": "SDS-PAGE",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sem",
+      "canonical": "SEM/TEM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sem/tem",
+      "canonical": "SEM/TEM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "shear stress",
+      "canonical": "전단 응력",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "sirna",
+      "canonical": "siRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "snp",
+      "canonical": "SNP",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "snr",
+      "canonical": "신호대잡음비",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "stem cell",
+      "canonical": "줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "stress shielding",
+      "canonical": "응력차폐",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "synapse",
+      "canonical": "시냅스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "taq 중합효소",
+      "canonical": "Taq 중합효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tca 회로",
+      "canonical": "TCA 회로",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tem",
+      "canonical": "SEM/TEM",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "tm",
+      "canonical": "Tm",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "triglyceride",
+      "canonical": "중성지방",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "trna",
+      "canonical": "mRNA/tRNA/rRNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "t세포",
+      "canonical": "T세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ultrafiltration",
+      "canonical": "한외여과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "ultrasound",
+      "canonical": "초음파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "uniprot",
+      "canonical": "GenBank/UniProt/PDB",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "validation",
+      "canonical": "공정 검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "variant calling",
+      "canonical": "변이 검출",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "vascularization",
+      "canonical": "혈관화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "vector",
+      "canonical": "벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "viscoelasticity",
+      "canonical": "점탄성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "vmax",
+      "canonical": "Vmax",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "x선, ct, 초음파",
+      "canonical": "X선, CT, 초음파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가변부",
+      "canonical": "가변부/불변부",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가변부/불변부",
+      "canonical": "가변부/불변부",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가산평균법",
+      "canonical": "가산평균법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "가이드 rna",
+      "canonical": "가이드 RNA",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "감수분열",
+      "canonical": "감수분열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "감염",
+      "canonical": "감염",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "개시코돈",
+      "canonical": "개시코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "거대분자와 중합",
+      "canonical": "거대분자와 중합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "검문지점",
+      "canonical": "검문지점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "경쟁적 저해",
+      "canonical": "경쟁적 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계대배양",
+      "canonical": "계대배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "계측증폭기",
+      "canonical": "계측증폭기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "고속대량스크리닝",
+      "canonical": "고속대량스크리닝",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "골지체",
+      "canonical": "골지체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "공정 검증",
+      "canonical": "공정 검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "관류배양",
+      "canonical": "관류배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "광학현미경",
+      "canonical": "광학현미경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "교차",
+      "canonical": "교차",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "규모 확대(스케일업)의 문제",
+      "canonical": "규모 확대(스케일업)의 문제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "글루카곤",
+      "canonical": "인슐린/글루카곤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기질",
+      "canonical": "기질/활성부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "기질/활성부위",
+      "canonical": "기질/활성부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "길항제",
+      "canonical": "작용제/길항제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "내생포자",
+      "canonical": "내생포자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "네프론",
+      "canonical": "네프론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "노던",
+      "canonical": "서던/노던/웨스턴 블롯",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "노치필터",
+      "canonical": "노치필터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "노화",
+      "canonical": "노화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "녹는점",
+      "canonical": "Tm",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "녹아웃",
+      "canonical": "녹아웃/녹인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "녹아웃/녹인",
+      "canonical": "녹아웃/녹인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "녹인",
+      "canonical": "녹아웃/녹인",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "뇌-컴퓨터 인터페이스",
+      "canonical": "뇌-컴퓨터 인터페이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "눈가림",
+      "canonical": "눈가림",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "뉴클레오타이드",
+      "canonical": "뉴클레오타이드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "뉴클레오티드",
+      "canonical": "뉴클레오티드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "능동수송",
+      "canonical": "능동수송",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다당류",
+      "canonical": "다당류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다중검정 보정",
+      "canonical": "다중검정 보정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "다중클로닝부위",
+      "canonical": "다중클로닝부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단백질",
+      "canonical": "단백질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단백질 4차 구조",
+      "canonical": "단백질 4차 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단백질 a",
+      "canonical": "단백질 A",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단백질 구조 예측과 분자 모델링",
+      "canonical": "단백질 구조 예측과 분자 모델링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단백체학",
+      "canonical": "전사체학/단백체학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "단일클론항체",
+      "canonical": "단일클론항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대립유전자",
+      "canonical": "대립유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대사",
+      "canonical": "대사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대사경로공학",
+      "canonical": "대사경로공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대사공학",
+      "canonical": "대사공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대사와 에너지",
+      "canonical": "대사와 에너지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "대체 스플라이싱",
+      "canonical": "대체 스플라이싱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "독립의 법칙",
+      "canonical": "독립의 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "돌연변이",
+      "canonical": "돌연변이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동물세포 배양의 기초",
+      "canonical": "동물세포 배양의 기초",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동상제거비",
+      "canonical": "동상제거비",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동종",
+      "canonical": "자가/동종/이종 이식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동형접합",
+      "canonical": "동형접합/이형접합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동형접합/이형접합",
+      "canonical": "동형접합/이형접합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "동화작용",
+      "canonical": "이화작용/동화작용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "등전점",
+      "canonical": "등전점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "디옥시리보스",
+      "canonical": "디옥시리보스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "라이게이스",
+      "canonical": "라이게이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "라인위버-버크",
+      "canonical": "라인위버-버크",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "렌티바이러스",
+      "canonical": "AAV/렌티바이러스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리가아제",
+      "canonical": "리가아제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리간드",
+      "canonical": "리간드/수용체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리간드/수용체",
+      "canonical": "리간드/수용체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리드",
+      "canonical": "리드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리딩 프레임",
+      "canonical": "리딩 프레임",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리보솜",
+      "canonical": "리보솜",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리보솜 결합 부위",
+      "canonical": "리보솜 결합 부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "리소좀",
+      "canonical": "리소좀",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "멘델",
+      "canonical": "멘델",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "멘델 유전",
+      "canonical": "멘델 유전",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "멘델 유전의 기본 개념",
+      "canonical": "멘델 유전의 기본 개념",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "면역",
+      "canonical": "면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "면역관문억제제",
+      "canonical": "면역관문억제제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "면역원성",
+      "canonical": "면역원성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "멸균",
+      "canonical": "멸균/소독",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "멸균/소독",
+      "canonical": "멸균/소독",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "모노 식",
+      "canonical": "모노 식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무경쟁적 저해",
+      "canonical": "혼합형/무경쟁적 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무균조작과 배양 기술",
+      "canonical": "무균조작과 배양 기술",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무작위 배정",
+      "canonical": "무작위 배정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "무작위 배정·눈가림·위약",
+      "canonical": "무작위 배정·눈가림·위약",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미생물",
+      "canonical": "미생물",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미생물의 분류와 세균의 구조",
+      "canonical": "미생물의 분류와 세균의 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미카엘리스 상수",
+      "canonical": "Km",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미카엘리스-멘텐",
+      "canonical": "미카엘리스-멘텐",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "미토콘드리아",
+      "canonical": "미토콘드리아",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "바이러스",
+      "canonical": "바이러스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "바이러스의 구조와 증식",
+      "canonical": "바이러스의 구조와 증식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "바이오시밀러",
+      "canonical": "바이오시밀러",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "바이오의약품",
+      "canonical": "바이오의약품",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "바이오의약품의 종류와 특성",
+      "canonical": "바이오의약품의 종류와 특성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "박테리오파지",
+      "canonical": "박테리오파지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "반보존적 복제",
+      "canonical": "반보존적 복제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "발암",
+      "canonical": "발암",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "발현도",
+      "canonical": "침투도/발현도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "발현벡터",
+      "canonical": "발현벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "발효",
+      "canonical": "발효",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배아줄기세포",
+      "canonical": "배아줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배양",
+      "canonical": "배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배양 곡선",
+      "canonical": "배양 곡선",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배양 방식과 성장 속도론",
+      "canonical": "배양 방식과 성장 속도론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "배지",
+      "canonical": "배지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "백신",
+      "canonical": "백신",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "백신, 항체공학, 면역 이상",
+      "canonical": "백신, 항체공학, 면역 이상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "번역",
+      "canonical": "번역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "벡터",
+      "canonical": "벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "벡터와 숙주 세포",
+      "canonical": "벡터와 숙주 세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변성",
+      "canonical": "변성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변이 검출",
+      "canonical": "변이 검출",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "변형률",
+      "canonical": "응력/변형률",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보인자",
+      "canonical": "보인자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "보조t세포",
+      "canonical": "보조T세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복제",
+      "canonical": "복제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복제 분기점",
+      "canonical": "복제 분기점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복제분기점",
+      "canonical": "복제분기점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "복제원점",
+      "canonical": "복제원점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "볼프의 법칙",
+      "canonical": "볼프의 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "봉입체",
+      "canonical": "봉입체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부유배양",
+      "canonical": "부착배양/부유배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부착배양",
+      "canonical": "부착배양/부유배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "부착배양/부유배양",
+      "canonical": "부착배양/부유배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분리의 법칙",
+      "canonical": "분리의 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "분자 도킹",
+      "canonical": "분자 도킹",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "불변부",
+      "canonical": "가변부/불변부",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "블로팅과 면역분석",
+      "canonical": "블로팅과 면역분석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "블루 화이트",
+      "canonical": "블루 화이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비경쟁적 저해",
+      "canonical": "비경쟁적 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "비분리",
+      "canonical": "비분리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "빙핵",
+      "canonical": "빙핵",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사람의 유전 질환과 유전 양식",
+      "canonical": "사람의 유전 질환과 유전 양식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사이클린-cdk",
+      "canonical": "사이클린-CDK",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사이토카인 방출 증후군",
+      "canonical": "사이토카인 방출 증후군",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사이토크롬 p450",
+      "canonical": "사이토크롬 P450",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "사전 동의",
+      "canonical": "사전 동의",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "산소전달계수",
+      "canonical": "산소전달계수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "산화적 인산화",
+      "canonical": "산화적 인산화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상동성",
+      "canonical": "상동성/유사성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상동성/유사성",
+      "canonical": "상동성/유사성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상류공정",
+      "canonical": "상류공정/하류공정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상류공정/하류공정",
+      "canonical": "상류공정/하류공정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상류공정과 하류공정",
+      "canonical": "상류공정과 하류공정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "상보적 염기쌍",
+      "canonical": "상보적 염기쌍",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생명윤리",
+      "canonical": "생명윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생명윤리와 사회적 쟁점",
+      "canonical": "생명윤리와 사회적 쟁점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생명의 특징과 생물학의 계층 구조",
+      "canonical": "생명의 특징과 생물학의 계층 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생명의료윤리",
+      "canonical": "생명의료윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생명의료윤리 4원칙",
+      "canonical": "생명의료윤리 4원칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생물막",
+      "canonical": "생물막",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생물반응기",
+      "canonical": "생물반응기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생물반응기의 구조와 운전 변수",
+      "canonical": "생물반응기의 구조와 운전 변수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생물학적 제제",
+      "canonical": "저분자 화합물/생물학적 제제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생분해성 고분자",
+      "canonical": "생분해성 고분자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생분해성 플라스틱",
+      "canonical": "생분해성 플라스틱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생산성",
+      "canonical": "수율/생산성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생식세포 편집",
+      "canonical": "생식세포 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생어 염기서열분석",
+      "canonical": "생어 염기서열분석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체신호",
+      "canonical": "생체신호",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체신호와 계측 시스템",
+      "canonical": "생체신호와 계측 시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체역학",
+      "canonical": "생체역학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체역학의 기초",
+      "canonical": "생체역학의 기초",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체재료",
+      "canonical": "생체재료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체재료와 생체적합성",
+      "canonical": "생체재료와 생체적합성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체재료의 종류",
+      "canonical": "생체재료의 종류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "생체적합성",
+      "canonical": "생체적합성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "샤인 달가노",
+      "canonical": "샤인 달가노",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "샤인-달가노",
+      "canonical": "샤인-달가노",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "샤페론",
+      "canonical": "샤페론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서던",
+      "canonical": "서던/노던/웨스턴 블롯",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서던/노던/웨스턴 블롯",
+      "canonical": "서던/노던/웨스턴 블롯",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서열 정렬",
+      "canonical": "서열 정렬",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "서열 정렬과 생물학 데이터베이스",
+      "canonical": "서열 정렬과 생물학 데이터베이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선도가닥",
+      "canonical": "선도가닥",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선도물질",
+      "canonical": "선도물질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선별표지",
+      "canonical": "선별표지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선천면역",
+      "canonical": "선천면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선천면역과 적응면역",
+      "canonical": "선천면역과 적응면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "선택독성",
+      "canonical": "선택독성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세균",
+      "canonical": "세균",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포",
+      "canonical": "세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포 분리와 파쇄, 1차 회수",
+      "canonical": "세포 분리와 파쇄, 1차 회수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포 신호전달의 기본 구조",
+      "canonical": "세포 신호전달의 기본 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포괴사",
+      "canonical": "세포괴사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포내공생설",
+      "canonical": "세포내공생설",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포독성t세포",
+      "canonical": "세포독성T세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포막",
+      "canonical": "세포막",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포막과 물질 수송",
+      "canonical": "세포막과 물질 수송",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포벽",
+      "canonical": "세포벽",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포성 면역과 항원제시",
+      "canonical": "세포성 면역과 항원제시",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포소기관의 구조와 기능",
+      "canonical": "세포소기관의 구조와 기능",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포자멸사",
+      "canonical": "세포자멸사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포자멸사와 세포괴사",
+      "canonical": "세포자멸사와 세포괴사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포주",
+      "canonical": "세포주",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포주기",
+      "canonical": "세포주기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포주기와 검문지점",
+      "canonical": "세포주기와 검문지점",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포질",
+      "canonical": "세포질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "세포호흡",
+      "canonical": "세포호흡",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소기관",
+      "canonical": "소기관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소독",
+      "canonical": "멸균/소독",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소태아혈청",
+      "canonical": "소태아혈청",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "소포체",
+      "canonical": "소포체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "수용체",
+      "canonical": "리간드/수용체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "수율",
+      "canonical": "수율/생산성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "수율/생산성",
+      "canonical": "수율/생산성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "순수배양",
+      "canonical": "순수배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "순환계와 호흡계",
+      "canonical": "순환계와 호흡계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스케일업",
+      "canonical": "스케일업",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스크리닝",
+      "canonical": "스크리닝",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "스플라이싱",
+      "canonical": "스플라이싱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "시냅스",
+      "canonical": "시냅스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신경계와 내분비계",
+      "canonical": "신경계와 내분비계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신장 반응",
+      "canonical": "신장 반응",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신장, 소화계, 대사 조절",
+      "canonical": "신장, 소화계, 대사 조절",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신장인자",
+      "canonical": "신장인자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신호 처리와 잡음",
+      "canonical": "신호 처리와 잡음",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "신호대잡음비",
+      "canonical": "신호대잡음비",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "실시간 pcr",
+      "canonical": "실시간 PCR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "심박조율기",
+      "canonical": "심박조율기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "아가로스 겔",
+      "canonical": "아가로스 겔",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "아미노산",
+      "canonical": "아미노산",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "안티코돈",
+      "canonical": "안티코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "알로스테릭",
+      "canonical": "알로스테릭",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "알코올 발효",
+      "canonical": "알코올 발효",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "알콜 발효",
+      "canonical": "알콜 발효",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "알파폴드",
+      "canonical": "알파폴드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "암생물학의 기초",
+      "canonical": "암생물학의 기초",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "암유전자",
+      "canonical": "원발암유전자/암유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "약동학",
+      "canonical": "약동학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "약동학과 약력학",
+      "canonical": "약동학과 약력학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "약력학",
+      "canonical": "약력학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "약물유전체학",
+      "canonical": "약물유전체학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "약물전달시스템",
+      "canonical": "약물전달시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "양성 되먹임",
+      "canonical": "양성 되먹임",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "어닐링",
+      "canonical": "어닐링",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "얼음형성 박테리아",
+      "canonical": "얼음형성 박테리아",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에일리어싱",
+      "canonical": "에일리어싱",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "에피토프",
+      "canonical": "에피토프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "엑손",
+      "canonical": "인트론/엑손",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역분화",
+      "canonical": "역분화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역전사효소",
+      "canonical": "역전사효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "역평행",
+      "canonical": "역평행",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연관",
+      "canonical": "연관",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "연구윤리",
+      "canonical": "연구윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염기 편집",
+      "canonical": "염기 편집/프라임 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염기 편집/프라임 편집",
+      "canonical": "염기 편집/프라임 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염기서열분석과 현미경",
+      "canonical": "염기서열분석과 현미경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염기쌍",
+      "canonical": "염기쌍",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염색체",
+      "canonical": "염색체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "염색체와 세포분열",
+      "canonical": "염색체와 세포분열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오믹스",
+      "canonical": "오믹스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오카자키 절편",
+      "canonical": "오카자키 절편",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오토클레이브",
+      "canonical": "오토클레이브",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "오페론",
+      "canonical": "오페론",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "옵소닌화",
+      "canonical": "옵소닌화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "용균성",
+      "canonical": "용균성/용원성 감염",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "용균성/용원성 감염",
+      "canonical": "용균성/용원성 감염",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "용원성 감염",
+      "canonical": "용균성/용원성 감염",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "우열의 법칙",
+      "canonical": "우열의 법칙",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "원발암유전자",
+      "canonical": "원발암유전자/암유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "원발암유전자/암유전자",
+      "canonical": "원발암유전자/암유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "원심분리",
+      "canonical": "원심분리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "원핵세포",
+      "canonical": "원핵세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "원핵세포와 진핵세포",
+      "canonical": "원핵세포와 진핵세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "웨스턴 블롯",
+      "canonical": "서던/노던/웨스턴 블롯",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "위약",
+      "canonical": "위약",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유가식 배양",
+      "canonical": "유가식 배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유도만능줄기세포",
+      "canonical": "유도만능줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유도적합모형",
+      "canonical": "유도적합모형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유동모자이크모형",
+      "canonical": "유동모자이크모형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유사성",
+      "canonical": "상동성/유사성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유세포분석",
+      "canonical": "유세포분석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전암호",
+      "canonical": "유전암호",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전암호와 번역",
+      "canonical": "유전암호와 번역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자",
+      "canonical": "유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 라이브러리",
+      "canonical": "유전자 라이브러리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 발현",
+      "canonical": "유전자 발현",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 발현 조절",
+      "canonical": "유전자 발현 조절",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 발현 조절과 돌연변이",
+      "canonical": "유전자 발현 조절과 돌연변이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 재조합",
+      "canonical": "유전자 재조합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 치료",
+      "canonical": "유전자 치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 치료와 세포 치료",
+      "canonical": "유전자 치료와 세포 치료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 클로닝",
+      "canonical": "유전자 클로닝",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 편집",
+      "canonical": "유전자 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 편집의 원리와 crispr",
+      "canonical": "유전자 편집의 원리와 CRISPR",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자 편집의 응용과 윤리",
+      "canonical": "유전자 편집의 응용과 윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자형",
+      "canonical": "유전자형/표현형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전자형/표현형",
+      "canonical": "유전자형/표현형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전체",
+      "canonical": "유전체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전체·전사체 데이터 분석의 흐름",
+      "canonical": "유전체·전사체 데이터 분석의 흐름",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "유전체와 정밀의료",
+      "canonical": "유전체와 정밀의료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "음성 되먹임",
+      "canonical": "음성 되먹임",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "응력",
+      "canonical": "응력/변형률",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "응력/변형률",
+      "canonical": "응력/변형률",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "응력완화",
+      "canonical": "응력완화/크리프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "응력완화/크리프",
+      "canonical": "응력완화/크리프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "응력차폐",
+      "canonical": "응력차폐",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의료기기",
+      "canonical": "의료기기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의료기기 규제와 안전",
+      "canonical": "의료기기 규제와 안전",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의료기기 등급 분류",
+      "canonical": "의료기기 등급 분류",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "의료영상",
+      "canonical": "의료영상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이물반응",
+      "canonical": "이물반응",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이식 후 숙주 반응",
+      "canonical": "이식 후 숙주 반응",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이온교환크로마토그래피",
+      "canonical": "이온교환크로마토그래피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이종 이식",
+      "canonical": "자가/동종/이종 이식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이중나선",
+      "canonical": "이중나선",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이중특이항체",
+      "canonical": "이중특이항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이형접합",
+      "canonical": "동형접합/이형접합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이화작용",
+      "canonical": "이화작용/동화작용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "이화작용/동화작용",
+      "canonical": "이화작용/동화작용",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인간화 항체",
+      "canonical": "키메라/인간화 항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공와우",
+      "canonical": "인공와우",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공장기",
+      "canonical": "인공장기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공장기와 재활공학",
+      "canonical": "인공장기와 재활공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인공지능과 데이터 재현성",
+      "canonical": "인공지능과 데이터 재현성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인산화효소",
+      "canonical": "인산화효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인슐린",
+      "canonical": "인슐린/글루카곤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인슐린 저항성",
+      "canonical": "인슐린 저항성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인슐린/글루카곤",
+      "canonical": "인슐린/글루카곤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인지질 이중층",
+      "canonical": "인지질 이중층",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인트론",
+      "canonical": "인트론/엑손",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "인트론/엑손",
+      "canonical": "인트론/엑손",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "임상 1·2·3상",
+      "canonical": "임상 1·2·3상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "임상시험",
+      "canonical": "임상시험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "임상시험 설계와 규제, 연구윤리",
+      "canonical": "임상시험 설계와 규제, 연구윤리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자가",
+      "canonical": "자가/동종/이종 이식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자가/동종/이종 이식",
+      "canonical": "자가/동종/이종 이식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자가면역질환",
+      "canonical": "자가면역질환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "자율신경계",
+      "canonical": "자율신경계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "작용제",
+      "canonical": "작용제/길항제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "작용제/길항제",
+      "canonical": "작용제/길항제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재접힘",
+      "canonical": "재접힘",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재조합 단백질",
+      "canonical": "재조합 단백질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "재조합 단백질 생산의 전 과정",
+      "canonical": "재조합 단백질 생산의 전 과정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "저분자 화합물",
+      "canonical": "저분자 화합물/생물학적 제제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "저분자 화합물/생물학적 제제",
+      "canonical": "저분자 화합물/생물학적 제제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "적응면역",
+      "canonical": "적응면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전기영동",
+      "canonical": "전기영동",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전기영동과 핵산 분리",
+      "canonical": "전기영동과 핵산 분리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전기천공법",
+      "canonical": "전기천공법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전단 응력",
+      "canonical": "전단 응력",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사",
+      "canonical": "전사",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사 조절",
+      "canonical": "전사 조절",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사와 rna 가공",
+      "canonical": "전사와 RNA 가공",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사인자",
+      "canonical": "전사인자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사체학",
+      "canonical": "전사체학/단백체학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전사체학/단백체학",
+      "canonical": "전사체학/단백체학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전이",
+      "canonical": "전이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전임상",
+      "canonical": "전임상",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전임상시험",
+      "canonical": "전임상시험",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전임상시험과 임상시험 단계",
+      "canonical": "전임상시험과 임상시험 단계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "전자현미경",
+      "canonical": "전자현미경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "점착말단",
+      "canonical": "점착말단/평활말단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "점착말단/평활말단",
+      "canonical": "점착말단/평활말단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "점탄성",
+      "canonical": "점탄성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "제한효소",
+      "canonical": "제한효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "제한효소 지도",
+      "canonical": "제한효소 지도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "제한효소와 dna 연결효소",
+      "canonical": "제한효소와 DNA 연결효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조직공학",
+      "canonical": "조직공학",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "조직공학과 약물전달시스템",
+      "canonical": "조직공학과 약물전달시스템",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종결코돈",
+      "canonical": "종결코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종양",
+      "canonical": "종양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "종양억제유전자",
+      "canonical": "종양억제유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "줄기세포",
+      "canonical": "줄기세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "줄기세포와 재생의료",
+      "canonical": "줄기세포와 재생의료",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중성지방",
+      "canonical": "중성지방",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중심원리",
+      "canonical": "중심원리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중심원리와 dna 복제",
+      "canonical": "중심원리와 DNA 복제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중합효소",
+      "canonical": "중합효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "중합효소 연쇄반응",
+      "canonical": "중합효소 연쇄반응",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지연가닥",
+      "canonical": "지연가닥",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지지체",
+      "canonical": "지지체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "지질",
+      "canonical": "지질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "진핵세포",
+      "canonical": "진핵세포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "질량분석법",
+      "canonical": "질량분석법",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "집단면역",
+      "canonical": "집단면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "차등발현유전자",
+      "canonical": "차등발현유전자",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "청백 선별",
+      "canonical": "청백 선별",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "체세포 돌연변이",
+      "canonical": "체세포 돌연변이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "체세포분열",
+      "canonical": "체세포분열",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "체순환",
+      "canonical": "폐순환/체순환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "초음파",
+      "canonical": "초음파",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "초회통과효과",
+      "canonical": "초회통과효과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "촉매",
+      "canonical": "촉매",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "치료지수",
+      "canonical": "치료지수",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "친화크로마토그래피",
+      "canonical": "친화크로마토그래피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "침투도",
+      "canonical": "침투도/발현도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "침투도/발현도",
+      "canonical": "침투도/발현도",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "캡 구조",
+      "canonical": "캡 구조",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "캡시드",
+      "canonical": "캡시드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "커버리지",
+      "canonical": "커버리지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "코돈",
+      "canonical": "코돈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "코돈 최적화",
+      "canonical": "코돈 최적화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "콜레스테롤",
+      "canonical": "콜레스테롤",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "크기배제크로마토그래피",
+      "canonical": "크기배제크로마토그래피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "크로마토그래피",
+      "canonical": "크로마토그래피",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "크리프",
+      "canonical": "응력완화/크리프",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "클로닝 벡터",
+      "canonical": "클로닝 벡터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "키메라",
+      "canonical": "키메라/인간화 항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "키메라/인간화 항체",
+      "canonical": "키메라/인간화 항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탄수화물",
+      "canonical": "탄수화물",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탄수화물과 지질",
+      "canonical": "탄수화물과 지질",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "탈세포화",
+      "canonical": "탈세포화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "터미네이터",
+      "canonical": "터미네이터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "텔로머라아제",
+      "canonical": "텔로머라아제",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "텔로미어",
+      "canonical": "텔로미어",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "틀이동돌연변이",
+      "canonical": "틀이동돌연변이",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "파쇄",
+      "canonical": "파쇄",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "페놀 클로로포름",
+      "canonical": "페놀 클로로포름",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "펩타이드 결합",
+      "canonical": "펩타이드 결합",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "펩티도글리칸",
+      "canonical": "펩티도글리칸",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "편집 결과의 결정",
+      "canonical": "편집 결과의 결정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "평활말단",
+      "canonical": "점착말단/평활말단",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "폐순환",
+      "canonical": "폐순환/체순환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "폐순환/체순환",
+      "canonical": "폐순환/체순환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "폐포",
+      "canonical": "폐포",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "폴리a 꼬리",
+      "canonical": "폴리A 꼬리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표본화 정리",
+      "canonical": "표본화 정리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표적 발굴",
+      "canonical": "표적 발굴",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표적 발굴과 후보 물질 탐색",
+      "canonical": "표적 발굴과 후보 물질 탐색",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표적이탈",
+      "canonical": "표적이탈",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표적이탈 효과",
+      "canonical": "표적이탈 효과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "표현형",
+      "canonical": "유전자형/표현형",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "푸리에 변환",
+      "canonical": "푸리에 변환",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "품질관리와 공정 검증",
+      "canonical": "품질관리와 공정 검증",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "퓨린",
+      "canonical": "퓨린",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프라이머",
+      "canonical": "프라이머",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프라이머 설계",
+      "canonical": "프라이머 설계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프라이메이스",
+      "canonical": "프라이메이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프라임 편집",
+      "canonical": "염기 편집/프라임 편집",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "프로모터",
+      "canonical": "프로모터",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "플라스미드",
+      "canonical": "플라스미드",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "피리미딘",
+      "canonical": "피리미딘",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "하류공정",
+      "canonical": "상류공정/하류공정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "하이드록시아파타이트",
+      "canonical": "하이드록시아파타이트",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "한외여과",
+      "canonical": "한외여과",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항상성",
+      "canonical": "항상성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항상성과 되먹임 조절",
+      "canonical": "항상성과 되먹임 조절",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항생제 내성",
+      "canonical": "항생제 내성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항생제와 내성",
+      "canonical": "항생제와 내성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항원",
+      "canonical": "항원",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항원결정기",
+      "canonical": "항원결정기",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항원제시",
+      "canonical": "항원제시",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항체",
+      "canonical": "항체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항체 의약품의 설계",
+      "canonical": "항체 의약품의 설계",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항체약물접합체",
+      "canonical": "항체약물접합체",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항체의 구조와 체액성 면역",
+      "canonical": "항체의 구조와 체액성 면역",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "항체의존세포독성",
+      "canonical": "항체의존세포독성",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "해당과정",
+      "canonical": "해당과정",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "핵막",
+      "canonical": "핵막",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "핵산",
+      "canonical": "핵산",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "헬리케이스",
+      "canonical": "헬리케이스",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "현미경",
+      "canonical": "현미경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혈관신생",
+      "canonical": "혈관신생",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혈관화",
+      "canonical": "혈관화",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혈액투석",
+      "canonical": "혈액투석",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형광현미경",
+      "canonical": "형광현미경",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형질도입",
+      "canonical": "형질전환/형질주입/형질도입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형질전환",
+      "canonical": "형질전환/형질주입/형질도입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형질전환/형질주입/형질도입",
+      "canonical": "형질전환/형질주입/형질도입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형질전환과 재조합체 선별",
+      "canonical": "형질전환과 재조합체 선별",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "형질주입",
+      "canonical": "형질전환/형질주입/형질도입",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼합형",
+      "canonical": "혼합형/무경쟁적 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼합형 저해",
+      "canonical": "혼합형 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "혼합형/무경쟁적 저해",
+      "canonical": "혼합형/무경쟁적 저해",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "화학추출",
+      "canonical": "화학추출",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "활동전위",
+      "canonical": "활동전위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "활성부위",
+      "canonical": "기질/활성부위",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "활성화 에너지",
+      "canonical": "활성화 에너지",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "회분식 배양",
+      "canonical": "회분식 배양",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "효소",
+      "canonical": "효소",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "효소 반응속도론과 미카엘리스-멘텐 식",
+      "canonical": "효소 반응속도론과 미카엘리스-멘텐 식",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "효소의 작동 원리",
+      "canonical": "효소의 작동 원리",
+      "reason": "LECTURE_CONCEPT"
+    },
+    {
+      "pattern": "후성유전학",
+      "canonical": "후성유전학",
+      "reason": "LECTURE_CONCEPT"
+    }
+  ],
+  "pattern_exclusions": {
+    "번역": "(자막|통역|실시간|기계|자동)\\s*번역|번역\\s*(자막|기능|앱|기)"
+  },
+  "filler_patterns": [
+    "^(어|음|자|그|저)\\s+",
+    "그러니까\\s*",
+    "뭐시기\\s*",
+    "인가\\s+그\\s+",
+    "\\s+그거\\s+",
+    "\\s+그게\\s+"
+  ]
+}
