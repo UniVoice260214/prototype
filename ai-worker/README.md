@@ -108,6 +108,11 @@ Pipeline tuning:
 - `TTS_QUEUE_MAX_SIZE`
 - `TTS_DEDUPE_TTL_SEC`
 - `TTS_FAILED_DEDUPE_TTL_SEC`
+- `TTS_STREAMING` (default true): publish synthesized audio chunk by chunk
+  instead of waiting for the whole utterance; falls back to whole-utterance
+  synthesis when the Speech SDK lacks streaming support
+- `TTS_PREFETCH` (default true): start synthesizing the next job of a locale
+  while the previous one is playing (publishing order is unchanged)
 - `STT_MAX_RECONNECTS`
 - `STT_RECONNECT_BASE_DELAY_MS`
 - `WORKER_STATUS_TTL_SEC`

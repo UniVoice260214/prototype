@@ -40,11 +40,14 @@ CAPTION_TOTALS = [
 ]
 AUDIO_STAGES = [
     ("ttsQueueMs", "TTS 큐 대기", "TTS 큐 적재 → 합성 시작"),
-    ("ttsSynthMs", "TTS 합성", "Azure Neural TTS 합성"),
-    ("ttsPublishMs", "오디오 발행", "LiveKit 오디오 트랙 push"),
+    ("ttsFirstChunkMs", "TTS 첫 청크", "합성 시작 → 첫 오디오 청크 (스트리밍일 때)"),
+    ("ttsPlayWaitMs", "재생 대기", "첫 청크 준비 후 앞 문장 재생 종료를 기다림"),
+    ("ttsSynthMs", "TTS 합성", "Azure Neural TTS 합성 전체"),
+    ("ttsPublishMs", "오디오 발행", "합성 종료 → LiveKit 오디오 트랙 push 완료"),
 ]
 AUDIO_TOTALS = [
-    ("e2eAudioMs", "E2E 음성", "발화 종료 → 음성 발행"),
+    ("e2eFirstAudioMs", "E2E 첫 음성", "발화 종료 → 첫 오디오 청크 발행"),
+    ("e2eAudioMs", "E2E 음성", "발화 종료 → 음성 발행 완료"),
 ]
 
 

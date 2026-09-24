@@ -126,6 +126,10 @@ class WorkerConfig:
     tts_queue_max_size: int = DEFAULT_TTS_QUEUE_MAX_SIZE
     tts_dedupe_ttl_sec: int = DEFAULT_TTS_DEDUPE_TTL_SEC
     tts_failed_dedupe_ttl_sec: int = DEFAULT_TTS_FAILED_DEDUPE_TTL_SEC
+    # 청크 단위 스트리밍 합성 (합성 완료를 기다리지 않고 첫 청크부터 발행)
+    tts_streaming: bool = True
+    # 앞 job 재생 중에 같은 로케일의 다음 job 합성을 미리 시작
+    tts_prefetch: bool = True
     session_stop_timeout_sec: float = DEFAULT_SESSION_STOP_TIMEOUT_SEC
     pipeline_flush_timeout_sec: float = DEFAULT_PIPELINE_FLUSH_TIMEOUT_SEC
     tts_flush_timeout_sec: float = DEFAULT_TTS_FLUSH_TIMEOUT_SEC
@@ -300,6 +304,8 @@ def load_config() -> WorkerConfig:
         tts_failed_dedupe_ttl_sec=_load_int(
             "TTS_FAILED_DEDUPE_TTL_SEC", DEFAULT_TTS_FAILED_DEDUPE_TTL_SEC, min_value=0
         ),
+        tts_streaming=_load_bool("TTS_STREAMING", True),
+        tts_prefetch=_load_bool("TTS_PREFETCH", True),
         session_stop_timeout_sec=_load_float(
             "SESSION_STOP_TIMEOUT_SEC", DEFAULT_SESSION_STOP_TIMEOUT_SEC
         ),
