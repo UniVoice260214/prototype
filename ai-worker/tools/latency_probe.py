@@ -138,6 +138,7 @@ async def main_async(args: argparse.Namespace) -> int:
             max_retries=config.tts_max_retries,
             retry_base_delay_ms=config.tts_retry_base_delay_ms,
             max_concurrency=config.tts_max_concurrency,
+            streaming=config.tts_streaming,
         )
     )
 
@@ -168,8 +169,26 @@ async def main_async(args: argparse.Namespace) -> int:
         queue_max_size=config.segment_queue_max_size,
         enqueue_timeout_ms=config.segment_enqueue_timeout_ms,
         tts_queue_max_size=config.tts_queue_max_size,
+        translate_max_concurrency=config.translate_max_concurrency,
+        tts_prefetch=config.tts_prefetch,
     )
     await pipeline.start()
+
+    # 워커와 같은 조건으로 잰다: 세션 시작 시 예열 (WARMUP_ENABLED=false 로 끄고 비교 가능)
+    if config.warmup_enabled:
+        warmups = [translator.warmup()]
+        if hasattr(tts, "warmup"):
+            warmups.append(tts.warmup(locales))
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*warmups, return_exceptions=True),
+                timeout=config.warmup_timeout_sec,
+            )
+            for result in results:
+                if isinstance(result, BaseException):
+                    print(f"예열 실패(무시): {result!r}", file=sys.stderr)
+        except asyncio.TimeoutError:
+            print("예열 시간 초과(무시)", file=sys.stderr)
 
     loop = asyncio.get_running_loop()
     phrases, _stats = build_phrase_list(
