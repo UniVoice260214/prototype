@@ -98,6 +98,9 @@ Pipeline tuning:
 - `TRANSLATE_STREAMING` (default true): stream the translation response and
   emit each locale's caption/TTS as soon as that locale is complete; falls back
   to a non-streaming call when streaming is unavailable
+- `WARMUP_ENABLED` (default true), `WARMUP_TIMEOUT_SEC` (default 3): warm up the
+  translation and TTS clients in parallel before the worker reports `ready`;
+  failures are logged and never block the session
 - `TTS_TIMEOUT_SEC`
 - `TTS_MAX_RETRIES`
 - `TTS_RETRY_BASE_DELAY_MS`

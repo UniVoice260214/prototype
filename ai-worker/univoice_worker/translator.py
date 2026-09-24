@@ -339,6 +339,18 @@ class Translator:
             self._release_history(entry)
         return result
 
+    async def warmup(self) -> None:
+        """세션 시작 시 한 번, 실제 번역과 같은 schema/system prompt 로 더미 호출.
+
+        TLS/HTTP2 연결 수립과 (Azure 의 경우) 배포 콜드스타트를 첫 세그먼트가
+        떠안지 않게 한다. history 는 건드리지 않는다. 실패는 호출자가 로그로만 남긴다.
+        """
+        dummy = "[번역할 발화]\n안녕하세요."
+        if self._streaming:
+            await self._request_stream(dummy, None, None)
+        else:
+            await self._request(dummy)
+
     def _request_params(self, user_content: str, timeout: float) -> dict[str, Any]:
         return {
             "model": self._model,
