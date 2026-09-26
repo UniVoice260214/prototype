@@ -527,8 +527,8 @@ async def test_speaking_rate_streams_through_ssml_prosody(monkeypatch: pytest.Mo
     assert len(fake.ssml) == 1
     ssml = fake.ssml[0]
     assert "<prosody rate='+20%'>" in ssml
-    assert "name='vi-VN-HoaiMyNeural'" in ssml
-    assert "xml:lang='vi-VN'" in ssml
+    assert 'name="vi-VN-HoaiMyNeural"' in ssml
+    assert 'xml:lang="vi-VN"' in ssml
     # 번역문 안의 &, < 가 SSML 을 깨지 않게 이스케이프한다.
     assert "A &amp; B &lt;c&gt;" in ssml
 
