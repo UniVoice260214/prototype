@@ -54,6 +54,12 @@ services:
       LIVEKIT_TOKEN_TTL_SEC: ${LIVEKIT_TOKEN_TTL_SEC:-14400}
       AZURE_BLOB_CONNECTION_STRING: ${AZURE_BLOB_CONNECTION_STRING}
       AZURE_BLOB_CONTAINER: ${AZURE_BLOB_CONTAINER:-univoice-materials}
+      # 업로드 강의자료의 익명 읽기. rag-indexer-daemon 이 업로드 파일을 URL 로 직접
+      # 내려받으므로, 끄면 업로드 자료의 RAG 인덱싱이 동작하지 않는다(데모 코퍼스는 무관).
+      # 켜면 URL 을 아는 누구나 로그인 없이 자료를 받을 수 있다. 기본은 끄고, 필요한
+      # 서버만 .env.staging 에서 켠다. 운영 전환 전 SAS 또는 인증된 다운로드로 바꿀 것.
+      AZURE_BLOB_PUBLIC_ACCESS: ${AZURE_BLOB_PUBLIC_ACCESS:-false}
+      AZURE_BLOB_PUBLIC_BASE_URL: ${AZURE_BLOB_PUBLIC_BASE_URL:-}
       QR_BASE_URL: https://${STAGING_DOMAIN}/join
       RAG_INDEX_QUEUE: ${RAG_INDEX_QUEUE:-rag:index:queue}
       WORKER_STOP_TIMEOUT_SEC: ${WORKER_STOP_TIMEOUT_SEC:-8}
@@ -133,11 +139,103 @@ services:
       TTS_MAX_RETRIES: ${TTS_MAX_RETRIES:-2}
       TTS_MAX_CONCURRENCY: ${TTS_MAX_CONCURRENCY:-3}
       WORKER_STATUS_TTL_SEC: ${WORKER_STATUS_TTL_SEC:-3600}
+      RAG_ENABLED: ${RAG_ENABLED:-true}
+      RAG_URL: http://rag-service:8000
+      RAG_DEFAULT_MAJOR: ${RAG_DEFAULT_MAJOR:-auto}
+      RAG_COURSE_MAJOR_MAP: ${RAG_COURSE_MAJOR_MAP:-}
+      RAG_TIMEOUT_SEC: ${RAG_TIMEOUT_SEC:-0.4}
+      STT_SEGMENTATION_SILENCE_MS: ${STT_SEGMENTATION_SILENCE_MS:-800}
+      SEGMENT_SPLIT_KOREAN_CLAUSES: ${SEGMENT_SPLIT_KOREAN_CLAUSES:-false}
+      CAPTION_DRAFT_ENABLED: ${CAPTION_DRAFT_ENABLED:-false}
+      CAPTION_DRAFT_INTERVAL_MS: ${CAPTION_DRAFT_INTERVAL_MS:-1000}
+      TTS_MAX_QUEUE_WAIT_MS: ${TTS_MAX_QUEUE_WAIT_MS:-3000}
+      TTS_SPEAKING_RATE: ${TTS_SPEAKING_RATE:-1.0}
+      # 지연 계측 JSONL (docs/latency-measurement.md). 비우면 끈다. 예: /tmp/latency.jsonl
+      LATENCY_LOG_PATH: ${LATENCY_LOG_PATH:-}
     depends_on:
       redis:
         condition: service_healthy
       app:
         condition: service_healthy
+      rag-service:
+        condition: service_healthy
+
+  # ---------- RAG (전공 용어 컨텍스트 검색) ----------
+  # 데모 코퍼스 인덱스 1회 빌드. 모델(KURE-v1) 다운로드 포함, 첫 실행 10~15분.
+  rag-indexer:
+    image: univoice-staging-rag
+    build:
+      context: ./rag-experiment
+    restart: "no"
+    command: ["python", "src/build_demo_indexes.py"]
+    environment:
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - staging-rag-indexes:/app/indexes
+      - staging-rag-chunks:/app/data/chunks
+      - staging-hf-cache:/cache/huggingface
+
+  # 업로드된 강의자료를 과목별 인덱스에 누적 인덱싱하는 상주 데몬.
+  # staging 은 진짜 Azure Blob 을 쓰므로 BLOB_URL_REWRITE 는 필요 없다.
+  rag-indexer-daemon:
+    image: univoice-staging-rag
+    build:
+      context: ./rag-experiment
+    restart: unless-stopped
+    command: ["python", "src/indexer_daemon.py"]
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      RAG_INDEX_QUEUE: ${RAG_INDEX_QUEUE:-rag:index:queue}
+      RAG_SERVICE_URL: http://rag-service:8000
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - staging-rag-indexes:/app/indexes
+      - staging-rag-chunks:/app/data/chunks
+      - staging-hf-cache:/cache/huggingface
+    depends_on:
+      redis:
+        condition: service_healthy
+      rag-indexer:
+        condition: service_completed_successfully
+
+  rag-service:
+    image: univoice-staging-rag
+    build:
+      context: ./rag-experiment
+    restart: unless-stopped
+    environment:
+      RAG_MODEL: kure
+      RAG_MAX_SEQ_LENGTH: ${RAG_MAX_SEQ_LENGTH:-512}
+      RAG_TOP_K: ${RAG_TOP_K:-3}
+      RAG_CONTEXT_MAX_CHARS: ${RAG_CONTEXT_MAX_CHARS:-4000}
+      RAG_COURSE_INDEX_MAP: ${RAG_COURSE_INDEX_MAP:-}
+      RAG_SEARCH_CONCURRENCY: ${RAG_SEARCH_CONCURRENCY:-2}
+      RAG_SEARCH_CACHE_SIZE: ${RAG_SEARCH_CACHE_SIZE:-256}
+      RAG_SEARCH_CACHE_TTL_SEC: ${RAG_SEARCH_CACHE_TTL_SEC:-300}
+      TOKENIZERS_PARALLELISM: "false"
+    volumes:
+      - staging-rag-indexes:/app/indexes:ro
+      - staging-rag-chunks:/app/data/chunks:ro
+      - staging-hf-cache:/cache/huggingface
+    depends_on:
+      rag-indexer:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
 
   caddy:
     image: caddy:2.8-alpine
@@ -159,6 +257,9 @@ services:
 
 volumes:
   staging-postgres:
+  staging-rag-indexes:
+  staging-rag-chunks:
+  staging-hf-cache:
   staging-redis:
   staging-caddy-data:
   staging-caddy-config:
