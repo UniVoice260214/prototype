@@ -164,9 +164,12 @@ def main() -> int:
 
     records = load(args.input)
     captions = [r for r in records if r.get("kind") == "caption"]
-    audios = [r for r in records if r.get("kind") == "audio"]
+    all_audios = [r for r in records if r.get("kind") == "audio"]
+    # 재생이 밀려 건너뛴 음성(TTS_MAX_QUEUE_WAIT_MS)은 구간 값이 없으므로 표에서 뺀다.
+    audios = [r for r in all_audios if not r.get("skipped")]
+    skipped_audios = len(all_audios) - len(audios)
 
-    if not captions and not audios:
+    if not captions and not all_audios:
         print("집계할 레코드가 없다. LATENCY_LOG_PATH 를 켜고 세션을 돌렸는지 확인할 것.", file=sys.stderr)
         return 1
 
@@ -174,7 +177,8 @@ def main() -> int:
         "# UniVoice 실시간 지연 실측",
         "",
         f"- 입력: `{args.input}`",
-        f"- 자막 세그먼트 {len(captions)}건 / 음성 잡 {len(audios)}건",
+        f"- 자막 세그먼트 {len(captions)}건 / 음성 잡 {len(audios)}건"
+        + (f" (밀려서 건너뜀 {skipped_audios}건 별도)" if skipped_audios else ""),
         "- 시간 기준: `time.monotonic()`, 워커 프로세스 내부 계측",
         "- \"발화 종료\"는 STT 오디오 타임라인(offset+duration)으로 역산한 시각이다.",
         "  학생 단말의 렌더링·재생 지연은 포함하지 않는다.",

@@ -35,6 +35,11 @@ DEFAULT_SEGMENT_IDLE_FLUSH_MS = 1200
 DEFAULT_SEGMENT_MIN_CHARS = 2
 # TrueText 가 구두점을 못 붙인 무구두점 발화를 종결어미("~습니다" 등)에서 끊는다.
 DEFAULT_SEGMENT_SPLIT_KOREAN_ENDINGS = True
+# STT final 이 연결어미(-는데, -지만, 쉼표 붙은 -고/-면 ...)에서 끝나면 다음 final 이나
+# idle flush 를 기다리지 않고 그 절을 바로 번역한다. 번역 단위가 짧아지는 트레이드오프가
+# 있어 기본은 끔. 이보다 짧은 절은 다음 절과 합친다.
+DEFAULT_SEGMENT_SPLIT_KOREAN_CLAUSES = False
+DEFAULT_SEGMENT_KOREAN_CLAUSE_MIN_CHARS = 20
 
 # ── STT 인식 튜닝 (Azure 기본값이 아니라 한국어 강의용으로 조정한 값) ──
 DEFAULT_STT_SEGMENTATION_SILENCE_MS = 800
@@ -52,6 +57,10 @@ DEFAULT_TRANSLATE_TIMEOUT_SEC = 8.0
 DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
 # 세션 시작 시 번역/TTS 클라이언트 예열 상한. 예열이 늘어져도 ready 가 이 이상 밀리지 않는다.
 DEFAULT_WARMUP_TIMEOUT_SEC = 3.0
+# 말하는 도중의 STT partial 을 주기적으로 번역해 학생 화면에 임시 자막(caption.partial)으로
+# 먼저 보여 준다. 번역 호출이 발화마다 몇 번 더 늘어나므로(비용) 기본은 끔.
+DEFAULT_CAPTION_DRAFT_INTERVAL_MS = 1000
+DEFAULT_CAPTION_DRAFT_MIN_CHARS = 6
 DEFAULT_RAG_ASSETS_DIR = "rag_assets"
 DEFAULT_SEGMENT_QUEUE_MAX_SIZE = 100
 DEFAULT_SEGMENT_ENQUEUE_TIMEOUT_MS = 250
@@ -62,6 +71,11 @@ DEFAULT_TTS_MAX_CONCURRENCY = 3
 DEFAULT_TTS_QUEUE_MAX_SIZE = 100
 DEFAULT_TTS_DEDUPE_TTL_SEC = 3600
 DEFAULT_TTS_FAILED_DEDUPE_TTL_SEC = 30
+# TTS 큐에 들어온 뒤 이만큼 재생 차례를 기다렸고 뒤에 새 문장이 기다리면 그 음성은 건너뛴다.
+# 밀리지 않으면 대기는 거의 0 이고, 밀린 실측(2026-09-26)은 2.5~7.9초였다. 0=끔.
+DEFAULT_TTS_MAX_QUEUE_WAIT_MS = 3000
+# 말하기 속도 배율 (Azure prosody rate, 0.5 ~ 2.0). 1.0 이면 기존 plain text 합성.
+DEFAULT_TTS_SPEAKING_RATE = 1.0
 DEFAULT_STT_MAX_RECONNECTS = 3
 
 # ── 세션 종료 타임아웃 ────────────────────────────────────────────────
@@ -117,6 +131,8 @@ class WorkerConfig:
     segment_idle_flush_ms: int = DEFAULT_SEGMENT_IDLE_FLUSH_MS
     segment_min_chars: int = DEFAULT_SEGMENT_MIN_CHARS
     segment_split_korean_endings: bool = DEFAULT_SEGMENT_SPLIT_KOREAN_ENDINGS
+    segment_split_korean_clauses: bool = DEFAULT_SEGMENT_SPLIT_KOREAN_CLAUSES
+    segment_korean_clause_min_chars: int = DEFAULT_SEGMENT_KOREAN_CLAUSE_MIN_CHARS
     segment_queue_max_size: int = DEFAULT_SEGMENT_QUEUE_MAX_SIZE
     segment_enqueue_timeout_ms: int = DEFAULT_SEGMENT_ENQUEUE_TIMEOUT_MS
     tts_timeout_sec: float = DEFAULT_TTS_TIMEOUT_SEC
@@ -130,6 +146,9 @@ class WorkerConfig:
     tts_streaming: bool = True
     # 앞 job 재생 중에 같은 로케일의 다음 job 합성을 미리 시작
     tts_prefetch: bool = True
+    # 재생이 밀린 음성 건너뛰기 상한 (0=끔)
+    tts_max_queue_wait_ms: int = DEFAULT_TTS_MAX_QUEUE_WAIT_MS
+    tts_speaking_rate: float = DEFAULT_TTS_SPEAKING_RATE
     session_stop_timeout_sec: float = DEFAULT_SESSION_STOP_TIMEOUT_SEC
     pipeline_flush_timeout_sec: float = DEFAULT_PIPELINE_FLUSH_TIMEOUT_SEC
     tts_flush_timeout_sec: float = DEFAULT_TTS_FLUSH_TIMEOUT_SEC
@@ -163,6 +182,9 @@ class WorkerConfig:
     # 세션 시작 시 번역/TTS 연결 예열 (첫 세그먼트 지연 제거). 실패해도 세션은 시작된다.
     warmup_enabled: bool = True
     warmup_timeout_sec: float = DEFAULT_WARMUP_TIMEOUT_SEC
+    caption_draft_enabled: bool = False
+    caption_draft_interval_ms: int = DEFAULT_CAPTION_DRAFT_INTERVAL_MS
+    caption_draft_min_chars: int = DEFAULT_CAPTION_DRAFT_MIN_CHARS
     rag_enabled: bool = False
     rag_url: str = ""
     rag_default_major: str = "auto"
@@ -206,6 +228,13 @@ def _load_float(name: str, default: float, *, min_value: float = 0.001) -> float
         raise SystemExit(f"{name} must be a number: {raw!r}") from exc
     if value < min_value:
         raise SystemExit(f"{name} must be >= {min_value} (current: {value})")
+    return value
+
+
+def _load_speaking_rate() -> float:
+    value = _load_float("TTS_SPEAKING_RATE", DEFAULT_TTS_SPEAKING_RATE, min_value=0.5)
+    if value > 2.0:
+        raise SystemExit(f"TTS_SPEAKING_RATE must be <= 2.0 (current: {value})")
     return value
 
 
@@ -289,6 +318,12 @@ def load_config() -> WorkerConfig:
         segment_split_korean_endings=_load_bool(
             "SEGMENT_SPLIT_KOREAN_ENDINGS", DEFAULT_SEGMENT_SPLIT_KOREAN_ENDINGS
         ),
+        segment_split_korean_clauses=_load_bool(
+            "SEGMENT_SPLIT_KOREAN_CLAUSES", DEFAULT_SEGMENT_SPLIT_KOREAN_CLAUSES
+        ),
+        segment_korean_clause_min_chars=_load_int(
+            "SEGMENT_KOREAN_CLAUSE_MIN_CHARS", DEFAULT_SEGMENT_KOREAN_CLAUSE_MIN_CHARS
+        ),
         segment_queue_max_size=_load_int("SEGMENT_QUEUE_MAX_SIZE", DEFAULT_SEGMENT_QUEUE_MAX_SIZE),
         segment_enqueue_timeout_ms=_load_int(
             "SEGMENT_ENQUEUE_TIMEOUT_MS", DEFAULT_SEGMENT_ENQUEUE_TIMEOUT_MS
@@ -306,6 +341,10 @@ def load_config() -> WorkerConfig:
         ),
         tts_streaming=_load_bool("TTS_STREAMING", True),
         tts_prefetch=_load_bool("TTS_PREFETCH", True),
+        tts_max_queue_wait_ms=_load_int(
+            "TTS_MAX_QUEUE_WAIT_MS", DEFAULT_TTS_MAX_QUEUE_WAIT_MS, min_value=0
+        ),
+        tts_speaking_rate=_load_speaking_rate(),
         session_stop_timeout_sec=_load_float(
             "SESSION_STOP_TIMEOUT_SEC", DEFAULT_SESSION_STOP_TIMEOUT_SEC
         ),
@@ -356,6 +395,13 @@ def load_config() -> WorkerConfig:
         translate_streaming=_load_bool("TRANSLATE_STREAMING", True),
         warmup_enabled=_load_bool("WARMUP_ENABLED", True),
         warmup_timeout_sec=_load_float("WARMUP_TIMEOUT_SEC", DEFAULT_WARMUP_TIMEOUT_SEC),
+        caption_draft_enabled=_load_bool("CAPTION_DRAFT_ENABLED", False),
+        caption_draft_interval_ms=_load_int(
+            "CAPTION_DRAFT_INTERVAL_MS", DEFAULT_CAPTION_DRAFT_INTERVAL_MS, min_value=200
+        ),
+        caption_draft_min_chars=_load_int(
+            "CAPTION_DRAFT_MIN_CHARS", DEFAULT_CAPTION_DRAFT_MIN_CHARS
+        ),
         rag_enabled=_load_bool("RAG_ENABLED"),
         rag_url=os.environ.get("RAG_URL", "http://rag-service:8000"),
         rag_default_major=os.environ.get("RAG_DEFAULT_MAJOR", "auto").lower(),

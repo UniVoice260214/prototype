@@ -6,6 +6,7 @@ import asyncio
 import logging
 import threading
 from typing import Any, Callable
+from xml.sax.saxutils import escape, quoteattr
 
 try:  # pragma: no cover - the SDK is supplied in production, faked in tests
     import azure.cognitiveservices.speech as speechsdk
@@ -24,6 +25,10 @@ DEFAULT_TTS_MAX_CONCURRENCY = 3
 # 스트리밍 합성 시 한 번에 읽는 PCM 크기: 16kHz 16bit mono 에서 100ms.
 # 오디오 프레임(10ms = 320B)의 배수여야 publisher 가 중간에 무음 패딩을 넣지 않는다.
 STREAM_CHUNK_BYTES = 3200
+# 말하기 속도 배율. Azure prosody rate 가 허용하는 범위(0.5x ~ 2x).
+DEFAULT_TTS_SPEAKING_RATE = 1.0
+MIN_TTS_SPEAKING_RATE = 0.5
+MAX_TTS_SPEAKING_RATE = 2.0
 
 ChunkSink = Callable[[bytes], None]
 
@@ -71,9 +76,13 @@ class TtsSynthesizer:
         retry_base_delay_ms: int = DEFAULT_TTS_RETRY_BASE_DELAY_MS,
         max_concurrency: int = DEFAULT_TTS_MAX_CONCURRENCY,
         streaming: bool = True,
+        speaking_rate: float = DEFAULT_TTS_SPEAKING_RATE,
     ) -> None:
         self._key = key
         self._streaming = streaming
+        self._speaking_rate = min(
+            MAX_TTS_SPEAKING_RATE, max(MIN_TTS_SPEAKING_RATE, speaking_rate)
+        )
         self._region = region
         self._voice_map = voice_map
         self._timeout_sec = max(0.001, timeout_sec)
@@ -143,6 +152,18 @@ class TtsSynthesizer:
         connection.open(True)
         self._connections[locale] = connection
 
+    def _ssml(self, locale: str, text: str) -> str | None:
+        """말하기 속도를 바꿀 때만 SSML 을 만든다. 기본 속도면 None (plain text 경로)."""
+        if self._speaking_rate == DEFAULT_TTS_SPEAKING_RATE:
+            return None
+        voice = self._voice_map.get(locale, "")
+        percent = round((self._speaking_rate - 1) * 100)
+        return (
+            "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' "
+            f"xml:lang={quoteattr(locale)}><voice name={quoteattr(voice)}>"
+            f"<prosody rate='{percent:+d}%'>{escape(text)}</prosody></voice></speak>"
+        )
+
     def synthesize(self, locale: str, text: str) -> bytes:
         """Blocking Azure synthesis. Raises TtsException on typed failure."""
         if not text or not text.strip():
@@ -150,7 +171,11 @@ class TtsSynthesizer:
 
         try:
             synth = self._get(locale)
-            result = synth.speak_text_async(text).get()
+            ssml = self._ssml(locale, text)
+            if ssml is None:
+                result = synth.speak_text_async(text).get()
+            else:
+                result = synth.speak_ssml_async(ssml).get()
         except TtsException:
             raise
         except Exception as exc:  # noqa: BLE001
@@ -306,7 +331,11 @@ class TtsSynthesizer:
                 return
             try:
                 synth = self._get(locale)
-                result = synth.start_speaking_text_async(text).get()
+                ssml = self._ssml(locale, text)
+                if ssml is None:
+                    result = synth.start_speaking_text_async(text).get()
+                else:
+                    result = synth.start_speaking_ssml_async(ssml).get()
             except TtsException:
                 raise
             except Exception as exc:  # noqa: BLE001

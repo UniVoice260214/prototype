@@ -139,6 +139,7 @@ async def main_async(args: argparse.Namespace) -> int:
             retry_base_delay_ms=config.tts_retry_base_delay_ms,
             max_concurrency=config.tts_max_concurrency,
             streaming=config.tts_streaming,
+            speaking_rate=config.tts_speaking_rate,
         )
     )
 
@@ -159,6 +160,8 @@ async def main_async(args: argparse.Namespace) -> int:
             idle_flush_ms=config.segment_idle_flush_ms,
             min_chars=config.segment_min_chars,
             split_korean_endings=config.segment_split_korean_endings,
+            split_korean_clauses=config.segment_split_korean_clauses,
+            korean_clause_min_chars=config.segment_korean_clause_min_chars,
         ),
         rag=rag,
         translator=translator,
@@ -171,6 +174,7 @@ async def main_async(args: argparse.Namespace) -> int:
         tts_queue_max_size=config.tts_queue_max_size,
         translate_max_concurrency=config.translate_max_concurrency,
         tts_prefetch=config.tts_prefetch,
+        tts_max_queue_wait_ms=config.tts_max_queue_wait_ms,
     )
     await pipeline.start()
 

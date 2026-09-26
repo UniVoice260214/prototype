@@ -339,6 +339,24 @@ class Translator:
             self._release_history(entry)
         return result
 
+    async def translate_draft(
+        self,
+        partial: str,
+        on_locale: LocaleCallback | None = None,
+    ) -> dict[str, str]:
+        """말하는 도중의 STT partial 을 임시 자막용으로 번역한다.
+
+        확정 번역과 달리 history 에 자리를 잡지 않는다 — 곧 바뀔 partial 이 문맥에
+        남으면 뒤 문장 번역을 오염시킨다. 직전 확정 문맥과 용어 힌트는 읽기만 하고,
+        RAG 는 쓰지 않는다(임시 자막은 빨라야 한다).
+        """
+        user_content = self._build_user_content(
+            partial, None, self.detect_glossary_hits(partial)
+        )
+        if self._streaming:
+            return await self._request_stream(user_content, on_locale, None)
+        return await self._request(user_content)
+
     async def warmup(self) -> None:
         """세션 시작 시 한 번, 실제 번역과 같은 schema/system prompt 로 더미 호출.
 
