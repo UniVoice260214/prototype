@@ -90,6 +90,12 @@ Pipeline tuning:
 - `SEGMENT_MAX_CHARS`
 - `SEGMENT_IDLE_FLUSH_MS`
 - `SEGMENT_MIN_CHARS`
+- `SEGMENT_SPLIT_KOREAN_CLAUSES` (default false), `SEGMENT_KOREAN_CLAUSE_MIN_CHARS`
+  (default 20): also cut at Korean clause-final connectives (-는데, -지만, -면서,
+  or -고/-면/-서 followed by a comma), including at the end of an STT final, so a
+  final that stops mid-sentence is translated right away instead of waiting for
+  the next final or the idle flush. Clauses shorter than the minimum merge into
+  the next one. Most useful together with a shorter `STT_SEGMENTATION_SILENCE_MS`
 - `SEGMENT_QUEUE_MAX_SIZE`
 - `SEGMENT_ENQUEUE_TIMEOUT_MS`
 - `TRANSLATE_TIMEOUT_SEC`
@@ -101,6 +107,13 @@ Pipeline tuning:
 - `WARMUP_ENABLED` (default true), `WARMUP_TIMEOUT_SEC` (default 3): warm up the
   translation and TTS clients in parallel before the worker reports `ready`;
   failures are logged and never block the session
+- `CAPTION_DRAFT_ENABLED` (default false), `CAPTION_DRAFT_INTERVAL_MS` (default
+  1000), `CAPTION_DRAFT_MIN_CHARS` (default 6): while the professor is still
+  speaking, translate the STT partial at most once per interval (one request in
+  flight, latest partial wins) and publish it as `caption.partial` with a
+  monotonically increasing `draftSeq`. The student screen shows it as a dimmed
+  draft line that the next `caption.final` replaces. No TTS is produced for
+  drafts. Adds a few translation calls per utterance
 - `TTS_TIMEOUT_SEC`
 - `TTS_MAX_RETRIES`
 - `TTS_RETRY_BASE_DELAY_MS`
@@ -113,6 +126,13 @@ Pipeline tuning:
   synthesis when the Speech SDK lacks streaming support
 - `TTS_PREFETCH` (default true): start synthesizing the next job of a locale
   while the previous one is playing (publishing order is unchanged)
+- `TTS_MAX_QUEUE_WAIT_MS` (default 3000, 0 = off): when a job has waited in the
+  TTS queue longer than this for its turn to play and a newer job of the same locale is
+  already waiting, skip its audio (`audio.failed` / `TTS_SKIPPED_STALE`; the
+  caption was already sent). Stops translated audio, which runs longer than the
+  source speech, from falling further and further behind the lecture
+- `TTS_SPEAKING_RATE` (default 1.0, range 0.5–2.0): speaking-rate multiplier
+  applied through SSML `<prosody rate>`; 1.0 keeps the plain-text synthesis path
 - `STT_MAX_RECONNECTS`
 - `STT_RECONNECT_BASE_DELAY_MS`
 - `WORKER_STATUS_TTL_SEC`

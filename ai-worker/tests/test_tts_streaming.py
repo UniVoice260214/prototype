@@ -463,3 +463,87 @@ async def test_queue_with_real_synthesizer_pushes_chunks(monkeypatch: pytest.Mon
 
     assert [len(p[2]) for p in publisher.pushes] == [3200, 3200, 320]
     assert kinds(statuses)[-1] == ("audio.completed", 1, None)
+
+
+# ── 말하기 속도 (SSML prosody rate) ───────────────────────────────────────
+
+
+class RateRecordingSynth(FakeSynth):
+    """plain text / SSML 중 어느 경로로 합성했는지 기록한다."""
+
+    def __init__(self, script: list[Any]) -> None:
+        super().__init__(script)
+        self.texts: list[str] = []
+        self.ssml: list[str] = []
+
+    def start_speaking_text_async(self, text: str) -> Any:
+        self.texts.append(text)
+        return super().start_speaking_text_async(text)
+
+    def start_speaking_ssml_async(self, ssml: str) -> Any:
+        self.ssml.append(ssml)
+        return super().start_speaking_text_async(ssml)
+
+    def speak_text_async(self, text: str) -> Any:
+        self.texts.append(text)
+        return SimpleNamespace(get=lambda: completed(b"\x01" * 320))
+
+    def speak_ssml_async(self, ssml: str) -> Any:
+        self.ssml.append(ssml)
+        return SimpleNamespace(get=lambda: completed(b"\x01" * 320))
+
+
+def completed(data: bytes) -> Any:
+    return SimpleNamespace(reason=FakeSdk.ResultReason.SynthesizingAudioCompleted, audio_data=data)
+
+
+def make_rate_synth(monkeypatch: pytest.MonkeyPatch, speaking_rate: float):
+    monkeypatch.setattr(tts_module, "speechsdk", FakeSdk)
+    synth = TtsSynthesizer(
+        "key", "region", {"vi-VN": "vi-VN-HoaiMyNeural"}, speaking_rate=speaking_rate
+    )
+    fake = RateRecordingSynth([started(b"\x01" * 320)])
+    monkeypatch.setattr(synth, "_get", lambda locale: fake)
+    return synth, fake
+
+
+@pytest.mark.asyncio
+async def test_default_speaking_rate_keeps_plain_text_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    synth, fake = make_rate_synth(monkeypatch, 1.0)
+
+    await synth.stream_job(job(1, text="xin chao"), lambda chunk: None)
+
+    assert fake.texts == ["xin chao"]
+    assert fake.ssml == []
+
+
+@pytest.mark.asyncio
+async def test_speaking_rate_streams_through_ssml_prosody(monkeypatch: pytest.MonkeyPatch) -> None:
+    synth, fake = make_rate_synth(monkeypatch, 1.2)
+
+    await synth.stream_job(job(1, text="A & B <c>"), lambda chunk: None)
+
+    assert fake.texts == []
+    assert len(fake.ssml) == 1
+    ssml = fake.ssml[0]
+    assert "<prosody rate='+20%'>" in ssml
+    assert "name='vi-VN-HoaiMyNeural'" in ssml
+    assert "xml:lang='vi-VN'" in ssml
+    # 번역문 안의 &, < 가 SSML 을 깨지 않게 이스케이프한다.
+    assert "A &amp; B &lt;c&gt;" in ssml
+
+
+def test_speaking_rate_applies_to_whole_utterance_synthesis(monkeypatch: pytest.MonkeyPatch) -> None:
+    synth, fake = make_rate_synth(monkeypatch, 0.9)
+
+    assert synth.synthesize("vi-VN", "xin chao") == b"\x01" * 320
+    assert fake.texts == []
+    assert "<prosody rate='-10%'>xin chao</prosody>" in fake.ssml[0]
+
+
+def test_speaking_rate_is_clamped_to_azure_range(monkeypatch: pytest.MonkeyPatch) -> None:
+    fast, _ = make_rate_synth(monkeypatch, 5.0)
+    slow, _ = make_rate_synth(monkeypatch, 0.1)
+
+    assert "rate='+100%'" in (fast._ssml("vi-VN", "x") or "")
+    assert "rate='-50%'" in (slow._ssml("vi-VN", "x") or "")

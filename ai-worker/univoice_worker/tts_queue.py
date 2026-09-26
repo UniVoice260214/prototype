@@ -9,6 +9,10 @@
   시작한다(선합성). 발행은 여전히 앞 job 이 끝난 뒤에만 시작한다.
 - 스트리밍을 지원하지 않는 합성기(테스트 fake 등)는 기존처럼 한 번에 합성해
   한 번에 push 한다.
+- 번역 음성은 원문 발화보다 길어서, 교수가 쉬지 않고 말하면 재생 대기열이 계속
+  쌓인다. 큐에 들어온 뒤 max_queue_wait_ms 넘게 재생 차례를 기다린 job 은 뒤에 더
+  새로운 job 이 기다리고 있으면 음성을 건너뛴다(자막은 이미 나갔다). 뒤에
+  기다리는 job 이 없으면 늦었어도 재생한다 — 그 재생은 아무것도 밀어내지 않는다.
 """
 
 from __future__ import annotations
@@ -75,8 +79,11 @@ class LocaleTtsQueue:
         flush_timeout_sec: float = 3.0,
         latency_log: LatencyLog | None = None,
         prefetch: bool = True,
+        max_queue_wait_ms: int = 0,
     ) -> None:
         self._prefetch = prefetch
+        # 0 이하면 건너뛰기를 하지 않는다.
+        self._max_queue_wait = max(0, max_queue_wait_ms) / 1000
         self._locales = list(locales)
         self._locale_set = set(locales)
         self._tts = tts
@@ -223,7 +230,17 @@ class LocaleTtsQueue:
                 try:
                     if item is None:
                         return
+                    # 합성 전에 걸러 Azure 호출을 아낀다.
+                    if prepare_task is None and self._is_stale(item) and not queue.empty():
+                        await self._skip_stale(item)
+                        continue
                     prepared = await (prepare_task or self._prepare(item))
+                    if prepared.skip is None and self._is_stale(item) and not queue.empty():
+                        # 선합성으로 이미 합성이 시작된 job — 합성을 멈추고 dedupe 락을 푼다.
+                        prepared.cancel()
+                        await self._dedupe.mark_failed(prepared.key)
+                        await self._skip_stale(item)
+                        continue
                     await self._play(prepared, on_playback_start=prefetch)
                 except Exception:  # noqa: BLE001
                     logger.exception("TTS job handling failed unexpectedly (locale=%s)", locale)
@@ -238,6 +255,40 @@ class LocaleTtsQueue:
                     else:
                         next_task.cancel()
                 queue.task_done()
+
+    def _is_stale(self, job: TtsJob) -> bool:
+        """큐에 들어온 뒤 max_queue_wait 넘게 재생 차례를 기다렸는가.
+
+        speech_end_at(발화 종료)이 아니라 enqueued_at 을 기준으로 한다. speech_end_at 은
+        STT 오디오 타임라인으로 역산한 값이라 마이크가 잠깐 끊기면(음소거 등) 과거로
+        밀려, 그 뒤로는 모든 job 이 밀린 것처럼 보인다. enqueued_at 은 워커 시계다.
+        """
+        if self._max_queue_wait <= 0 or job.enqueued_at is None:
+            return False
+        return time.monotonic() - job.enqueued_at > self._max_queue_wait
+
+    async def _skip_stale(self, job: TtsJob) -> None:
+        wait_ms = elapsed_ms(job.enqueued_at, time.monotonic())
+        logger.info(
+            "[%s] TTS(%s) 재생 차례를 %.0fms 기다려 세그먼트 %s 음성을 건너뛴다",
+            job.session_id,
+            job.locale,
+            wait_ms or 0.0,
+            job.segment_id,
+        )
+        # 학생 화면은 audio.failed 를 "음성 없이 자막만 제공"으로 표시한다.
+        await self._emit_failed(job, "TTS_SKIPPED_STALE")
+        if self._latency.enabled:
+            self._latency.record(
+                "audio",
+                sessionId=job.session_id,
+                segmentId=job.segment_id,
+                sequence=job.sequence,
+                locale=job.locale,
+                chars=len(job.text),
+                skipped=True,
+                ttsQueueMs=wait_ms,
+            )
 
     async def _prepare(self, job: TtsJob) -> _PreparedJob:
         """dedupe 확인 후 합성을 시작한다. 발행은 하지 않는다."""

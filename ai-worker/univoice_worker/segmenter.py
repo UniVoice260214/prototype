@@ -34,6 +34,24 @@ _KO_SENTENCE_END = re.compile(
 # \ubc88\uc5ed \ubb38\ub9e5\uc774 \uc0ac\ub77c\uc838 \uc624\ud788\ub824 \ud488\uc9c8\uc774 \ub5a8\uc5b4\uc9c4\ub2e4.
 KOREAN_ENDING_MIN_CHARS = 12
 
+# \uc808(clause) \uacbd\uacc4: \uc5f0\uacb0\uc5b4\ubbf8. \uc885\uacb0\uc5b4\ubbf8 \ubd84\ub9ac\uc640 \ubcc4\uac1c\uc778 \uc635\uc158\uc774\ub2e4(\uae30\ubcf8 \ub054).
+# STT final \uc774 \ubb38\uc7a5 \ub3c4\uc911(\uc5f0\uacb0\uc5b4\ubbf8)\uc5d0\uc11c \ub05d\ub098\uba74 \uc9c0\uae08\uc740 \uadf8 \uc870\uac01\uc774 \ub2e4\uc74c final \uc774\ub098
+# idle flush \ub97c \uae30\ub2e4\ub9b0\ub2e4. \uad50\uc218\uac00 \uc808 \uacbd\uacc4\uc5d0\uc11c \uc7a0\uae50 \uc270 \uac83\uc774\ubbc0\ub85c \ubc14\ub85c \ubc88\uc5ed\uc73c\ub85c \ub118\uae34\ub2e4.
+# \uc5f0\uacb0\uc5b4\ubbf8\ub85c \ub05d\ub098\ub294 \uc808\uc740 \uc870\uac74\u00b7\ubd80\uc815\uc774 \uadf8 \uc548\uc5d0\uc11c \ub05d\ub098 \ub2e8\ub3c5 \ubc88\uc5ed\uc774 \ube44\uad50\uc801 \uc548\uc804\ud558\ub2e4.
+# - \uc27c\ud45c\uac00 \ubd99\uc73c\uba74 \ud754\ud55c \uc5f0\uacb0\uc5b4\ubbf8(-\uace0, -\uba74, -\uc11c ...)\ub3c4 \uacbd\uacc4\ub85c \ubcf8\ub2e4.
+# - \uc27c\ud45c\uac00 \uc5c6\uc73c\uba74 \uc624\ud0d0\uc774 \uc801\uc740 \uac83\ub9cc(-\ub294\ub370, -\uc9c0\ub9cc, -\uba74\uc11c ...) \uacf5\ubc31\uc774\ub098 \ubc84\ud37c \ub05d\uc5d0\uc11c \ubcf8\ub2e4.
+#   "-\uc9c0\ub9cc\uc740" \ucc98\ub7fc \ub4a4\uc5d0 \uae00\uc790\uac00 \ubd99\uc740 \ud615\ud0dc\ub294 \ub9e4\uce6d\ub418\uc9c0 \uc54a\ub294\ub2e4.
+_KO_CLAUSE_END = re.compile(
+    r"[\uac00-\ud7a3](?:"
+    r"(?:\ub294\ub370|\uc740\ub370|\uc9c0\ub9cc|\ub2c8\uae4c|\uba74\uc11c|\ubbc0\ub85c"
+    r"|\ub3c4\ub85d|\uac70\ub098|\uace0|\uba70|\uba74|\uc11c)\s*,"
+    r"|(?:\ub294\ub370|\uc740\ub370|\uc9c0\ub9cc|\ub2c8\uae4c|\uba74\uc11c|\ubbc0\ub85c)(?=\s|$)"
+    r")"
+)
+
+# \uc808 \ub2e8\uc704\ub294 \ubb38\uc7a5\ubcf4\ub2e4 \uc9e7\uc544 \ubc88\uc5ed \ubb38\ub9e5\uc774 \uc27d\uac8c \uc0ac\ub77c\uc9c4\ub2e4. \uc774\ubcf4\ub2e4 \uc9e7\uc740 \uc808\uc740 \ub2e4\uc74c \uc808\uacfc \ud569\uce5c\ub2e4.
+KOREAN_CLAUSE_MIN_CHARS = 20
+
 
 def _split_korean_endings(text: str, min_chars: int) -> tuple[list[str], str]:
     """Split unpunctuated Korean text at sentence-final endings followed by space."""
@@ -45,6 +63,18 @@ def _split_korean_endings(text: str, min_chars: int) -> tuple[list[str], str]:
             sentences.append(candidate)
             last_end = match.end()
     return sentences, text[last_end:].strip()
+
+
+def _split_korean_clauses(text: str, min_chars: int) -> tuple[list[str], str]:
+    """Split Korean text at clause-final connective endings (see _KO_CLAUSE_END)."""
+    clauses: list[str] = []
+    last_end = 0
+    for match in _KO_CLAUSE_END.finditer(text):
+        candidate = text[last_end : match.end()].strip()
+        if len(candidate) >= min_chars:
+            clauses.append(candidate)
+            last_end = match.end()
+    return clauses, text[last_end:].strip()
 
 
 @dataclass(frozen=True)
@@ -65,6 +95,8 @@ def split_completed_sentences(
     *,
     korean_endings: bool = False,
     korean_ending_min_chars: int = KOREAN_ENDING_MIN_CHARS,
+    korean_clauses: bool = False,
+    korean_clause_min_chars: int = KOREAN_CLAUSE_MIN_CHARS,
 ) -> tuple[list[str], str]:
     """Return completed sentences and the unfinished remainder."""
     sentences: list[str] = []
@@ -77,6 +109,9 @@ def split_completed_sentences(
     remainder = text[last_end:].strip()
     if korean_endings and remainder:
         more, remainder = _split_korean_endings(remainder, korean_ending_min_chars)
+        sentences.extend(more)
+    if korean_clauses and remainder:
+        more, remainder = _split_korean_clauses(remainder, korean_clause_min_chars)
         sentences.extend(more)
     return sentences, remainder
 
@@ -108,6 +143,8 @@ class Segmenter:
         min_chars: int = 2,
         split_korean_endings: bool = False,
         korean_ending_min_chars: int = KOREAN_ENDING_MIN_CHARS,
+        split_korean_clauses: bool = False,
+        korean_clause_min_chars: int = KOREAN_CLAUSE_MIN_CHARS,
         clock: Callable[[], float] | None = None,
     ) -> None:
         self._max_chars = max(max_chars, min_chars)
@@ -115,6 +152,8 @@ class Segmenter:
         self._min_chars = min_chars
         self._split_korean_endings = split_korean_endings
         self._korean_ending_min_chars = korean_ending_min_chars
+        self._split_korean_clauses = split_korean_clauses
+        self._korean_clause_min_chars = korean_clause_min_chars
         self._clock = clock or time.monotonic
         self._buffer = ""
         self._confidences: list[float] = []
@@ -176,6 +215,8 @@ class Segmenter:
             self._buffer,
             korean_endings=self._split_korean_endings,
             korean_ending_min_chars=self._korean_ending_min_chars,
+            korean_clauses=self._split_korean_clauses,
+            korean_clause_min_chars=self._korean_clause_min_chars,
         )
         if not sentences:
             return []

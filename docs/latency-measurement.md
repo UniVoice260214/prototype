@@ -54,6 +54,7 @@
 | `ttsPublishMs` | 합성 종료 → push 완료 (스트리밍이면 대부분 합성과 겹친다) |
 | `e2eFirstAudioMs` | 발화 종료 → 첫 오디오 청크 push — **학생이 듣기 시작하는 시점** |
 | `e2eAudioMs` | 발화 종료 → 오디오 push 완료 |
+| `skipped` | `true` 면 재생 차례를 `TTS_MAX_QUEUE_WAIT_MS` 넘게 기다려 음성을 건너뛴 잡. `ttsQueueMs`(기다린 시간)만 있고 나머지 구간은 없다. `latency_report.py` 는 표에서 빼고 건수만 따로 적는다 |
 
 ### 이전 측정값과 비교할 때 (2026-09 지연 개선 이후)
 

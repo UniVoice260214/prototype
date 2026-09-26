@@ -68,7 +68,7 @@
       "slide.empty": "No lecture materials to show", "slide.emptyHint": "Shared lecture materials will appear in this area.",
       "captions.title": "Live captions", "captions.autoscrollOn": "Auto-scroll on", "captions.autoscrollOff": "Auto-scroll off",
       "captions.jumpLatest": "↓ Jump to latest", "captions.reopen": "Show captions",
-      "caption.speaker": "Professor", "caption.fallback": "Translation failed — showing original",
+      "caption.speaker": "Professor", "caption.fallback": "Translation failed — showing original", "caption.draft": "Live translation…",
       "audio.unlock": "🔊 Tap to enable sound", "audio.muted": "Sound is off — tap the button on screen",
       "slide.loading": "Loading material…",
     },
@@ -122,7 +122,7 @@
       "slide.empty": "表示する講義資料がありません", "slide.emptyHint": "講義資料が共有されるとこの領域に表示されます。",
       "captions.title": "リアルタイム字幕", "captions.autoscrollOn": "自動スクロール オン", "captions.autoscrollOff": "自動スクロール オフ",
       "captions.jumpLatest": "↓ 最新の字幕へ", "captions.reopen": "字幕を開く",
-      "caption.speaker": "教授", "caption.fallback": "翻訳失敗 — 原文を表示",
+      "caption.speaker": "教授", "caption.fallback": "翻訳失敗 — 原文を表示", "caption.draft": "リアルタイム翻訳中…",
       "audio.unlock": "🔊 タップして音声をオン", "audio.muted": "音声がオフです — 画面のボタンをタップしてください",
       "slide.loading": "資料を読み込み中…",
     },
@@ -171,7 +171,7 @@
       "slide.empty": "暂无可显示的讲义资料", "slide.emptyHint": "讲义资料共享后将显示在此区域。",
       "captions.title": "实时字幕", "captions.autoscrollOn": "自动滚动 开", "captions.autoscrollOff": "自动滚动 关",
       "captions.jumpLatest": "↓ 跳到最新字幕", "captions.reopen": "打开字幕",
-      "caption.speaker": "教授", "caption.fallback": "翻译失败 — 显示原文",
+      "caption.speaker": "教授", "caption.fallback": "翻译失败 — 显示原文", "caption.draft": "实时翻译中…",
       "audio.unlock": "🔊 点按开启声音", "audio.muted": "声音已关闭 — 请点按屏幕上的按钮",
       "slide.loading": "正在加载资料…",
     },
@@ -220,7 +220,7 @@
       "slide.empty": "沒有可顯示的講義資料", "slide.emptyHint": "講義資料分享後會顯示在此區域。",
       "captions.title": "即時字幕", "captions.autoscrollOn": "自動捲動 開", "captions.autoscrollOff": "自動捲動 關",
       "captions.jumpLatest": "↓ 跳至最新字幕", "captions.reopen": "開啟字幕",
-      "caption.speaker": "教授", "caption.fallback": "翻譯失敗 — 顯示原文",
+      "caption.speaker": "教授", "caption.fallback": "翻譯失敗 — 顯示原文", "caption.draft": "即時翻譯中…",
       "audio.unlock": "🔊 點一下開啟聲音", "audio.muted": "聲音已關閉 — 請點一下畫面上的按鈕",
       "slide.loading": "正在載入資料…",
     },
@@ -274,7 +274,7 @@
       "slide.empty": "Chưa có tài liệu bài giảng để hiển thị", "slide.emptyHint": "Tài liệu được chia sẻ sẽ hiển thị ở khu vực này.",
       "captions.title": "Phụ đề trực tiếp", "captions.autoscrollOn": "Tự cuộn: bật", "captions.autoscrollOff": "Tự cuộn: tắt",
       "captions.jumpLatest": "↓ Đến phụ đề mới nhất", "captions.reopen": "Mở phụ đề",
-      "caption.speaker": "Giảng viên", "caption.fallback": "Dịch thất bại — hiển thị bản gốc",
+      "caption.speaker": "Giảng viên", "caption.fallback": "Dịch thất bại — hiển thị bản gốc", "caption.draft": "Đang dịch trực tiếp…",
       "audio.unlock": "🔊 Chạm để bật âm thanh", "audio.muted": "Âm thanh đang tắt — hãy chạm vào nút trên màn hình",
       "slide.loading": "Đang tải tài liệu…",
     },
@@ -328,7 +328,7 @@
       "slide.empty": "Харуулах хичээлийн материал алга", "slide.emptyHint": "Хичээлийн материал хуваалцмагц энд харагдана.",
       "captions.title": "Бодит цагийн хадмал", "captions.autoscrollOn": "Автомат гүйлгэлт асаалттай", "captions.autoscrollOff": "Автомат гүйлгэлт унтраалттай",
       "captions.jumpLatest": "↓ Хамгийн сүүлийн хадмал руу", "captions.reopen": "Хадмал нээх",
-      "caption.speaker": "Багш", "caption.fallback": "Орчуулга амжилтгүй — эх текстийг харуулж байна",
+      "caption.speaker": "Багш", "caption.fallback": "Орчуулга амжилтгүй — эх текстийг харуулж байна", "caption.draft": "Шууд орчуулж байна…",
       "audio.unlock": "🔊 Дуу асаахын тулд товшино уу", "audio.muted": "Дуу унтраалттай байна — дэлгэц дээрх товчийг товшино уу",
       "slide.loading": "Материал ачаалж байна…",
     },
@@ -382,7 +382,7 @@
       "slide.empty": "Немає матеріалів лекції для показу", "slide.emptyHint": "Надані матеріали лекції з'являться в цій області.",
       "captions.title": "Субтитри наживо", "captions.autoscrollOn": "Автопрокрутка увімкнена", "captions.autoscrollOff": "Автопрокрутка вимкнена",
       "captions.jumpLatest": "↓ До останніх субтитрів", "captions.reopen": "Показати субтитри",
-      "caption.speaker": "Викладач", "caption.fallback": "Переклад не вдався — показано оригінал",
+      "caption.speaker": "Викладач", "caption.fallback": "Переклад не вдався — показано оригінал", "caption.draft": "Перекладається наживо…",
       "audio.unlock": "🔊 Торкніться, щоб увімкнути звук", "audio.muted": "Звук вимкнено — торкніться кнопки на екрані",
       "slide.loading": "Завантаження матеріалу…",
     },
@@ -408,6 +408,7 @@
     sessionPublicInfo: null,
     // 서버가 보내는 sequence 로 시간 역행(늦게 도착한 패킷)을 막는다.
     lastCaptionSequence: 0,
+    lastDraftSeq: 0,
     lastProfSequence: 0,
     captionExpiryTimer: null,
     // 과목별 강의 자료 목록 (교수 화면)
@@ -1395,6 +1396,7 @@
       toast(t("msg.roomClosed", "강의실 연결이 종료되었습니다."));
     });
     state.lastCaptionSequence = 0;
+    state.lastDraftSeq = 0;
     await room.connect(liveKit.liveKitUrl, liveKit.token, { autoSubscribe: false });
     syncStudentSubscriptions(room);
   }
@@ -1414,13 +1416,26 @@
     }
     if (topic === "caption") {
       if (data.locale !== state.selectedStudentLocale) return;
-      if (data.type === "caption.partial") return;
+      if (data.type === "caption.partial") {
+        // 말하는 도중의 임시 번역 (워커 CAPTION_DRAFT_ENABLED). 비신뢰 채널이라
+        // 순서가 바뀔 수 있어 draftSeq 가 더 작은 늦은 패킷은 버린다.
+        if (typeof data.draftSeq === "number") {
+          if (data.draftSeq <= state.lastDraftSeq) return;
+          state.lastDraftSeq = data.draftSeq;
+        }
+        showDraftCaption(data.text, data.sourceKo);
+        return;
+      }
       // 서버가 sequence 를 보내는데 예전엔 클라이언트가 한 번도 읽지 않았다.
       // 늦게 도착한 패킷이 최신 자막을 덮어쓰지 않도록 막는다.
       if (typeof data.sequence === "number") {
         if (data.sequence <= state.lastCaptionSequence) return;
         state.lastCaptionSequence = data.sequence;
       }
+      // 확정 자막이 임시 자막을 대체한다. draftSeq 기준도 초기화한다 — 워커가
+      // 재시작(세션 복구)하면 draftSeq 가 1 부터 다시 시작하기 때문이다.
+      clearDraftCaption();
+      state.lastDraftSeq = 0;
       addCaption(data.text, data.sourceKo, { isFallback: Boolean(data.isFallback) });
       return;
     }
@@ -1491,6 +1506,43 @@
     while (captions.children.length > CAPTION_MAX_ITEMS) captions.firstElementChild.remove();
     if (studentScroller) studentScroller.onAppend();
     startCaptionExpiry();
+  }
+
+  // 임시 자막은 목록 맨 아래 한 칸을 계속 덮어쓴다. 기록(captionHistory)에는 남기지
+  // 않고, 매초 바뀌는 문장을 화면 낭독기가 읽지 않도록 aria-hidden 으로 둔다.
+  function showDraftCaption(text, sourceKo) {
+    if (!text) return;
+    const captions = $("captions");
+    const empty = captions.querySelector(".caption-empty");
+    if (empty) empty.remove();
+
+    let item = captions.querySelector(".caption.draft");
+    const isNew = !item;
+    if (isNew) {
+      item = document.createElement("div");
+      item.className = "caption draft";
+      item.setAttribute("aria-hidden", "true");
+      const meta = document.createElement("div");
+      meta.className = "caption-meta";
+      const label = document.createElement("span");
+      label.className = "speaker";
+      label.textContent = t("caption.draft", "실시간 번역 중…");
+      meta.appendChild(label);
+      const content = document.createElement("span");
+      content.className = "translated";
+      const source = document.createElement("span");
+      source.className = "source";
+      item.append(meta, content, source);
+    }
+    item.querySelector(".translated").textContent = text;
+    item.querySelector(".source").textContent = sourceKo || "";
+    if (item !== captions.lastElementChild) captions.appendChild(item);
+    if (isNew && studentScroller) studentScroller.onAppend();
+  }
+
+  function clearDraftCaption() {
+    const item = $("captions").querySelector(".caption.draft");
+    if (item) item.remove();
   }
 
   // 학생 자막(#captions)과 교수 원문 목록(#professor-transcript)을 함께 정리한다.
@@ -1567,6 +1619,7 @@
     stopStudentMaterials();
     renderRecentHistory(state.captionHistory);
     state.lastCaptionSequence = 0;
+    state.lastDraftSeq = 0;
     state.studentSessionId = "";
     state.captionHistory = [];
     if ($("history-dialog").open) $("history-dialog").close();
