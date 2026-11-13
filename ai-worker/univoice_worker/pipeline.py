@@ -30,6 +30,14 @@ Corrector = Callable[[str], tuple[str, int]]
 QueueItem = SpeechSegment | None
 
 DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
+# 번역 실패(예외 또는 빈 번역) 시 재요청 횟수. 0 이면 예전처럼 바로 원문 폴백.
+DEFAULT_TRANSLATE_MAX_RETRIES = 1
+DEFAULT_TRANSLATE_RETRY_DELAY_MS = 300
+# 재요청 한 번의 상한. 첫 요청이 타임아웃으로 이미 오래 걸렸을 수 있으므로 짧게 둔다.
+# 재요청 중에도 뒤 세그먼트는 병렬로 번역되며, 이 세그먼트가 끝나는 즉시 순서대로 나간다.
+DEFAULT_TRANSLATE_RETRY_TIMEOUT_SEC = 4.0
+# 다시 보내도 결과가 같은 오류 (잘못된 요청·인증·모델 없음) — 재요청하지 않는다.
+_NON_RETRYABLE_STATUS = frozenset({400, 401, 403, 404})
 
 
 @dataclass
@@ -53,6 +61,9 @@ class _SegmentWork:
     t_first_token: float | None = None
     t_translate: float | None = None
     locale_ready_at: dict[str, float] = field(default_factory=dict)
+    translate_attempts: int = 0
+    # 재요청까지 실패했을 때의 마지막 원인 (timeout / rate_limit / empty / ...). 성공이면 None.
+    translate_failure: str | None = None
 
 
 EmitItem = _SegmentWork | None
@@ -94,6 +105,9 @@ class TranslationPipeline:
         close_publisher_on_stop: bool = True,
         latency_log: LatencyLog | None = None,
         translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY,
+        translate_max_retries: int = DEFAULT_TRANSLATE_MAX_RETRIES,
+        translate_retry_delay_ms: int = DEFAULT_TRANSLATE_RETRY_DELAY_MS,
+        translate_retry_timeout_sec: float = DEFAULT_TRANSLATE_RETRY_TIMEOUT_SEC,
         tts_prefetch: bool = True,
         tts_max_queue_wait_ms: int = 0,
     ) -> None:
@@ -139,6 +153,9 @@ class TranslationPipeline:
         # 그 태스크를 기다린 뒤 발행한다. 한 STT final 에 문장이 여러 개 들어와도
         # 뒷문장이 앞문장 번역 완료를 기다렸다가 "시작"하지 않는다.
         self._translate_slots = asyncio.Semaphore(max(1, translate_max_concurrency))
+        self._translate_max_retries = max(0, translate_max_retries)
+        self._translate_retry_delay = max(0.0, translate_retry_delay_ms / 1000)
+        self._translate_retry_timeout = max(0.1, translate_retry_timeout_sec)
         # 무제한이지만 실질 상한이 있다: 번역 중인 항목은 세마포어로, 번역이 끝난
         # 항목은 emitter 가 바로 소비한다(발행 단계는 TTS enqueue 타임아웃으로 유계).
         self._emit_q: asyncio.Queue[EmitItem] = asyncio.Queue()
@@ -402,21 +419,134 @@ class TranslationPipeline:
                 context = None
             work.t_rag = time.monotonic()
 
-            # 번역 실패가 위로 올라가면 세그먼트가 통째로 사라진다. 빈 결과로 두면
-            # _emit_locale 의 원문 폴백을 탄다.
-            try:
-                translations = await self._call_translate(work, context, hits)
-            except Exception:  # noqa: BLE001
-                logger.exception(
-                    "[%s] 번역 실패; 한국어 원문으로 폴백 (%s)",
-                    self._session_id,
-                    segment.segment_id,
-                )
-                translations = {}
+            # 번역 실패가 위로 올라가면 세그먼트가 통째로 사라진다. 재요청까지 실패하면
+            # 빈 결과로 두어 _emit_locale 의 원문 폴백을 탄다.
+            translations = await self._translate_with_retry(work, context, hits)
             work.t_translate = time.monotonic()
-            return translations or {}
+            return translations
         finally:
             self._translate_slots.release()
+
+    async def _translate_with_retry(
+        self,
+        work: _SegmentWork,
+        context: str | None,
+        hits: list[str],
+    ) -> dict[str, str]:
+        """번역 + 실패 시 재요청. 이미 확정된 로케일은 유지하고 빠진 로케일만 다시 채운다.
+
+        이 세그먼트가 재요청하는 동안에도 뒤 세그먼트들은 각자의 태스크에서 병렬로
+        번역된다. emitter 는 sequence 순서로 나가므로, 이 세그먼트가 (성공이든 원문
+        폴백이든) 끝나는 즉시 이미 준비된 뒤 세그먼트들이 이어서 나간다.
+        """
+        segment = work.segment
+        max_attempts = 1 + self._translate_max_retries
+        merged: dict[str, str] = {}
+        last_result: dict[str, str] = {}
+        reason = "empty"
+        error: BaseException | None = None
+        missing: list[str] = list(self._locales)
+        for attempt in range(1, max_attempts + 1):
+            work.translate_attempts = attempt
+            error = None
+            try:
+                if attempt == 1:
+                    # 첫 요청의 상한은 번역기 자체 타임아웃(TRANSLATE_TIMEOUT_SEC)이다.
+                    result = await self._call_translate(work, context, hits)
+                else:
+                    result = await asyncio.wait_for(
+                        self._call_translate(work, context, hits),
+                        timeout=self._translate_retry_timeout,
+                    )
+            except Exception as exc:  # noqa: BLE001 - 원인만 분류하고 폴백/재요청한다.
+                result = {}
+                error = exc
+            last_result = result or {}
+            for locale, text in last_result.items():
+                if text and text.strip() and not merged.get(locale):
+                    merged[locale] = text
+
+            missing = self._missing_locales(work, merged)
+            if not missing:
+                if attempt > 1:
+                    logger.info(
+                        "[%s] 번역 재요청 성공 (%s, %d번째 시도)",
+                        self._session_id,
+                        segment.segment_id,
+                        attempt,
+                    )
+                work.translate_failure = None
+                return merged
+
+            reason = self._classify_translate_failure(error)
+            retryable = self._is_retryable(error)
+            if attempt < max_attempts and retryable:
+                logger.warning(
+                    "[%s] 번역 실패 — %.0fms 후 재요청 (%s, reason=%s, locales=%s): %r",
+                    self._session_id,
+                    self._translate_retry_delay * 1000,
+                    segment.segment_id,
+                    reason,
+                    ",".join(missing),
+                    error,
+                )
+                await asyncio.sleep(self._translate_retry_delay)
+                continue
+            break
+
+        work.translate_failure = reason
+        logger.error(
+            "[%s] 번역 실패; 한국어 원문으로 폴백 (%s, reason=%s, attempts=%d, locales=%s): %r",
+            self._session_id,
+            segment.segment_id,
+            reason,
+            work.translate_attempts,
+            ",".join(missing),
+            error,
+            exc_info=error,
+        )
+        # 빈 문자열로 돌아온 로케일은 그대로 넘겨 TRANSLATION_EMPTY 로, 아예 없는
+        # 로케일은 TRANSLATION_MISSING 으로 구분되게 한다.
+        final = dict(last_result)
+        final.update(merged)
+        return final
+
+    def _missing_locales(self, work: _SegmentWork, merged: dict[str, str]) -> list[str]:
+        """아직 학생에게 나갈 번역이 없는 로케일 (스트리밍으로 이미 확정된 것은 제외)."""
+        missing: list[str] = []
+        for locale in self._locales:
+            future = work.locale_futures.get(locale)
+            if future is not None and future.done():
+                continue
+            if not (merged.get(locale) or "").strip():
+                missing.append(locale)
+        return missing
+
+    @staticmethod
+    def _status_code(error: BaseException | None) -> int | None:
+        status = getattr(error, "status_code", None)
+        return status if isinstance(status, int) else None
+
+    @classmethod
+    def _classify_translate_failure(cls, error: BaseException | None) -> str:
+        """로그·계측용 실패 원인. openai SDK 를 import 하지 않고 이름/상태 코드로 판정한다."""
+        if error is None:
+            return "empty"
+        name = type(error).__name__
+        if isinstance(error, (asyncio.TimeoutError, TimeoutError)) or "Timeout" in name:
+            return "timeout"
+        status = cls._status_code(error)
+        if status == 429 or name == "RateLimitError":
+            return "rate_limit"
+        if status is not None:
+            return f"http_{status}"
+        if "Connection" in name:
+            return "connection"
+        return name
+
+    @classmethod
+    def _is_retryable(cls, error: BaseException | None) -> bool:
+        return cls._status_code(error) not in _NON_RETRYABLE_STATUS
 
     async def _call_translate(
         self,
@@ -433,8 +563,11 @@ class TranslationPipeline:
             kwargs["glossary_hits"] = hits
         if "on_locale" in self._translate_kwargs:
             # 스트리밍 번역기: 로케일이 완성되는 즉시 그 로케일만 먼저 발행 대기열로.
-            kwargs["on_locale"] = lambda locale, text: self._resolve_locale(
-                work, locale, text, missing=False
+            # 빈 번역은 여기서 확정하지 않는다 — 재요청으로 채울 기회를 남긴다.
+            kwargs["on_locale"] = lambda locale, text: (
+                self._resolve_locale(work, locale, text, missing=False)
+                if text and text.strip()
+                else None
             )
         if "on_first_token" in self._translate_kwargs:
             kwargs["on_first_token"] = lambda: self._mark_first_token(work)
@@ -609,6 +742,9 @@ class TranslationPipeline:
             if getattr(self._rag, "latency_enabled", True)
             else None,
             translateMs=elapsed_ms(t_rag, t_translate),
+            # 재요청 포함 시도 횟수와 최종 실패 원인 (성공이면 None) — 실패율 집계용
+            translateAttempts=work.translate_attempts,
+            translateFailure=work.translate_failure,
             # 스트리밍 번역: 첫 토큰까지 / 첫 로케일 완성까지 / 로케일별 완성까지
             translateTtftMs=elapsed_ms(t_rag, work.t_first_token),
             firstLocaleMs=elapsed_ms(t_rag, t_first_ready),
