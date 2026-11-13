@@ -55,6 +55,10 @@ DEFAULT_TRANSLATE_TIMEOUT_SEC = 8.0
 # 동시에 진행할 번역(RAG + LLM) 호출 상한. 한 STT final 에 문장이 여러 개 들어와도
 # 뒷문장이 앞문장의 번역 완료를 기다리지 않게 한다. 자막 발행 순서는 그대로 보장된다.
 DEFAULT_TRANSLATE_MAX_CONCURRENCY = 3
+# 번역 실패(예외·빈 번역) 시 재요청. 재요청 중에도 뒤 문장은 병렬로 번역된다.
+DEFAULT_TRANSLATE_MAX_RETRIES = 1
+DEFAULT_TRANSLATE_RETRY_DELAY_MS = 300
+DEFAULT_TRANSLATE_RETRY_TIMEOUT_SEC = 4.0
 # 세션 시작 시 번역/TTS 클라이언트 예열 상한. 예열이 늘어져도 ready 가 이 이상 밀리지 않는다.
 DEFAULT_WARMUP_TIMEOUT_SEC = 3.0
 # 말하는 도중의 STT partial 을 주기적으로 번역해 학생 화면에 임시 자막(caption.partial)으로
@@ -177,6 +181,9 @@ class WorkerConfig:
     stt_low_confidence_warn: float = DEFAULT_STT_LOW_CONFIDENCE_WARN
     translate_timeout_sec: float = DEFAULT_TRANSLATE_TIMEOUT_SEC
     translate_max_concurrency: int = DEFAULT_TRANSLATE_MAX_CONCURRENCY
+    translate_max_retries: int = DEFAULT_TRANSLATE_MAX_RETRIES
+    translate_retry_delay_ms: int = DEFAULT_TRANSLATE_RETRY_DELAY_MS
+    translate_retry_timeout_sec: float = DEFAULT_TRANSLATE_RETRY_TIMEOUT_SEC
     # 번역 응답 스트리밍 — 로케일 하나가 완성되는 즉시 그 자막/TTS 를 먼저 낸다.
     translate_streaming: bool = True
     # 세션 시작 시 번역/TTS 연결 예열 (첫 세그먼트 지연 제거). 실패해도 세션은 시작된다.
@@ -391,6 +398,15 @@ def load_config() -> WorkerConfig:
         ),
         translate_max_concurrency=_load_int(
             "TRANSLATE_MAX_CONCURRENCY", DEFAULT_TRANSLATE_MAX_CONCURRENCY
+        ),
+        translate_max_retries=_load_int(
+            "TRANSLATE_MAX_RETRIES", DEFAULT_TRANSLATE_MAX_RETRIES, min_value=0
+        ),
+        translate_retry_delay_ms=_load_int(
+            "TRANSLATE_RETRY_DELAY_MS", DEFAULT_TRANSLATE_RETRY_DELAY_MS, min_value=0
+        ),
+        translate_retry_timeout_sec=_load_float(
+            "TRANSLATE_RETRY_TIMEOUT_SEC", DEFAULT_TRANSLATE_RETRY_TIMEOUT_SEC
         ),
         translate_streaming=_load_bool("TRANSLATE_STREAMING", True),
         warmup_enabled=_load_bool("WARMUP_ENABLED", True),

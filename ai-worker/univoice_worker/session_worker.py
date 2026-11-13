@@ -205,6 +205,9 @@ class SessionWorker:
                 tts_flush_timeout_sec=self._config.tts_flush_timeout_sec,
                 sequence_start=self._sequence_start,
                 translate_max_concurrency=self._config.translate_max_concurrency,
+                translate_max_retries=self._config.translate_max_retries,
+                translate_retry_delay_ms=self._config.translate_retry_delay_ms,
+                translate_retry_timeout_sec=self._config.translate_retry_timeout_sec,
                 tts_prefetch=self._config.tts_prefetch,
                 tts_max_queue_wait_ms=self._config.tts_max_queue_wait_ms,
             )
