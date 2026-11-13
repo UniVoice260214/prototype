@@ -11,9 +11,25 @@ TTS를 검증하기 위한 최소 스테이징 환경이다.
 - Redis: 세션 상태, Pub/Sub, Worker 상태
 - AI Worker: Azure Speech, 번역, TTS, LiveKit 처리
 - migrate/seed: 배포 시 migration과 초기 관리자 생성을 순서대로 실행
+- RAG: 전공 용어 문맥 검색
+  - `rag-indexer`: 데모 코퍼스 인덱스 1회 빌드. 임베딩 모델(KURE-v1) 다운로드를
+    포함해 첫 실행에 10~15분 걸린다. `rag-service`와 AI Worker는 이 작업이
+    끝난 뒤에 시작한다.
+  - `rag-indexer-daemon`: 업로드된 강의자료를 과목별 인덱스에 누적 인덱싱
+  - `rag-service`: 검색 API. AI Worker가 세그먼트마다 최대 `RAG_TIMEOUT_SEC`
+    만큼 기다린다
 
-PostgreSQL, Redis, NestJS 포트는 외부에 공개하지 않는다. 외부에서는
+PostgreSQL, Redis, NestJS, RAG 포트는 외부에 공개하지 않는다. 외부에서는
 Caddy의 80/443 포트만 접근한다.
+
+### 강의자료 익명 읽기 (`AZURE_BLOB_PUBLIC_ACCESS`)
+
+`rag-indexer-daemon`은 업로드된 자료를 URL로 직접 내려받는다. 그래서 업로드
+자료를 RAG에 인덱싱하려면 `.env.staging`에서 `AZURE_BLOB_PUBLIC_ACCESS=true`와
+`AZURE_BLOB_PUBLIC_BASE_URL`(https)을 설정해야 한다. 켜면 **URL을 아는 누구나
+로그인 없이 자료를 받을 수 있다.** compose 기본값은 `false`이며, 운영 전환 전에
+SAS 또는 인증된 다운로드 API로 바꿔야 한다. 끄더라도 데모 코퍼스 기반 RAG는
+동작한다.
 
 ## 준비 사항
 
@@ -107,6 +123,19 @@ docker compose --env-file .env.staging -f docker-compose.staging.yml up -d --bui
 
 Migration과 seed는 멱등 실행된다. seed는 기존 관리자 비밀번호를
 덮어쓰지 않는다.
+
+서버에서 `docker-compose.staging.yml`을 직접 고치지 않는다. 서버마다 다른 값은
+모두 `.env.staging`에 두고, compose 변경은 저장소에 커밋한 뒤 `git pull`로
+받는다. 서버에서 고친 compose가 있으면 `git pull`이 거부된다.
+
+지연 튜닝 값(`STT_SEGMENTATION_SILENCE_MS`, `CAPTION_DRAFT_ENABLED`,
+`TTS_SPEAKING_RATE` 등)과 계측(`LATENCY_LOG_PATH`)도 `.env.staging`으로
+조정한다. 값과 측정 결과는 `docs/latency-results-2026-09-26.md`를 따른다.
+코드 변경 없이 값만 바꿨다면 빌드 없이 워커만 다시 만든다.
+
+```bash
+docker compose --env-file .env.staging -f docker-compose.staging.yml up -d ai-worker
+```
 
 ## 롤백
 

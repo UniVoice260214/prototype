@@ -154,3 +154,83 @@ def test_korean_ending_connective_jiman_eun_is_not_split() -> None:
     drafts = segmenter.push(final("신체적으로 보면 똑같은 4학년이지만은 한 집에서는 맏이일 수가 있고"))
 
     assert drafts == []
+
+
+# ── 연결어미(절) 분리 — SEGMENT_SPLIT_KOREAN_CLAUSES ─────────────────────
+# 운영과 같게 종결어미 분리를 켠 상태에서 검증한다.
+
+
+def clause_segmenter(**kwargs) -> Segmenter:
+    return Segmenter(split_korean_endings=True, split_korean_clauses=True, **kwargs)
+
+
+def test_korean_clause_split_is_off_by_default() -> None:
+    segmenter = Segmenter(split_korean_endings=True)
+
+    drafts = segmenter.push(final("데이터가 충분히 많은 경우에는 학습이 잘 되는데"))
+
+    assert drafts == []
+
+
+def test_final_ending_at_connective_is_emitted_without_waiting() -> None:
+    # 교수가 "-는데" 에서 잠깐 쉬어 STT final 이 끊겼다 — idle flush 를 기다리지 않는다.
+    segmenter = clause_segmenter()
+
+    drafts = segmenter.push(final("데이터가 충분히 많은 경우에는 학습이 잘 되는데"))
+
+    assert [d.text for d in drafts] == ["데이터가 충분히 많은 경우에는 학습이 잘 되는데"]
+    assert segmenter.flush() == []
+
+
+def test_comma_connective_splits_and_keeps_unfinished_clause_buffered() -> None:
+    segmenter = clause_segmenter()
+
+    drafts = segmenter.push(
+        final("입력 데이터의 분포가 학습 때와 크게 달라지면, 모델의 성능이 떨어질 수 있어서")
+    )
+
+    assert [d.text for d in drafts] == ["입력 데이터의 분포가 학습 때와 크게 달라지면,"]
+    # 쉼표 없는 "-서" 는 오탐이 많아 경계로 보지 않는다.
+    assert [d.text for d in segmenter.flush()] == ["모델의 성능이 떨어질 수 있어서"]
+
+
+def test_short_clause_is_merged_with_the_next_one() -> None:
+    segmenter = clause_segmenter()
+
+    drafts = segmenter.push(final("그래서, 이 부분은 시험에 꼭 나오지만"))
+
+    assert [d.text for d in drafts] == ["그래서, 이 부분은 시험에 꼭 나오지만"]
+
+
+def test_clause_split_does_not_break_jiman_eun() -> None:
+    segmenter = clause_segmenter()
+
+    drafts = segmenter.push(final("신체적으로 보면 똑같은 4학년이지만은 한 집에서는 맏이일 수가 있고"))
+
+    assert drafts == []
+
+
+def test_sentence_endings_take_precedence_and_short_tail_waits() -> None:
+    segmenter = clause_segmenter()
+
+    drafts = segmenter.push(final("오늘은 미토콘드리아에 대해 배우겠습니다 다음 주제로 넘어가는데"))
+
+    assert [d.text for d in drafts] == ["오늘은 미토콘드리아에 대해 배우겠습니다"]
+    assert [d.text for d in segmenter.flush()] == ["다음 주제로 넘어가는데"]
+
+
+def test_clause_min_chars_is_configurable() -> None:
+    segmenter = clause_segmenter(korean_clause_min_chars=5)
+
+    drafts = segmenter.push(final("다음 주제로 넘어가는데"))
+
+    assert [d.text for d in drafts] == ["다음 주제로 넘어가는데"]
+
+
+def test_clause_boundary_across_merged_finals() -> None:
+    segmenter = clause_segmenter()
+
+    assert segmenter.push(final("데이터가 충분히 많으면,")) == []
+    drafts = segmenter.push(final("학습이 잘 되는데"))
+
+    assert [d.text for d in drafts] == ["데이터가 충분히 많으면, 학습이 잘 되는데"]

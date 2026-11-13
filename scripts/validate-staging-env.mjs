@@ -55,6 +55,9 @@ requireValue('LIVEKIT_API_SECRET');
 requireValue('AZURE_SPEECH_KEY');
 requireValue('AZURE_SPEECH_REGION');
 requireValue('AZURE_BLOB_CONNECTION_STRING');
+if (values.AZURE_BLOB_PUBLIC_ACCESS?.trim() === 'true') {
+  requireValue('AZURE_BLOB_PUBLIC_BASE_URL', { pattern: /^https:\/\/.+/i });
+}
 
 const provider = requireValue('TRANSLATE_PROVIDER');
 if (provider === 'openai') {

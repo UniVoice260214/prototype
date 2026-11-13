@@ -18,6 +18,7 @@ except ImportError:  # pragma: no cover
 from .audio_publisher import LocaleAudioPublisher
 from .config import WorkerConfig
 from .dedupe import InMemoryDedupeStore, RedisDedupeStore
+from .draft_caption import DraftCaptioner, draft_payload
 from .glossary import GlossaryEntry
 from .lexicon import MajorLexicon, build_phrase_list
 from .models import AudioStatus, SpeechSegment, SttFinalResult, SttPartialResult, audio_status_payload
@@ -115,6 +116,7 @@ class SessionWorker:
         self._audio_task: asyncio.Task[None] | None = None
         self._publisher: Any | None = None
         self._pipeline: Any | None = None
+        self._draft: DraftCaptioner | None = None
         self._current_track: Any | None = None
         self._current_track_key: str | None = None
         self._current_professor_identity: str | None = None
@@ -151,6 +153,8 @@ class SessionWorker:
                 max_retries=self._config.tts_max_retries,
                 retry_base_delay_ms=self._config.tts_retry_base_delay_ms,
                 max_concurrency=self._config.tts_max_concurrency,
+                streaming=self._config.tts_streaming,
+                speaking_rate=self._config.tts_speaking_rate,
             )
             try:
                 dedupe_store = RedisDedupeStore.from_url(
@@ -175,6 +179,8 @@ class SessionWorker:
                     idle_flush_ms=self._config.segment_idle_flush_ms,
                     min_chars=self._config.segment_min_chars,
                     split_korean_endings=self._config.segment_split_korean_endings,
+                    split_korean_clauses=self._config.segment_split_korean_clauses,
+                    korean_clause_min_chars=self._config.segment_korean_clause_min_chars,
                 ),
                 rag=self._rag,
                 translator=translator,
@@ -198,8 +204,22 @@ class SessionWorker:
                 flush_timeout_sec=self._config.pipeline_flush_timeout_sec,
                 tts_flush_timeout_sec=self._config.tts_flush_timeout_sec,
                 sequence_start=self._sequence_start,
+                translate_max_concurrency=self._config.translate_max_concurrency,
+                translate_max_retries=self._config.translate_max_retries,
+                translate_retry_delay_ms=self._config.translate_retry_delay_ms,
+                translate_retry_timeout_sec=self._config.translate_retry_timeout_sec,
+                tts_prefetch=self._config.tts_prefetch,
+                tts_max_queue_wait_ms=self._config.tts_max_queue_wait_ms,
             )
             await self._pipeline.start()
+            if self._config.caption_draft_enabled:
+                self._draft = DraftCaptioner(
+                    translate=translator.translate_draft,
+                    publish=self._publish_draft,
+                    interval_ms=self._config.caption_draft_interval_ms,
+                    min_chars=self._config.caption_draft_min_chars,
+                )
+            await self._warmup_clients(translator, tts)
             await self._set_worker_status("ready")
             logger.info("[%s] pipeline ready (locales=%s)", self._session_id, self._target_locales)
 
@@ -211,6 +231,51 @@ class SessionWorker:
             raise
         finally:
             await self._cleanup()
+
+    async def _warmup_clients(self, translator: Any, tts: Any) -> None:
+        """번역/TTS 클라이언트를 병렬로 예열한다. 실패·지연은 로그만 남기고 넘어간다.
+
+        예열이 없으면 첫 세그먼트가 TLS 연결 수립과 서비스 콜드스타트를 떠안아
+        유독 느리다 (실측 +0.9~1초). 세션 시작을 막으면 안 되므로 상한을 둔다.
+        """
+        if not self._config.warmup_enabled:
+            return
+        jobs: dict[str, Awaitable[Any]] = {}
+        translator_warmup = getattr(translator, "warmup", None)
+        if translator_warmup is not None:
+            jobs["translator"] = translator_warmup()
+        tts_warmup = getattr(tts, "warmup", None)
+        if tts_warmup is not None:
+            jobs["tts"] = tts_warmup(list(self._target_locales))
+        if not jobs:
+            return
+
+        started = time.monotonic()
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*jobs.values(), return_exceptions=True),
+                timeout=self._config.warmup_timeout_sec,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                "[%s] 클라이언트 예열이 %.1f초 내 끝나지 않아 건너뛴다",
+                self._session_id,
+                self._config.warmup_timeout_sec,
+            )
+            return
+        except Exception:  # noqa: BLE001 - 예열은 어떤 이유로도 세션을 막지 않는다.
+            logger.exception("[%s] 클라이언트 예열 실패", self._session_id)
+            return
+        for name, result in zip(jobs, results):
+            if isinstance(result, BaseException):
+                logger.warning(
+                    "[%s] %s 예열 실패 (세션은 계속): %r", self._session_id, name, result
+                )
+        logger.info(
+            "[%s] 클라이언트 예열 완료 (%.0fms)",
+            self._session_id,
+            (time.monotonic() - started) * 1000,
+        )
 
     async def stop(self) -> None:
         if self._cleaned_up:
@@ -568,6 +633,8 @@ class SessionWorker:
         if self._lexicon is not None:
             text, _ = self._lexicon.correct_for_display(text)
         await self._publish_stt("stt.partial", text, reliable=False)
+        if self._draft is not None:
+            self._draft.on_partial(text)
 
     async def _on_final(self, result: SttFinalResult) -> None:
         # 인식이 실제로 돌아왔다는 증거가 있을 때만 재연결 카운터를 리셋한다.
@@ -579,6 +646,8 @@ class SessionWorker:
                 self._stt_reconnect_attempts,
             )
             self._stt_reconnect_attempts = 0
+        if self._draft is not None:
+            self._draft.on_final()
         if result.confidence is not None and result.confidence < self._config.stt_low_confidence_warn:
             logger.warning(
                 "[%s] 낮은 STT 신뢰도 %.3f: %r",
@@ -664,6 +733,15 @@ class SessionWorker:
         except Exception:  # noqa: BLE001
             logger.exception("[%s] caption publish failed (%s)", self._session_id, locale)
 
+    async def _publish_draft(self, locale: str, text: str, source: str, seq: int) -> None:
+        """임시 자막. 곧 확정 자막으로 대체되므로 비신뢰 채널로 보낸다."""
+        payload = json.dumps(
+            draft_payload(self._session_id, locale, text, source, seq), ensure_ascii=False
+        ).encode("utf-8")
+        await self._room.local_participant.publish_data(
+            payload, reliable=False, topic=CAPTION_TOPIC
+        )
+
     async def _publish_transcript(
         self,
         segment: SpeechSegment,
@@ -745,6 +823,9 @@ class SessionWorker:
                 except Exception as exc:  # noqa: BLE001
                     errors.append(f"{label}: {exc}")
                     logger.exception("[%s] %s cleanup failed", self._session_id, label)
+
+            if self._draft is not None:
+                await _bounded("draft", self._draft.aclose(), 2)
 
             if self._pipeline is not None:
                 await _bounded("pipeline", self._pipeline.flush_and_stop(), 10)

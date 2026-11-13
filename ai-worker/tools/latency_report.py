@@ -24,22 +24,30 @@ CAPTION_STAGES = [
     ("sttMs", "STT 확정", "발화 종료 → STT final 수신 (침묵 대기 + 인식 + 왕복)"),
     ("segmentMs", "세그먼트 대기", "STT final → 번역 단위 확정 (문장 경계/idle flush)"),
     ("queueMs", "큐 대기", "세그먼트 큐에서 대기"),
+    ("translateSlotMs", "번역 슬롯 대기", "TRANSLATE_MAX_CONCURRENCY 상한에 걸려 대기"),
     ("glossaryMs", "용어 탐지", "glossary 히트 검사"),
     ("ragMs", "RAG 검색", "전공 문맥 검색 (타임아웃 시 잘림)"),
-    ("translateMs", "번역", "번역 LLM 호출"),
-    ("emitMs", "자막 발행", "LiveKit data 발행 + TTS 큐 적재"),
+    ("translateTtftMs", "번역 첫 토큰", "번역 LLM 스트리밍 첫 토큰 (스트리밍일 때만)"),
+    ("firstLocaleMs", "첫 로케일 완성", "번역 시작 → 가장 먼저 완성된 로케일"),
+    ("translateMs", "번역", "번역 LLM 호출 전체 (모든 로케일)"),
+    ("orderWaitMs", "순서 대기", "번역은 나왔지만 앞 세그먼트 발행을 기다림"),
+    ("emitMs", "자막 발행", "LiveKit data 발행 + TTS 큐 적재 (마지막 로케일)"),
 ]
 CAPTION_TOTALS = [
     ("workerMs", "워커 내부 합", "STT final 수신 → 자막 발행"),
-    ("e2eCaptionMs", "E2E 자막", "발화 종료 → 자막 발행"),
+    ("e2eFirstCaptionMs", "E2E 첫 자막", "발화 종료 → 첫 로케일 자막 발행"),
+    ("e2eCaptionMs", "E2E 자막", "발화 종료 → 모든 로케일 자막 발행"),
 ]
 AUDIO_STAGES = [
     ("ttsQueueMs", "TTS 큐 대기", "TTS 큐 적재 → 합성 시작"),
-    ("ttsSynthMs", "TTS 합성", "Azure Neural TTS 합성"),
-    ("ttsPublishMs", "오디오 발행", "LiveKit 오디오 트랙 push"),
+    ("ttsFirstChunkMs", "TTS 첫 청크", "합성 시작 → 첫 오디오 청크 (스트리밍일 때)"),
+    ("ttsPlayWaitMs", "재생 대기", "첫 청크 준비 후 앞 문장 재생 종료를 기다림"),
+    ("ttsSynthMs", "TTS 합성", "Azure Neural TTS 합성 전체"),
+    ("ttsPublishMs", "오디오 발행", "합성 종료 → LiveKit 오디오 트랙 push 완료"),
 ]
 AUDIO_TOTALS = [
-    ("e2eAudioMs", "E2E 음성", "발화 종료 → 음성 발행"),
+    ("e2eFirstAudioMs", "E2E 첫 음성", "발화 종료 → 첫 오디오 청크 발행"),
+    ("e2eAudioMs", "E2E 음성", "발화 종료 → 음성 발행 완료"),
 ]
 
 
@@ -156,9 +164,12 @@ def main() -> int:
 
     records = load(args.input)
     captions = [r for r in records if r.get("kind") == "caption"]
-    audios = [r for r in records if r.get("kind") == "audio"]
+    all_audios = [r for r in records if r.get("kind") == "audio"]
+    # 재생이 밀려 건너뛴 음성(TTS_MAX_QUEUE_WAIT_MS)은 구간 값이 없으므로 표에서 뺀다.
+    audios = [r for r in all_audios if not r.get("skipped")]
+    skipped_audios = len(all_audios) - len(audios)
 
-    if not captions and not audios:
+    if not captions and not all_audios:
         print("집계할 레코드가 없다. LATENCY_LOG_PATH 를 켜고 세션을 돌렸는지 확인할 것.", file=sys.stderr)
         return 1
 
@@ -166,7 +177,8 @@ def main() -> int:
         "# UniVoice 실시간 지연 실측",
         "",
         f"- 입력: `{args.input}`",
-        f"- 자막 세그먼트 {len(captions)}건 / 음성 잡 {len(audios)}건",
+        f"- 자막 세그먼트 {len(captions)}건 / 음성 잡 {len(audios)}건"
+        + (f" (밀려서 건너뜀 {skipped_audios}건 별도)" if skipped_audios else ""),
         "- 시간 기준: `time.monotonic()`, 워커 프로세스 내부 계측",
         "- \"발화 종료\"는 STT 오디오 타임라인(offset+duration)으로 역산한 시각이다.",
         "  학생 단말의 렌더링·재생 지연은 포함하지 않는다.",
